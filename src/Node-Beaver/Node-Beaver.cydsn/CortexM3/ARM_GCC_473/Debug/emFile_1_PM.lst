@@ -1,0 +1,800 @@
+ARM GAS  C:\Users\Jonathan\AppData\Local\Temp\ccVCH7tc.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"emFile_1_PM.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.emFile_1_SaveConfig,"ax",%progbits
+  19              		.align	2
+  20              		.global	emFile_1_SaveConfig
+  21              		.thumb
+  22              		.thumb_func
+  23              		.type	emFile_1_SaveConfig, %function
+  24              	emFile_1_SaveConfig:
+  25              	.LFB56:
+  26              		.file 1 ".\\Generated_Source\\PSoC5\\emFile_1_PM.c"
+   1:.\Generated_Source\PSoC5/emFile_1_PM.c **** /*******************************************************************************
+   2:.\Generated_Source\PSoC5/emFile_1_PM.c **** * File Name: emFile_1_PM.c
+   3:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Version 1.20
+   4:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+   5:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Description:
+   6:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  This file provides the API source code for Power Management of the emFile
+   7:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  component.
+   8:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+   9:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Note:
+  10:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+  11:.\Generated_Source\PSoC5/emFile_1_PM.c **** *******************************************************************************
+  12:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Copyright 2011-2012, Cypress Semiconductor Corporation.  All rights reserved.
+  13:.\Generated_Source\PSoC5/emFile_1_PM.c **** * You may use this file only in accordance with the license, terms, conditions,
+  14:.\Generated_Source\PSoC5/emFile_1_PM.c **** * disclaimers, and limitations in the end user license agreement accompanying
+  15:.\Generated_Source\PSoC5/emFile_1_PM.c **** * the software package with which this file was provided.
+  16:.\Generated_Source\PSoC5/emFile_1_PM.c **** *******************************************************************************/
+  17:.\Generated_Source\PSoC5/emFile_1_PM.c **** 
+  18:.\Generated_Source\PSoC5/emFile_1_PM.c **** #include <project.h>
+  19:.\Generated_Source\PSoC5/emFile_1_PM.c **** #include "emFile_1.h"
+  20:.\Generated_Source\PSoC5/emFile_1_PM.c **** 
+  21:.\Generated_Source\PSoC5/emFile_1_PM.c **** 
+  22:.\Generated_Source\PSoC5/emFile_1_PM.c **** /*******************************************************************************
+  23:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Function Name: emFile_1_SaveConfig
+  24:.\Generated_Source\PSoC5/emFile_1_PM.c **** ********************************************************************************
+  25:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+  26:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Summary:
+  27:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  Saves SPI Masters configuration.
+  28:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+  29:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Parameters:
+  30:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  None
+  31:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+ARM GAS  C:\Users\Jonathan\AppData\Local\Temp\ccVCH7tc.s 			page 2
+
+
+  32:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Return:
+  33:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  None
+  34:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+  35:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Reentrant:
+  36:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  No
+  37:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+  38:.\Generated_Source\PSoC5/emFile_1_PM.c **** *******************************************************************************/
+  39:.\Generated_Source\PSoC5/emFile_1_PM.c **** void emFile_1_SaveConfig(void) 
+  40:.\Generated_Source\PSoC5/emFile_1_PM.c **** {
+  27              		.loc 1 40 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 1, uses_anonymous_args = 0
+  31 0000 80B5     		push	{r7, lr}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 7, -8
+  35              		.cfi_offset 14, -4
+  36 0002 00AF     		add	r7, sp, #0
+  37              	.LCFI1:
+  38              		.cfi_def_cfa_register 7
+  41:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #if(emFile_1_NUMBER_SD_CARDS == 4u)
+  42:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI0_SaveConfig();
+  43:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI1_SaveConfig();
+  44:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI2_SaveConfig();
+  45:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI3_SaveConfig();
+  46:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #elif(emFile_1_NUMBER_SD_CARDS == 3u)
+  47:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI0_SaveConfig();
+  48:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI1_SaveConfig();
+  49:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI2_SaveConfig();
+  50:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #elif(emFile_1_NUMBER_SD_CARDS == 2u)
+  51:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI0_SaveConfig();
+  52:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI1_SaveConfig();
+  53:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #else
+  54:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI0_SaveConfig();
+  39              		.loc 1 54 0
+  40 0004 FFF7FEFF 		bl	emFile_1_SPI0_SaveConfig
+  55:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #endif /* (emFile_1_NUMBER_SD_CARDS == 4u) */
+  56:.\Generated_Source\PSoC5/emFile_1_PM.c **** }
+  41              		.loc 1 56 0
+  42 0008 80BD     		pop	{r7, pc}
+  43              		.cfi_endproc
+  44              	.LFE56:
+  45              		.size	emFile_1_SaveConfig, .-emFile_1_SaveConfig
+  46 000a 00BF     		.section	.text.emFile_1_RestoreConfig,"ax",%progbits
+  47              		.align	2
+  48              		.global	emFile_1_RestoreConfig
+  49              		.thumb
+  50              		.thumb_func
+  51              		.type	emFile_1_RestoreConfig, %function
+  52              	emFile_1_RestoreConfig:
+  53              	.LFB57:
+  57:.\Generated_Source\PSoC5/emFile_1_PM.c **** 
+  58:.\Generated_Source\PSoC5/emFile_1_PM.c **** 
+  59:.\Generated_Source\PSoC5/emFile_1_PM.c **** /*******************************************************************************
+  60:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Function Name: emFile_1_RestoreConfig
+  61:.\Generated_Source\PSoC5/emFile_1_PM.c **** ********************************************************************************
+ARM GAS  C:\Users\Jonathan\AppData\Local\Temp\ccVCH7tc.s 			page 3
+
+
+  62:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+  63:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Summary:
+  64:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  Restores SPI Masters configuration.
+  65:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+  66:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Parameters:
+  67:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  None
+  68:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+  69:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Return:
+  70:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  None
+  71:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+  72:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Side Effects:
+  73:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  If this API is called without first calling SaveConfig then in the following
+  74:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  registers will be default values from Customizer:
+  75:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+  76:.\Generated_Source\PSoC5/emFile_1_PM.c **** *******************************************************************************/
+  77:.\Generated_Source\PSoC5/emFile_1_PM.c **** void emFile_1_RestoreConfig(void) 
+  78:.\Generated_Source\PSoC5/emFile_1_PM.c **** {
+  54              		.loc 1 78 0
+  55              		.cfi_startproc
+  56              		@ args = 0, pretend = 0, frame = 0
+  57              		@ frame_needed = 1, uses_anonymous_args = 0
+  58 0000 80B5     		push	{r7, lr}
+  59              	.LCFI2:
+  60              		.cfi_def_cfa_offset 8
+  61              		.cfi_offset 7, -8
+  62              		.cfi_offset 14, -4
+  63 0002 00AF     		add	r7, sp, #0
+  64              	.LCFI3:
+  65              		.cfi_def_cfa_register 7
+  79:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #if(emFile_1_NUMBER_SD_CARDS == 4u)
+  80:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI0_RestoreConfig();
+  81:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI1_RestoreConfig();
+  82:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI2_RestoreConfig();
+  83:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI3_RestoreConfig();
+  84:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #elif(emFile_1_NUMBER_SD_CARDS == 3u)
+  85:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI0_SaveConfig();
+  86:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI1_SaveConfig();
+  87:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI2_SaveConfig();
+  88:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #elif(emFile_1_NUMBER_SD_CARDS == 2u)
+  89:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI0_SaveConfig();
+  90:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI1_SaveConfig();
+  91:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #else
+  92:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI0_SaveConfig();
+  66              		.loc 1 92 0
+  67 0004 FFF7FEFF 		bl	emFile_1_SPI0_SaveConfig
+  93:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #endif /* (emFile_1_NUMBER_SD_CARDS == 4u) */
+  94:.\Generated_Source\PSoC5/emFile_1_PM.c **** }
+  68              		.loc 1 94 0
+  69 0008 80BD     		pop	{r7, pc}
+  70              		.cfi_endproc
+  71              	.LFE57:
+  72              		.size	emFile_1_RestoreConfig, .-emFile_1_RestoreConfig
+  73 000a 00BF     		.section	.text.emFile_1_Sleep,"ax",%progbits
+  74              		.align	2
+  75              		.global	emFile_1_Sleep
+  76              		.thumb
+  77              		.thumb_func
+ARM GAS  C:\Users\Jonathan\AppData\Local\Temp\ccVCH7tc.s 			page 4
+
+
+  78              		.type	emFile_1_Sleep, %function
+  79              	emFile_1_Sleep:
+  80              	.LFB58:
+  95:.\Generated_Source\PSoC5/emFile_1_PM.c **** 
+  96:.\Generated_Source\PSoC5/emFile_1_PM.c **** 
+  97:.\Generated_Source\PSoC5/emFile_1_PM.c **** /*******************************************************************************
+  98:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Function Name: emFile_1_Sleep
+  99:.\Generated_Source\PSoC5/emFile_1_PM.c **** ********************************************************************************
+ 100:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+ 101:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Summary:
+ 102:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  Prepare emFile to go to sleep.
+ 103:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+ 104:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Parameters:
+ 105:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  None
+ 106:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+ 107:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Return:
+ 108:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  None
+ 109:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+ 110:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Reentrant:
+ 111:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  No
+ 112:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+ 113:.\Generated_Source\PSoC5/emFile_1_PM.c **** *******************************************************************************/
+ 114:.\Generated_Source\PSoC5/emFile_1_PM.c **** void emFile_1_Sleep(void) 
+ 115:.\Generated_Source\PSoC5/emFile_1_PM.c **** {
+  81              		.loc 1 115 0
+  82              		.cfi_startproc
+  83              		@ args = 0, pretend = 0, frame = 0
+  84              		@ frame_needed = 1, uses_anonymous_args = 0
+  85 0000 80B5     		push	{r7, lr}
+  86              	.LCFI4:
+  87              		.cfi_def_cfa_offset 8
+  88              		.cfi_offset 7, -8
+  89              		.cfi_offset 14, -4
+  90 0002 00AF     		add	r7, sp, #0
+  91              	.LCFI5:
+  92              		.cfi_def_cfa_register 7
+ 116:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #if(emFile_1_NUMBER_SD_CARDS == 4u)
+ 117:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI0_Sleep();
+ 118:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI1_Sleep();
+ 119:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI2_Sleep();
+ 120:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI3_Sleep();
+ 121:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #elif(emFile_1_NUMBER_SD_CARDS == 3u)
+ 122:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI0_Sleep();
+ 123:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI1_Sleep();
+ 124:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI2_Sleep();
+ 125:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #elif(emFile_1_NUMBER_SD_CARDS == 2u)
+ 126:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI0_Sleep();
+ 127:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI1_Sleep();
+ 128:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #else
+ 129:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI0_Sleep();
+  93              		.loc 1 129 0
+  94 0004 FFF7FEFF 		bl	emFile_1_SPI0_Sleep
+ 130:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #endif /* (emFile_1_NUMBER_SD_CARDS == 4u) */
+ 131:.\Generated_Source\PSoC5/emFile_1_PM.c **** }
+  95              		.loc 1 131 0
+  96 0008 80BD     		pop	{r7, pc}
+  97              		.cfi_endproc
+ARM GAS  C:\Users\Jonathan\AppData\Local\Temp\ccVCH7tc.s 			page 5
+
+
+  98              	.LFE58:
+  99              		.size	emFile_1_Sleep, .-emFile_1_Sleep
+ 100 000a 00BF     		.section	.text.emFile_1_Wakeup,"ax",%progbits
+ 101              		.align	2
+ 102              		.global	emFile_1_Wakeup
+ 103              		.thumb
+ 104              		.thumb_func
+ 105              		.type	emFile_1_Wakeup, %function
+ 106              	emFile_1_Wakeup:
+ 107              	.LFB59:
+ 132:.\Generated_Source\PSoC5/emFile_1_PM.c **** 
+ 133:.\Generated_Source\PSoC5/emFile_1_PM.c **** 
+ 134:.\Generated_Source\PSoC5/emFile_1_PM.c **** /*******************************************************************************
+ 135:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Function Name: emFile_1_Wakeup
+ 136:.\Generated_Source\PSoC5/emFile_1_PM.c **** ********************************************************************************
+ 137:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+ 138:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Summary:
+ 139:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  Prepare SPIM Components to wake up.
+ 140:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+ 141:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Parameters:
+ 142:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  None
+ 143:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+ 144:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Return:
+ 145:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  None
+ 146:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+ 147:.\Generated_Source\PSoC5/emFile_1_PM.c **** * Reentrant:
+ 148:.\Generated_Source\PSoC5/emFile_1_PM.c **** *  No
+ 149:.\Generated_Source\PSoC5/emFile_1_PM.c **** *
+ 150:.\Generated_Source\PSoC5/emFile_1_PM.c **** *******************************************************************************/
+ 151:.\Generated_Source\PSoC5/emFile_1_PM.c **** void emFile_1_Wakeup(void) 
+ 152:.\Generated_Source\PSoC5/emFile_1_PM.c **** {
+ 108              		.loc 1 152 0
+ 109              		.cfi_startproc
+ 110              		@ args = 0, pretend = 0, frame = 0
+ 111              		@ frame_needed = 1, uses_anonymous_args = 0
+ 112 0000 80B5     		push	{r7, lr}
+ 113              	.LCFI6:
+ 114              		.cfi_def_cfa_offset 8
+ 115              		.cfi_offset 7, -8
+ 116              		.cfi_offset 14, -4
+ 117 0002 00AF     		add	r7, sp, #0
+ 118              	.LCFI7:
+ 119              		.cfi_def_cfa_register 7
+ 153:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #if(emFile_1_NUMBER_SD_CARDS == 4u)
+ 154:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI0_Wakeup();
+ 155:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI1_Wakeup();
+ 156:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI2_Wakeup();
+ 157:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI3_Wakeup();
+ 158:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #elif(emFile_1_NUMBER_SD_CARDS == 3u)
+ 159:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI0_Wakeup();
+ 160:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI1_Wakeup();
+ 161:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI2_Wakeup();
+ 162:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #elif(emFile_1_NUMBER_SD_CARDS == 2u)
+ 163:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI0_Wakeup();
+ 164:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI1_Wakeup();
+ 165:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #else
+ 166:.\Generated_Source\PSoC5/emFile_1_PM.c ****         emFile_1_SPI0_Wakeup();
+ARM GAS  C:\Users\Jonathan\AppData\Local\Temp\ccVCH7tc.s 			page 6
+
+
+ 120              		.loc 1 166 0
+ 121 0004 FFF7FEFF 		bl	emFile_1_SPI0_Wakeup
+ 167:.\Generated_Source\PSoC5/emFile_1_PM.c ****     #endif /* (emFile_1_NUMBER_SD_CARDS == 4u) */
+ 168:.\Generated_Source\PSoC5/emFile_1_PM.c **** }
+ 122              		.loc 1 168 0
+ 123 0008 80BD     		pop	{r7, pc}
+ 124              		.cfi_endproc
+ 125              	.LFE59:
+ 126              		.size	emFile_1_Wakeup, .-emFile_1_Wakeup
+ 127 000a 00BF     		.text
+ 128              	.Letext0:
+ 129              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\3.0\\psoc creator\\import\\gnu_cs\\arm\\4
+ 130              		.file 3 "./Generated_Source/PSoC5/core_cm3.h"
+ 131              		.section	.debug_info,"",%progbits
+ 132              	.Ldebug_info0:
+ 133 0000 FE000000 		.4byte	0xfe
+ 134 0004 0200     		.2byte	0x2
+ 135 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 136 000a 04       		.byte	0x4
+ 137 000b 01       		.uleb128 0x1
+ 138 000c 55000000 		.4byte	.LASF17
+ 139 0010 01       		.byte	0x1
+ 140 0011 2E000000 		.4byte	.LASF18
+ 141 0015 4E010000 		.4byte	.LASF19
+ 142 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 143 001d 00000000 		.4byte	0
+ 144 0021 00000000 		.4byte	0
+ 145 0025 00000000 		.4byte	.Ldebug_line0
+ 146 0029 02       		.uleb128 0x2
+ 147 002a 01       		.byte	0x1
+ 148 002b 06       		.byte	0x6
+ 149 002c 2A010000 		.4byte	.LASF0
+ 150 0030 02       		.uleb128 0x2
+ 151 0031 01       		.byte	0x1
+ 152 0032 08       		.byte	0x8
+ 153 0033 C7000000 		.4byte	.LASF1
+ 154 0037 02       		.uleb128 0x2
+ 155 0038 02       		.byte	0x2
+ 156 0039 05       		.byte	0x5
+ 157 003a 3C010000 		.4byte	.LASF2
+ 158 003e 02       		.uleb128 0x2
+ 159 003f 02       		.byte	0x2
+ 160 0040 07       		.byte	0x7
+ 161 0041 0E000000 		.4byte	.LASF3
+ 162 0045 03       		.uleb128 0x3
+ 163 0046 46010000 		.4byte	.LASF20
+ 164 004a 02       		.byte	0x2
+ 165 004b 4F       		.byte	0x4f
+ 166 004c 50000000 		.4byte	0x50
+ 167 0050 02       		.uleb128 0x2
+ 168 0051 04       		.byte	0x4
+ 169 0052 05       		.byte	0x5
+ 170 0053 F9000000 		.4byte	.LASF4
+ 171 0057 02       		.uleb128 0x2
+ 172 0058 04       		.byte	0x4
+ 173 0059 07       		.byte	0x7
+ 174 005a 9E000000 		.4byte	.LASF5
+ARM GAS  C:\Users\Jonathan\AppData\Local\Temp\ccVCH7tc.s 			page 7
+
+
+ 175 005e 02       		.uleb128 0x2
+ 176 005f 08       		.byte	0x8
+ 177 0060 05       		.byte	0x5
+ 178 0061 00000000 		.4byte	.LASF6
+ 179 0065 02       		.uleb128 0x2
+ 180 0066 08       		.byte	0x8
+ 181 0067 07       		.byte	0x7
+ 182 0068 B0000000 		.4byte	.LASF7
+ 183 006c 04       		.uleb128 0x4
+ 184 006d 04       		.byte	0x4
+ 185 006e 05       		.byte	0x5
+ 186 006f 696E7400 		.ascii	"int\000"
+ 187 0073 02       		.uleb128 0x2
+ 188 0074 04       		.byte	0x4
+ 189 0075 07       		.byte	0x7
+ 190 0076 21000000 		.4byte	.LASF8
+ 191 007a 02       		.uleb128 0x2
+ 192 007b 04       		.byte	0x4
+ 193 007c 04       		.byte	0x4
+ 194 007d 36010000 		.4byte	.LASF9
+ 195 0081 02       		.uleb128 0x2
+ 196 0082 08       		.byte	0x8
+ 197 0083 04       		.byte	0x4
+ 198 0084 02010000 		.4byte	.LASF10
+ 199 0088 02       		.uleb128 0x2
+ 200 0089 01       		.byte	0x1
+ 201 008a 08       		.byte	0x8
+ 202 008b E4000000 		.4byte	.LASF11
+ 203 008f 02       		.uleb128 0x2
+ 204 0090 04       		.byte	0x4
+ 205 0091 07       		.byte	0x7
+ 206 0092 A5010000 		.4byte	.LASF12
+ 207 0096 05       		.uleb128 0x5
+ 208 0097 01       		.byte	0x1
+ 209 0098 09010000 		.4byte	.LASF13
+ 210 009c 01       		.byte	0x1
+ 211 009d 27       		.byte	0x27
+ 212 009e 01       		.byte	0x1
+ 213 009f 00000000 		.4byte	.LFB56
+ 214 00a3 0A000000 		.4byte	.LFE56
+ 215 00a7 00000000 		.4byte	.LLST0
+ 216 00ab 01       		.byte	0x1
+ 217 00ac 05       		.uleb128 0x5
+ 218 00ad 01       		.byte	0x1
+ 219 00ae AE010000 		.4byte	.LASF14
+ 220 00b2 01       		.byte	0x1
+ 221 00b3 4D       		.byte	0x4d
+ 222 00b4 01       		.byte	0x1
+ 223 00b5 00000000 		.4byte	.LFB57
+ 224 00b9 0A000000 		.4byte	.LFE57
+ 225 00bd 2C000000 		.4byte	.LLST1
+ 226 00c1 01       		.byte	0x1
+ 227 00c2 05       		.uleb128 0x5
+ 228 00c3 01       		.byte	0x1
+ 229 00c4 D5000000 		.4byte	.LASF15
+ 230 00c8 01       		.byte	0x1
+ 231 00c9 72       		.byte	0x72
+ARM GAS  C:\Users\Jonathan\AppData\Local\Temp\ccVCH7tc.s 			page 8
+
+
+ 232 00ca 01       		.byte	0x1
+ 233 00cb 00000000 		.4byte	.LFB58
+ 234 00cf 0A000000 		.4byte	.LFE58
+ 235 00d3 58000000 		.4byte	.LLST2
+ 236 00d7 01       		.byte	0x1
+ 237 00d8 05       		.uleb128 0x5
+ 238 00d9 01       		.byte	0x1
+ 239 00da E9000000 		.4byte	.LASF16
+ 240 00de 01       		.byte	0x1
+ 241 00df 97       		.byte	0x97
+ 242 00e0 01       		.byte	0x1
+ 243 00e1 00000000 		.4byte	.LFB59
+ 244 00e5 0A000000 		.4byte	.LFE59
+ 245 00e9 84000000 		.4byte	.LLST3
+ 246 00ed 01       		.byte	0x1
+ 247 00ee 06       		.uleb128 0x6
+ 248 00ef 1D010000 		.4byte	.LASF21
+ 249 00f3 03       		.byte	0x3
+ 250 00f4 1606     		.2byte	0x616
+ 251 00f6 FC000000 		.4byte	0xfc
+ 252 00fa 01       		.byte	0x1
+ 253 00fb 01       		.byte	0x1
+ 254 00fc 07       		.uleb128 0x7
+ 255 00fd 45000000 		.4byte	0x45
+ 256 0101 00       		.byte	0
+ 257              		.section	.debug_abbrev,"",%progbits
+ 258              	.Ldebug_abbrev0:
+ 259 0000 01       		.uleb128 0x1
+ 260 0001 11       		.uleb128 0x11
+ 261 0002 01       		.byte	0x1
+ 262 0003 25       		.uleb128 0x25
+ 263 0004 0E       		.uleb128 0xe
+ 264 0005 13       		.uleb128 0x13
+ 265 0006 0B       		.uleb128 0xb
+ 266 0007 03       		.uleb128 0x3
+ 267 0008 0E       		.uleb128 0xe
+ 268 0009 1B       		.uleb128 0x1b
+ 269 000a 0E       		.uleb128 0xe
+ 270 000b 55       		.uleb128 0x55
+ 271 000c 06       		.uleb128 0x6
+ 272 000d 11       		.uleb128 0x11
+ 273 000e 01       		.uleb128 0x1
+ 274 000f 52       		.uleb128 0x52
+ 275 0010 01       		.uleb128 0x1
+ 276 0011 10       		.uleb128 0x10
+ 277 0012 06       		.uleb128 0x6
+ 278 0013 00       		.byte	0
+ 279 0014 00       		.byte	0
+ 280 0015 02       		.uleb128 0x2
+ 281 0016 24       		.uleb128 0x24
+ 282 0017 00       		.byte	0
+ 283 0018 0B       		.uleb128 0xb
+ 284 0019 0B       		.uleb128 0xb
+ 285 001a 3E       		.uleb128 0x3e
+ 286 001b 0B       		.uleb128 0xb
+ 287 001c 03       		.uleb128 0x3
+ 288 001d 0E       		.uleb128 0xe
+ARM GAS  C:\Users\Jonathan\AppData\Local\Temp\ccVCH7tc.s 			page 9
+
+
+ 289 001e 00       		.byte	0
+ 290 001f 00       		.byte	0
+ 291 0020 03       		.uleb128 0x3
+ 292 0021 16       		.uleb128 0x16
+ 293 0022 00       		.byte	0
+ 294 0023 03       		.uleb128 0x3
+ 295 0024 0E       		.uleb128 0xe
+ 296 0025 3A       		.uleb128 0x3a
+ 297 0026 0B       		.uleb128 0xb
+ 298 0027 3B       		.uleb128 0x3b
+ 299 0028 0B       		.uleb128 0xb
+ 300 0029 49       		.uleb128 0x49
+ 301 002a 13       		.uleb128 0x13
+ 302 002b 00       		.byte	0
+ 303 002c 00       		.byte	0
+ 304 002d 04       		.uleb128 0x4
+ 305 002e 24       		.uleb128 0x24
+ 306 002f 00       		.byte	0
+ 307 0030 0B       		.uleb128 0xb
+ 308 0031 0B       		.uleb128 0xb
+ 309 0032 3E       		.uleb128 0x3e
+ 310 0033 0B       		.uleb128 0xb
+ 311 0034 03       		.uleb128 0x3
+ 312 0035 08       		.uleb128 0x8
+ 313 0036 00       		.byte	0
+ 314 0037 00       		.byte	0
+ 315 0038 05       		.uleb128 0x5
+ 316 0039 2E       		.uleb128 0x2e
+ 317 003a 00       		.byte	0
+ 318 003b 3F       		.uleb128 0x3f
+ 319 003c 0C       		.uleb128 0xc
+ 320 003d 03       		.uleb128 0x3
+ 321 003e 0E       		.uleb128 0xe
+ 322 003f 3A       		.uleb128 0x3a
+ 323 0040 0B       		.uleb128 0xb
+ 324 0041 3B       		.uleb128 0x3b
+ 325 0042 0B       		.uleb128 0xb
+ 326 0043 27       		.uleb128 0x27
+ 327 0044 0C       		.uleb128 0xc
+ 328 0045 11       		.uleb128 0x11
+ 329 0046 01       		.uleb128 0x1
+ 330 0047 12       		.uleb128 0x12
+ 331 0048 01       		.uleb128 0x1
+ 332 0049 40       		.uleb128 0x40
+ 333 004a 06       		.uleb128 0x6
+ 334 004b 9642     		.uleb128 0x2116
+ 335 004d 0C       		.uleb128 0xc
+ 336 004e 00       		.byte	0
+ 337 004f 00       		.byte	0
+ 338 0050 06       		.uleb128 0x6
+ 339 0051 34       		.uleb128 0x34
+ 340 0052 00       		.byte	0
+ 341 0053 03       		.uleb128 0x3
+ 342 0054 0E       		.uleb128 0xe
+ 343 0055 3A       		.uleb128 0x3a
+ 344 0056 0B       		.uleb128 0xb
+ 345 0057 3B       		.uleb128 0x3b
+ARM GAS  C:\Users\Jonathan\AppData\Local\Temp\ccVCH7tc.s 			page 10
+
+
+ 346 0058 05       		.uleb128 0x5
+ 347 0059 49       		.uleb128 0x49
+ 348 005a 13       		.uleb128 0x13
+ 349 005b 3F       		.uleb128 0x3f
+ 350 005c 0C       		.uleb128 0xc
+ 351 005d 3C       		.uleb128 0x3c
+ 352 005e 0C       		.uleb128 0xc
+ 353 005f 00       		.byte	0
+ 354 0060 00       		.byte	0
+ 355 0061 07       		.uleb128 0x7
+ 356 0062 35       		.uleb128 0x35
+ 357 0063 00       		.byte	0
+ 358 0064 49       		.uleb128 0x49
+ 359 0065 13       		.uleb128 0x13
+ 360 0066 00       		.byte	0
+ 361 0067 00       		.byte	0
+ 362 0068 00       		.byte	0
+ 363              		.section	.debug_loc,"",%progbits
+ 364              	.Ldebug_loc0:
+ 365              	.LLST0:
+ 366 0000 00000000 		.4byte	.LFB56
+ 367 0004 02000000 		.4byte	.LCFI0
+ 368 0008 0200     		.2byte	0x2
+ 369 000a 7D       		.byte	0x7d
+ 370 000b 00       		.sleb128 0
+ 371 000c 02000000 		.4byte	.LCFI0
+ 372 0010 04000000 		.4byte	.LCFI1
+ 373 0014 0200     		.2byte	0x2
+ 374 0016 7D       		.byte	0x7d
+ 375 0017 08       		.sleb128 8
+ 376 0018 04000000 		.4byte	.LCFI1
+ 377 001c 0A000000 		.4byte	.LFE56
+ 378 0020 0200     		.2byte	0x2
+ 379 0022 77       		.byte	0x77
+ 380 0023 08       		.sleb128 8
+ 381 0024 00000000 		.4byte	0
+ 382 0028 00000000 		.4byte	0
+ 383              	.LLST1:
+ 384 002c 00000000 		.4byte	.LFB57
+ 385 0030 02000000 		.4byte	.LCFI2
+ 386 0034 0200     		.2byte	0x2
+ 387 0036 7D       		.byte	0x7d
+ 388 0037 00       		.sleb128 0
+ 389 0038 02000000 		.4byte	.LCFI2
+ 390 003c 04000000 		.4byte	.LCFI3
+ 391 0040 0200     		.2byte	0x2
+ 392 0042 7D       		.byte	0x7d
+ 393 0043 08       		.sleb128 8
+ 394 0044 04000000 		.4byte	.LCFI3
+ 395 0048 0A000000 		.4byte	.LFE57
+ 396 004c 0200     		.2byte	0x2
+ 397 004e 77       		.byte	0x77
+ 398 004f 08       		.sleb128 8
+ 399 0050 00000000 		.4byte	0
+ 400 0054 00000000 		.4byte	0
+ 401              	.LLST2:
+ 402 0058 00000000 		.4byte	.LFB58
+ARM GAS  C:\Users\Jonathan\AppData\Local\Temp\ccVCH7tc.s 			page 11
+
+
+ 403 005c 02000000 		.4byte	.LCFI4
+ 404 0060 0200     		.2byte	0x2
+ 405 0062 7D       		.byte	0x7d
+ 406 0063 00       		.sleb128 0
+ 407 0064 02000000 		.4byte	.LCFI4
+ 408 0068 04000000 		.4byte	.LCFI5
+ 409 006c 0200     		.2byte	0x2
+ 410 006e 7D       		.byte	0x7d
+ 411 006f 08       		.sleb128 8
+ 412 0070 04000000 		.4byte	.LCFI5
+ 413 0074 0A000000 		.4byte	.LFE58
+ 414 0078 0200     		.2byte	0x2
+ 415 007a 77       		.byte	0x77
+ 416 007b 08       		.sleb128 8
+ 417 007c 00000000 		.4byte	0
+ 418 0080 00000000 		.4byte	0
+ 419              	.LLST3:
+ 420 0084 00000000 		.4byte	.LFB59
+ 421 0088 02000000 		.4byte	.LCFI6
+ 422 008c 0200     		.2byte	0x2
+ 423 008e 7D       		.byte	0x7d
+ 424 008f 00       		.sleb128 0
+ 425 0090 02000000 		.4byte	.LCFI6
+ 426 0094 04000000 		.4byte	.LCFI7
+ 427 0098 0200     		.2byte	0x2
+ 428 009a 7D       		.byte	0x7d
+ 429 009b 08       		.sleb128 8
+ 430 009c 04000000 		.4byte	.LCFI7
+ 431 00a0 0A000000 		.4byte	.LFE59
+ 432 00a4 0200     		.2byte	0x2
+ 433 00a6 77       		.byte	0x77
+ 434 00a7 08       		.sleb128 8
+ 435 00a8 00000000 		.4byte	0
+ 436 00ac 00000000 		.4byte	0
+ 437              		.section	.debug_aranges,"",%progbits
+ 438 0000 34000000 		.4byte	0x34
+ 439 0004 0200     		.2byte	0x2
+ 440 0006 00000000 		.4byte	.Ldebug_info0
+ 441 000a 04       		.byte	0x4
+ 442 000b 00       		.byte	0
+ 443 000c 0000     		.2byte	0
+ 444 000e 0000     		.2byte	0
+ 445 0010 00000000 		.4byte	.LFB56
+ 446 0014 0A000000 		.4byte	.LFE56-.LFB56
+ 447 0018 00000000 		.4byte	.LFB57
+ 448 001c 0A000000 		.4byte	.LFE57-.LFB57
+ 449 0020 00000000 		.4byte	.LFB58
+ 450 0024 0A000000 		.4byte	.LFE58-.LFB58
+ 451 0028 00000000 		.4byte	.LFB59
+ 452 002c 0A000000 		.4byte	.LFE59-.LFB59
+ 453 0030 00000000 		.4byte	0
+ 454 0034 00000000 		.4byte	0
+ 455              		.section	.debug_ranges,"",%progbits
+ 456              	.Ldebug_ranges0:
+ 457 0000 00000000 		.4byte	.LFB56
+ 458 0004 0A000000 		.4byte	.LFE56
+ 459 0008 00000000 		.4byte	.LFB57
+ARM GAS  C:\Users\Jonathan\AppData\Local\Temp\ccVCH7tc.s 			page 12
+
+
+ 460 000c 0A000000 		.4byte	.LFE57
+ 461 0010 00000000 		.4byte	.LFB58
+ 462 0014 0A000000 		.4byte	.LFE58
+ 463 0018 00000000 		.4byte	.LFB59
+ 464 001c 0A000000 		.4byte	.LFE59
+ 465 0020 00000000 		.4byte	0
+ 466 0024 00000000 		.4byte	0
+ 467              		.section	.debug_line,"",%progbits
+ 468              	.Ldebug_line0:
+ 469 0000 46010000 		.section	.debug_str,"MS",%progbits,1
+ 469      0200F100 
+ 469      00000201 
+ 469      FB0E0D00 
+ 469      01010101 
+ 470              	.LASF6:
+ 471 0000 6C6F6E67 		.ascii	"long long int\000"
+ 471      206C6F6E 
+ 471      6720696E 
+ 471      7400
+ 472              	.LASF3:
+ 473 000e 73686F72 		.ascii	"short unsigned int\000"
+ 473      7420756E 
+ 473      7369676E 
+ 473      65642069 
+ 473      6E7400
+ 474              	.LASF8:
+ 475 0021 756E7369 		.ascii	"unsigned int\000"
+ 475      676E6564 
+ 475      20696E74 
+ 475      00
+ 476              	.LASF18:
+ 477 002e 2E5C4765 		.ascii	".\\Generated_Source\\PSoC5\\emFile_1_PM.c\000"
+ 477      6E657261 
+ 477      7465645F 
+ 477      536F7572 
+ 477      63655C50 
+ 478              	.LASF17:
+ 479 0055 474E5520 		.ascii	"GNU C 4.7.3 20130312 (release) [ARM/embedded-4_7-br"
+ 479      4320342E 
+ 479      372E3320 
+ 479      32303133 
+ 479      30333132 
+ 480 0088 616E6368 		.ascii	"anch revision 196615]\000"
+ 480      20726576 
+ 480      6973696F 
+ 480      6E203139 
+ 480      36363135 
+ 481              	.LASF5:
+ 482 009e 6C6F6E67 		.ascii	"long unsigned int\000"
+ 482      20756E73 
+ 482      69676E65 
+ 482      6420696E 
+ 482      7400
+ 483              	.LASF7:
+ 484 00b0 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 484      206C6F6E 
+ 484      6720756E 
+ARM GAS  C:\Users\Jonathan\AppData\Local\Temp\ccVCH7tc.s 			page 13
+
+
+ 484      7369676E 
+ 484      65642069 
+ 485              	.LASF1:
+ 486 00c7 756E7369 		.ascii	"unsigned char\000"
+ 486      676E6564 
+ 486      20636861 
+ 486      7200
+ 487              	.LASF15:
+ 488 00d5 656D4669 		.ascii	"emFile_1_Sleep\000"
+ 488      6C655F31 
+ 488      5F536C65 
+ 488      657000
+ 489              	.LASF11:
+ 490 00e4 63686172 		.ascii	"char\000"
+ 490      00
+ 491              	.LASF16:
+ 492 00e9 656D4669 		.ascii	"emFile_1_Wakeup\000"
+ 492      6C655F31 
+ 492      5F57616B 
+ 492      65757000 
+ 493              	.LASF4:
+ 494 00f9 6C6F6E67 		.ascii	"long int\000"
+ 494      20696E74 
+ 494      00
+ 495              	.LASF10:
+ 496 0102 646F7562 		.ascii	"double\000"
+ 496      6C6500
+ 497              	.LASF13:
+ 498 0109 656D4669 		.ascii	"emFile_1_SaveConfig\000"
+ 498      6C655F31 
+ 498      5F536176 
+ 498      65436F6E 
+ 498      66696700 
+ 499              	.LASF21:
+ 500 011d 49544D5F 		.ascii	"ITM_RxBuffer\000"
+ 500      52784275 
+ 500      66666572 
+ 500      00
+ 501              	.LASF0:
+ 502 012a 7369676E 		.ascii	"signed char\000"
+ 502      65642063 
+ 502      68617200 
+ 503              	.LASF9:
+ 504 0136 666C6F61 		.ascii	"float\000"
+ 504      7400
+ 505              	.LASF2:
+ 506 013c 73686F72 		.ascii	"short int\000"
+ 506      7420696E 
+ 506      7400
+ 507              	.LASF20:
+ 508 0146 696E7433 		.ascii	"int32_t\000"
+ 508      325F7400 
+ 509              	.LASF19:
+ 510 014e 433A5C55 		.ascii	"C:\\Users\\Jonathan\\Documents\\PSoC Creator\\Node-"
+ 510      73657273 
+ 510      5C4A6F6E 
+ 510      61746861 
+ARM GAS  C:\Users\Jonathan\AppData\Local\Temp\ccVCH7tc.s 			page 14
+
+
+ 510      6E5C446F 
+ 511 017c 42656176 		.ascii	"Beaver\\src\\Node-Beaver\\Node-Beaver.cydsn\000"
+ 511      65725C73 
+ 511      72635C4E 
+ 511      6F64652D 
+ 511      42656176 
+ 512              	.LASF12:
+ 513 01a5 73697A65 		.ascii	"sizetype\000"
+ 513      74797065 
+ 513      00
+ 514              	.LASF14:
+ 515 01ae 656D4669 		.ascii	"emFile_1_RestoreConfig\000"
+ 515      6C655F31 
+ 515      5F526573 
+ 515      746F7265 
+ 515      436F6E66 
+ 516              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 4.7.3 20130312 (release) [ARM/embedded-4_7-br

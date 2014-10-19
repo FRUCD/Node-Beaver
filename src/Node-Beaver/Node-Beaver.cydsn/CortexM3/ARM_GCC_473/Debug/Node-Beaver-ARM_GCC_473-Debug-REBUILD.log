@@ -1,0 +1,3 @@
+--------------- Rebuild Started: 10/19/2014 01:02:38 Project: main.c, Configuration: ARM GCC 4.7.3 Debug ---------------
+arm-none-eabi-gcc.exe -I. -I./Generated_Source/PSoC5 -Wno-main -mcpu=cortex-m3 -mthumb -I .\emFile_V322b\Code\Include\PSoC5 -I .\emFile_V322b\Code\Include\PSoC5\emf32nOS -Wall -g -D DEBUG -Wa,-alh=.\CortexM3\ARM_GCC_473\Debug\main.lst -ffunction-sections -c .\main.c -o .\CortexM3\ARM_GCC_473\Debug\main.o
+--------------- Rebuild Succeeded: 10/19/2014 01:02:39 ---------------
