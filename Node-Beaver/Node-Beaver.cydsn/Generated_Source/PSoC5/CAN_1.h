@@ -38,16 +38,16 @@ extern uint8 CAN_1_initVar;
 *   Conditional Compilation Parameters
 ***************************************/
 
-#define CAN_1_ARB_LOST               (0u)
-#define CAN_1_OVERLOAD               (0u)
-#define CAN_1_BIT_ERR                (0u)
-#define CAN_1_STUFF_ERR              (0u)
-#define CAN_1_ACK_ERR                (0u)
-#define CAN_1_FORM_ERR               (0u)
-#define CAN_1_CRC_ERR                (0u)
+#define CAN_1_ARB_LOST               (1u)
+#define CAN_1_OVERLOAD               (1u)
+#define CAN_1_BIT_ERR                (1u)
+#define CAN_1_STUFF_ERR              (1u)
+#define CAN_1_ACK_ERR                (1u)
+#define CAN_1_FORM_ERR               (1u)
+#define CAN_1_CRC_ERR                (1u)
 #define CAN_1_BUS_OFF                (1u)
-#define CAN_1_RX_MSG_LOST            (0u)
-#define CAN_1_TX_MESSAGE             (0u)
+#define CAN_1_RX_MSG_LOST            (1u)
+#define CAN_1_TX_MESSAGE             (1u)
 #define CAN_1_RX_MESSAGE             (1u)
 #define CAN_1_ARB_LOST_USE_HELPER    (1u)
 #define CAN_1_OVERLOAD_USE_HELPER    (1u)
@@ -360,8 +360,8 @@ void  CAN_1_ReceiveMsg(uint8 rxMailbox) ;
 
 /* General */
 #define CAN_1_BITRATE             (0u)
-#define CAN_1_CFG_REG_TSEG1       (13u - 1u)
-#define CAN_1_CFG_REG_TSEG2       (2u - 1u)
+#define CAN_1_CFG_REG_TSEG1       (11u - 1u)
+#define CAN_1_CFG_REG_TSEG2       (4u - 1u)
 #define CAN_1_CFG_REG_SJW         (1u - 1u)
 #define CAN_1_SAMPLING_MODE       (0u)
 

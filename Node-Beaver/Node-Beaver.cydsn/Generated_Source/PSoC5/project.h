@@ -25,6 +25,8 @@
 #include <Tx_1_aliases.h>
 #include <Tx_1.h>
 #include <CAN_1.h>
+#include <LED_aliases.h>
+#include <LED.h>
 #include <emFile_1_SPI0.h>
 #include <emFile_1_SPI0_PVT.h>
 #include <emFile_1_mosi0_aliases.h>

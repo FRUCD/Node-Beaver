@@ -106,6 +106,9 @@
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\CAN_1_INT.c</File>
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\CAN_1_PM.c</File>
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\CAN_1_TX_RX_func.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\LED_aliases.h</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\LED.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\LED.h</File>
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\prebuild.bat</File>
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\postbuild.bat</File>
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\CyElfTool.exe</File>
