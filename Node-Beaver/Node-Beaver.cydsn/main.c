@@ -83,8 +83,8 @@ int main()
 
 		LCD_Char_1_Position(0,0);
 		LCD_Char_1_PrintNumber(RX_DATA[0]);
-		CyDelay(500);
-		LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
+		//CyDelay(500);
+		//LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
 	} /*forever*/
 
 	return 0;
