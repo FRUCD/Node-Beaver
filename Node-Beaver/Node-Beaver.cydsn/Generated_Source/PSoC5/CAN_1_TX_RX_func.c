@@ -24,7 +24,10 @@
 #include "CAN_1.h"
 
 /* `#START TX_RX_FUNCTION` */
-
+extern uint8_t RX_DATA[8];
+extern uint8_t RX_ID;
+uint8_t rx_index;
+uint8_t rx_length;
 /* `#END` */
 
 
@@ -185,7 +188,9 @@ void CAN_1_TxCancel(uint8 bufferId)
         else
         {
             /* `#START MESSAGE_0_TRASMITTED` */
-
+						uint8_t i;
+            for(i=0;i<8;i++)
+            CAN_1_TX_DATA_BYTE(0,i) = 0x11;
             /* `#END` */
             
             CY_SET_REG32((reg32 *) &CAN_1_TX[0u].txcmd, CAN_1_SEND_MESSAGE);
@@ -528,7 +533,12 @@ void CAN_1_ReceiveMsg(uint8 rxMailbox)
     if ((CAN_1_RX[rxMailbox].rxcmd.byte[0u] & CAN_1_RX_ACK_MSG) == CAN_1_RX_ACK_MSG)
     {
         /* `#START MESSAGE_BASIC_RECEIVED` */
+				rx_length = CAN_1_GET_DLC(rxMailbox);
+				
+				for(rx_index = 0; rx_index < rx_length; rx_index++)
+					RX_DATA[rx_index] = CAN_1_RX_DATA_BYTE(rxMailbox, rx_index);
 
+				RX_ID = CAN_1_GET_RX_ID(rxMailbox);
         /* `#END` */
         
         CAN_1_RX[rxMailbox].rxcmd.byte[0u] |= CAN_1_RX_ACK_MSG;

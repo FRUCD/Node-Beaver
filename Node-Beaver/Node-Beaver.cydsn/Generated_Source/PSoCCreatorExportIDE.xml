@@ -109,6 +109,12 @@
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\LED_aliases.h</File>
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\LED.c</File>
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\LED.h</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\LCD_Char_1.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\LCD_Char_1.h</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\LCD_Char_1_PM.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\LCD_Char_1_LCDPort_aliases.h</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\LCD_Char_1_LCDPort.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\LCD_Char_1_LCDPort.h</File>
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\prebuild.bat</File>
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\postbuild.bat</File>
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\CyElfTool.exe</File>

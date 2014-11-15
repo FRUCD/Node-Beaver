@@ -27,6 +27,7 @@
 #include <CAN_1.h>
 #include <LED_aliases.h>
 #include <LED.h>
+#include <LCD_Char_1.h>
 #include <emFile_1_SPI0.h>
 #include <emFile_1_SPI0_PVT.h>
 #include <emFile_1_mosi0_aliases.h>
@@ -38,6 +39,8 @@
 #include <emFile_1_sclk0.h>
 #include <emFile_1_SPI0_CS_aliases.h>
 #include <emFile_1_SPI0_CS.h>
+#include <LCD_Char_1_LCDPort_aliases.h>
+#include <LCD_Char_1_LCDPort.h>
 #include <core_cm3_psoc5.h>
 #include <core_cm3.h>
 #include <CyDmac.h>

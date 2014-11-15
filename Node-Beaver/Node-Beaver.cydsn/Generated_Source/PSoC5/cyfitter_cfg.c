@@ -131,17 +131,20 @@ CYPACKED typedef struct
 #define cy_cfg_addr_table ((const uint32 CYFAR *)0x48000000u)
 #define cy_cfg_data_table ((const cy_cfg_addrvalue_t CYFAR *)0x4800004Cu)
 
-/* UDB_0_0_0_CONFIG Address: CYDEV_UCFG_B1_P5_U0_BASE Size (bytes): 128 */
-#define BS_UDB_0_0_0_CONFIG_VAL ((const uint8 CYFAR *)0x48000264u)
+/* UDB_0_1_0_CONFIG Address: CYDEV_UCFG_B1_P4_U1_BASE Size (bytes): 128 */
+#define BS_UDB_0_1_0_CONFIG_VAL ((const uint8 CYFAR *)0x48000258u)
 
 /* IOPINS0_0 Address: CYREG_PRT0_DM0 Size (bytes): 8 */
-#define BS_IOPINS0_0_VAL ((const uint8 CYFAR *)0x480002E4u)
+#define BS_IOPINS0_0_VAL ((const uint8 CYFAR *)0x480002D8u)
+
+/* IOPINS0_2 Address: CYREG_PRT2_DM0 Size (bytes): 8 */
+#define BS_IOPINS0_2_VAL ((const uint8 CYFAR *)0x480002E0u)
 
 /* IOPINS0_5 Address: CYREG_PRT5_DM0 Size (bytes): 8 */
-#define BS_IOPINS0_5_VAL ((const uint8 CYFAR *)0x480002ECu)
+#define BS_IOPINS0_5_VAL ((const uint8 CYFAR *)0x480002E8u)
 
 /* IOPINS0_6 Address: CYREG_PRT6_DM0 Size (bytes): 8 */
-#define BS_IOPINS0_6_VAL ((const uint8 CYFAR *)0x480002F4u)
+#define BS_IOPINS0_6_VAL ((const uint8 CYFAR *)0x480002F0u)
 
 
 /*******************************************************************************
@@ -345,12 +348,13 @@ void cyfitter_cfg(void)
 
 		static const cfg_memset_t CYCODE cfg_memset_list [] = {
 			/* address, size */
-			{(void CYFAR *)(CYREG_PRT1_DR), 64u},
+			{(void CYFAR *)(CYREG_PRT1_DR), 16u},
+			{(void CYFAR *)(CYREG_PRT3_DR), 32u},
 			{(void CYFAR *)(CYREG_PRT12_DR), 16u},
 			{(void CYFAR *)(CYREG_PRT15_DR), 16u},
 			{(void CYFAR *)(CYDEV_UCFG_B0_P0_U0_BASE), 4096u},
-			{(void CYFAR *)(CYDEV_UCFG_B1_P2_U0_BASE), 1536u},
-			{(void CYFAR *)(CYDEV_UCFG_B1_P5_U1_BASE), 384u},
+			{(void CYFAR *)(CYDEV_UCFG_B1_P2_U0_BASE), 1152u},
+			{(void CYFAR *)(CYDEV_UCFG_B1_P4_ROUTE_BASE), 768u},
 			{(void CYFAR *)(CYDEV_UCFG_DSI0_BASE), 2560u},
 			{(void CYFAR *)(CYDEV_UCFG_DSI12_BASE), 512u},
 			{(void CYFAR *)(CYREG_BCTL0_MDCLK_EN), 32u},
@@ -358,7 +362,7 @@ void cyfitter_cfg(void)
 
 		static const cfg_memcpy_t CYCODE cfg_memcpy_list [] = {
 			/* dest, src, size */
-			{(void CYFAR *)(CYDEV_UCFG_B1_P5_U0_BASE), BS_UDB_0_0_0_CONFIG_VAL, 128u},
+			{(void CYFAR *)(CYDEV_UCFG_B1_P4_U1_BASE), BS_UDB_0_1_0_CONFIG_VAL, 128u},
 		};
 
 		uint8 CYDATA i;
@@ -393,6 +397,7 @@ void cyfitter_cfg(void)
 
 	/* Perform second pass device configuration. These items must be configured in specific order after the regular configuration is done. */
 	CYCONFIGCPY((void CYFAR *)(CYREG_PRT0_DM0), (const void CYFAR *)(BS_IOPINS0_0_VAL), 8u);
+	CYCONFIGCPY((void CYFAR *)(CYREG_PRT2_DM0), (const void CYFAR *)(BS_IOPINS0_2_VAL), 8u);
 	CYCONFIGCPY((void CYFAR *)(CYREG_PRT5_DM0), (const void CYFAR *)(BS_IOPINS0_5_VAL), 8u);
 	CYCONFIGCPY((void CYFAR *)(CYREG_PRT6_DM0), (const void CYFAR *)(BS_IOPINS0_6_VAL), 8u);
 

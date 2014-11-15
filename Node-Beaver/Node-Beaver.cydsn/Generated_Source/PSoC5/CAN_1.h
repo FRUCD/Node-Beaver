@@ -38,16 +38,16 @@ extern uint8 CAN_1_initVar;
 *   Conditional Compilation Parameters
 ***************************************/
 
-#define CAN_1_ARB_LOST               (1u)
-#define CAN_1_OVERLOAD               (1u)
-#define CAN_1_BIT_ERR                (1u)
-#define CAN_1_STUFF_ERR              (1u)
-#define CAN_1_ACK_ERR                (1u)
-#define CAN_1_FORM_ERR               (1u)
-#define CAN_1_CRC_ERR                (1u)
+#define CAN_1_ARB_LOST               (0u)
+#define CAN_1_OVERLOAD               (0u)
+#define CAN_1_BIT_ERR                (0u)
+#define CAN_1_STUFF_ERR              (0u)
+#define CAN_1_ACK_ERR                (0u)
+#define CAN_1_FORM_ERR               (0u)
+#define CAN_1_CRC_ERR                (0u)
 #define CAN_1_BUS_OFF                (1u)
-#define CAN_1_RX_MSG_LOST            (1u)
-#define CAN_1_TX_MESSAGE             (1u)
+#define CAN_1_RX_MSG_LOST            (0u)
+#define CAN_1_TX_MESSAGE             (0u)
 #define CAN_1_RX_MESSAGE             (1u)
 #define CAN_1_ARB_LOST_USE_HELPER    (1u)
 #define CAN_1_OVERLOAD_USE_HELPER    (1u)
@@ -63,7 +63,7 @@ extern uint8 CAN_1_initVar;
 #define CAN_1_ADVANCED_INTERRUPT_CFG (0u)
 
 /* TX/RX Function Enable */
-#define CAN_1_TX0_FUNC_ENABLE 0u
+#define CAN_1_TX0_FUNC_ENABLE 1u
 #define CAN_1_TX1_FUNC_ENABLE 0u
 #define CAN_1_TX2_FUNC_ENABLE 0u
 #define CAN_1_TX3_FUNC_ENABLE 0u
@@ -71,7 +71,7 @@ extern uint8 CAN_1_initVar;
 #define CAN_1_TX5_FUNC_ENABLE 0u
 #define CAN_1_TX6_FUNC_ENABLE 0u
 #define CAN_1_TX7_FUNC_ENABLE 0u
-#define CAN_1_RX0_FUNC_ENABLE 0u
+#define CAN_1_RX0_FUNC_ENABLE 1u
 #define CAN_1_RX1_FUNC_ENABLE 0u
 #define CAN_1_RX2_FUNC_ENABLE 0u
 #define CAN_1_RX3_FUNC_ENABLE 0u
@@ -87,8 +87,8 @@ extern uint8 CAN_1_initVar;
 #define CAN_1_RX13_FUNC_ENABLE 0u
 #define CAN_1_RX14_FUNC_ENABLE 0u
 #define CAN_1_RX15_FUNC_ENABLE 0u
-#define CAN_1_RX_MAILBOX_TYPE	0x0u
-#define CAN_1_TX_MAILBOX_TYPE	0x0u
+#define CAN_1_RX_MAILBOX_TYPE	0x1u
+#define CAN_1_TX_MAILBOX_TYPE	0x1u
 
 
 /***************************************
@@ -359,7 +359,7 @@ void  CAN_1_ReceiveMsg(uint8 rxMailbox) ;
 ***************************************/
 
 /* General */
-#define CAN_1_BITRATE             (0u)
+#define CAN_1_BITRATE             (2u)
 #define CAN_1_CFG_REG_TSEG1       (11u - 1u)
 #define CAN_1_CFG_REG_TSEG2       (4u - 1u)
 #define CAN_1_CFG_REG_SJW         (1u - 1u)
