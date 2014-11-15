@@ -6,9 +6,11 @@
 #include <FS.h>
 
 
+
 uint8_t RX_DATA[8];
 uint8_t RX_ID;
 uint8_t test_message[]={0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11};
+
 
 
 uint8_t can_handler()
@@ -37,6 +39,20 @@ uint8_t can_handler()
 } // can_handler()
 
 
+
+uint8_t write_logs()
+{
+	return 0;
+} // write_logs()
+
+
+
+void halt_system()
+{
+} // halt_system()
+
+
+
 int main()
 {
 	CYGlobalIntEnable;
@@ -49,6 +65,11 @@ int main()
 	LED_Write(0);
 	LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
 
+	FS_Init();
+	if(0xFF == FS_GetFileAttributes("logs"))
+	    FS_MkDir("logs");
+
+
 	uint8_t state;
 	for(;;)
 	{
@@ -60,7 +81,6 @@ int main()
 		else
 			LED_Write(0);
 
-		//LCD_Char_1_ClearDisplay();
 		LCD_Char_1_Position(0,0);
 		LCD_Char_1_PrintNumber(RX_DATA[0]);
 		CyDelay(500);
