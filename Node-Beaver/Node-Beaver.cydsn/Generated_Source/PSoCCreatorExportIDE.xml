@@ -115,6 +115,31 @@
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\LCD_Char_1_LCDPort_aliases.h</File>
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\LCD_Char_1_LCDPort.c</File>
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\LCD_Char_1_LCDPort.h</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1.h</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_audio.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_audio.h</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_boot.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_cdc.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_cdc.h</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_cls.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_descr.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_drv.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_episr.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_hid.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_hid.h</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_pm.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_std.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_vnd.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_midi.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_midi.h</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_pvt.h</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_Dm_aliases.h</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_Dm.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_Dm.h</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_Dp_aliases.h</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_Dp.c</File>
+          <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\USBUART_1_Dp.h</File>
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\prebuild.bat</File>
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\postbuild.bat</File>
           <File BuildType="BUILD" Toolchain="">.\Generated_Source\PSoC5\CyElfTool.exe</File>

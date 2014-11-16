@@ -11,6 +11,8 @@ uint8_t RX_DATA[8];
 uint8_t RX_ID;
 uint8_t test_message[]={0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11};
 
+FS_FILE* pfile;
+uint8_t sd_exists = 0;
 
 
 uint8_t can_handler()
@@ -24,9 +26,10 @@ uint8_t can_handler()
 	message.ide = 0;
 	message.dlc = 0x08;
 	message.irq = 1;
-
-	for(i=0;i<8;i++) payload.byte[i] = test_message[i];
 	message.msg = &payload;
+
+	for(i=0;i<8;i++)
+		payload.byte[i] = test_message[i];
 
 	state = CAN_1_SendMsg(&message);
 
@@ -49,6 +52,7 @@ uint8_t write_logs()
 
 void halt_system()
 {
+	FS_FClose(pfile);
 } // halt_system()
 
 
@@ -57,19 +61,33 @@ int main()
 {
 	CYGlobalIntEnable;
 
+	// CAN Initialization
 	CAN_1_GlobalIntEnable();
 	CAN_1_Init();
 	CAN_1_Start();
 
+	// Debug LCD Initialization
 	LCD_Char_1_Start();
 	LED_Write(0);
 	LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
 
+	// emfile Initialization
 	FS_Init();
-	if(0xFF == FS_GetFileAttributes("logs"))
-	    FS_MkDir("logs");
+
+	if(FS_GetNumVolumes() == 1)
+	{
+		if(FS_ATTR_DIRECTORY == FS_GetFileAttributes("logs"))
+			FS_MkDir("logs");
+
+		pfile = FS_FOpen("logs", "w");
+		sd_exists = 1;
+	}
+  
+  // USB Initialization
+  USBUART_1_CDC_Init();
 
 
+	// Main loop
 	uint8_t state;
 	for(;;)
 	{

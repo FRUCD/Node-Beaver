@@ -28,6 +28,12 @@
 #include <LED_aliases.h>
 #include <LED.h>
 #include <LCD_Char_1.h>
+#include <USBUART_1.h>
+#include <USBUART_1_audio.h>
+#include <USBUART_1_cdc.h>
+#include <USBUART_1_hid.h>
+#include <USBUART_1_midi.h>
+#include <USBUART_1_pvt.h>
 #include <emFile_1_SPI0.h>
 #include <emFile_1_SPI0_PVT.h>
 #include <emFile_1_mosi0_aliases.h>
@@ -41,6 +47,10 @@
 #include <emFile_1_SPI0_CS.h>
 #include <LCD_Char_1_LCDPort_aliases.h>
 #include <LCD_Char_1_LCDPort.h>
+#include <USBUART_1_Dm_aliases.h>
+#include <USBUART_1_Dm.h>
+#include <USBUART_1_Dp_aliases.h>
+#include <USBUART_1_Dp.h>
 #include <core_cm3_psoc5.h>
 #include <core_cm3.h>
 #include <CyDmac.h>
