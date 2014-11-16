@@ -9,9 +9,17 @@ uint8_t sd_pos = 0;
 
 
 
+CY_ISR(power_interrupt)
+{
+	sd_stop();
+} // CY_ISR(power_interrupt)
+
+
+
 
 void sd_init()
 {
+	power_isr_StartEx(power_interrupt);
 	FS_Init();
 
 	if(FS_GetNumVolumes() == 1)

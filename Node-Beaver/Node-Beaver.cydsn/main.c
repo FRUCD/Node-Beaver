@@ -12,13 +12,6 @@
 
 
 
-CY_ISR(power_interrupt)
-{
-	sd_stop();
-} // CY_ISR(power_interrupt)
-
-
-
 int main()
 {
 	CYGlobalIntEnable;
@@ -27,11 +20,9 @@ int main()
 	LED_Write(0);
 	LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
 
-
 	DataPacket data_queue[CAN_QUEUE_LENGTH];
 	uint8_t data_pos = 0;
 
-	power_isr_StartEx(power_interrupt);
 	time_init();
 	can_init();
 	usb_init();
