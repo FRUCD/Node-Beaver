@@ -7,7 +7,7 @@
 
 
 void sd_init();
-void sd_push();
+void sd_push(DataPacket* data_queue, uint8_t data_pos);
 void sd_stop();
 
 

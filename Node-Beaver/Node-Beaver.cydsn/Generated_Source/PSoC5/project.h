@@ -34,6 +34,17 @@
 #include <USBUART_1_hid.h>
 #include <USBUART_1_midi.h>
 #include <USBUART_1_pvt.h>
+#include <power_isr.h>
+#include <power_aliases.h>
+#include <power.h>
+#include <SDA_1_aliases.h>
+#include <SDA_1.h>
+#include <SCL_1_aliases.h>
+#include <SCL_1.h>
+#include <I2C_1.h>
+#include <I2C_1_PVT.h>
+#include <Timer_1.h>
+#include <time_isr.h>
 #include <emFile_1_SPI0.h>
 #include <emFile_1_SPI0_PVT.h>
 #include <emFile_1_mosi0_aliases.h>

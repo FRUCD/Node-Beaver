@@ -4,8 +4,8 @@
 
 FS_FILE* pfile;
 uint8_t sd_ok = 0;
-DataPacket write_queue[32];
-uint8_t queue_pos;
+DataPacket sd_queue[SD_QUEUE_LENGTH];
+uint8_t sd_pos = 0;
 
 
 
@@ -26,7 +26,7 @@ void sd_init()
 
 
 
-void sd_push()
+void sd_push(DataPacket* data_queue, uint8_t data_pos)
 {
 	//push to queue
 	//if queue is full, write to sd
@@ -37,7 +37,7 @@ void sd_push()
 void sd_write()
 {
 	// write queue to sd and clear queue
-	queue_pos = 0;
+	sd_pos = 0;
 } // sd_write()
 
 

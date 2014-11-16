@@ -3,11 +3,19 @@
  */
 
 #include <project.h>
-#include <FS.h>
 
 #include "data.h"
+#include "time.h"
 #include "can_manager.h"
+#include "usb_manager.h"
 #include "sd_manager.h"
+
+
+
+CY_ISR(power_interrupt)
+{
+	sd_stop();
+} // CY_ISR(power_interrupt)
 
 
 
@@ -15,35 +23,26 @@ int main()
 {
 	CYGlobalIntEnable;
 
-	CAN_1_GlobalIntEnable(); // CAN Initialization
-	CAN_1_Init();
-	CAN_1_Start();
-
 	LCD_Char_1_Start(); // Debug LCD Initialization
 	LED_Write(0);
 	LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
 
-	sd_init(); // sd card initialization
+
+	DataPacket data_queue[CAN_QUEUE_LENGTH];
+	uint8_t data_pos = 0;
+
+	power_isr_StartEx(power_interrupt);
+	time_init();
+	can_init();
+	usb_init();
+	sd_init();
   
-  USBUART_1_CDC_Init(); // USB Initialization
-
-
-	uint8_t state;
 	for(;;)
 	{
-		state = can_handler();
-		//state = CAN_1_SendMsg0();
-
-		if(state == CYRET_SUCCESS) /*LED ON if message is sent succesfully*/
-			LED_Write(1);
-		else
-			LED_Write(0);
-		//CyDelay(500);
-		//LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
-    
-    // Read and format CAN
-    // Send to USB
-    // Write to SD or SD queue
+		can_test_send();
+		can_get(data_queue, data_pos);
+		usb_put(data_queue, data_pos);
+		sd_push(data_queue, data_pos);
 	} // main loop
 
 	return 0;
