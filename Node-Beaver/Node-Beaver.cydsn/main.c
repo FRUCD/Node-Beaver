@@ -5,55 +5,9 @@
 #include <project.h>
 #include <FS.h>
 
-
-
-uint8_t RX_DATA[8];
-uint8_t RX_ID;
-uint8_t test_message[]={0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11};
-
-FS_FILE* pfile;
-uint8_t sd_exists = 0;
-
-
-uint8_t can_handler()
-{
-	uint8_t i, state;
-	CAN_1_TX_MSG message;
-	CAN_1_DATA_BYTES_MSG payload;
-
-	message.id = 0x001;
-	message.rtr = 0;
-	message.ide = 0;
-	message.dlc = 0x08;
-	message.irq = 1;
-	message.msg = &payload;
-
-	for(i=0;i<8;i++)
-		payload.byte[i] = test_message[i];
-
-	state = CAN_1_SendMsg(&message);
-
-	if(state != CYRET_SUCCESS) /*LED ON if message is sent succesfully*/
-		return CAN_1_FAIL;
-
-	LCD_Char_1_Position(0,1);
-	LCD_Char_1_PrintString("CAN:TX");
-	return CYRET_SUCCESS;
-} // can_handler()
-
-
-
-uint8_t write_logs()
-{
-	return 0;
-} // write_logs()
-
-
-
-void halt_system()
-{
-	FS_FClose(pfile);
-} // halt_system()
+#include "data.h"
+#include "can_manager.h"
+#include "sd_manager.h"
 
 
 
@@ -61,33 +15,19 @@ int main()
 {
 	CYGlobalIntEnable;
 
-	// CAN Initialization
-	CAN_1_GlobalIntEnable();
+	CAN_1_GlobalIntEnable(); // CAN Initialization
 	CAN_1_Init();
 	CAN_1_Start();
 
-	// Debug LCD Initialization
-	LCD_Char_1_Start();
+	LCD_Char_1_Start(); // Debug LCD Initialization
 	LED_Write(0);
 	LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
 
-	// emfile Initialization
-	FS_Init();
-
-	if(FS_GetNumVolumes() == 1)
-	{
-		if(FS_ATTR_DIRECTORY == FS_GetFileAttributes("logs"))
-			FS_MkDir("logs");
-
-		pfile = FS_FOpen("logs", "w");
-		sd_exists = 1;
-	}
+	sd_init(); // sd card initialization
   
-  // USB Initialization
-  USBUART_1_CDC_Init();
+  USBUART_1_CDC_Init(); // USB Initialization
 
 
-	// Main loop
 	uint8_t state;
 	for(;;)
 	{
@@ -98,12 +38,13 @@ int main()
 			LED_Write(1);
 		else
 			LED_Write(0);
-
-		LCD_Char_1_Position(0,0);
-		LCD_Char_1_PrintNumber(RX_DATA[0]);
 		//CyDelay(500);
 		//LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
-	} /*forever*/
+    
+    // Read and format CAN
+    // Send to USB
+    // Write to SD or SD queue
+	} // main loop
 
 	return 0;
-} /*main()*/
+} // main()

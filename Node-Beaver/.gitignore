@@ -10,3 +10,4 @@
 *.cydsn/codegentemp
 *.cydsn/CortexM3
 
+*.swp
