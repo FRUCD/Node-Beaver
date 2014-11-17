@@ -11,7 +11,7 @@ typedef struct
 {
   uint32_t time;
   uint16_t type;
-  uint32_t value;
+  uint64_t value;
 } DataPacket;
 
 #endif

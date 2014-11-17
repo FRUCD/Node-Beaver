@@ -31,9 +31,10 @@ int main()
 	for(;;)
 	{
 		can_test_send();
-		can_get(data_queue, data_pos);
+		can_get(data_queue, &data_pos);
 		usb_put(data_queue, data_pos);
 		sd_push(data_queue, data_pos);
+		data_pos = 0; // clear buffer
 	} // main loop
 
 	return 0;

@@ -24,10 +24,11 @@
 #include "CAN_1.h"
 
 /* `#START TX_RX_FUNCTION` */
-extern uint8_t RX_DATA[8];
-extern uint8_t RX_ID;
-uint8_t rx_index;
-uint8_t rx_length;
+#include "can_manager.h"
+
+extern CanMessage can_queue[];
+extern uint8_t can_head;
+extern uint8_t can_tail;
 /* `#END` */
 
 
@@ -533,12 +534,18 @@ void CAN_1_ReceiveMsg(uint8 rxMailbox)
     if ((CAN_1_RX[rxMailbox].rxcmd.byte[0u] & CAN_1_RX_ACK_MSG) == CAN_1_RX_ACK_MSG)
     {
         /* `#START MESSAGE_BASIC_RECEIVED` */
-				rx_length = CAN_1_GET_DLC(rxMailbox);
-				
-				for(rx_index = 0; rx_index < rx_length; rx_index++)
-					RX_DATA[rx_index] = CAN_1_RX_DATA_BYTE(rxMailbox, rx_index);
+		uint8_t rx_length, rx_index;
+		rx_length = CAN_1_GET_DLC(rxMailbox);
+		can_queue[can_tail].id = CAN_1_GET_RX_ID(rxMailbox);
 
-				RX_ID = CAN_1_GET_RX_ID(rxMailbox);
+		for(rx_index = 0; rx_index < rx_length; rx_index++)
+			can_queue[can_tail].data[rx_index] =
+				CAN_1_RX_DATA_BYTE(rxMailbox, rx_index);
+
+		can_tail = (can_tail + 1) % CAN_QUEUE_LENGTH;
+
+		if(can_tail == can_head) // if need to roll queue
+			can_head = (can_head + 1) % CAN_QUEUE_LENGTH;
         /* `#END` */
         
         CAN_1_RX[rxMailbox].rxcmd.byte[0u] |= CAN_1_RX_ACK_MSG;

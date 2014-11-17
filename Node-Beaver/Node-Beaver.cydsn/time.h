@@ -7,7 +7,8 @@
 
 typedef struct
 {
-	uint8_t month, day, hour, minute, second, millisecond;
+	uint8_t month, day, hour, minute, second;
+	uint16_t millisecond;
 	uint16_t year;
 } Time;
 

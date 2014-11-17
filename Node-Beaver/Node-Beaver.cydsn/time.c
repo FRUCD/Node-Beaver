@@ -18,8 +18,8 @@ CY_ISR(timer_interrupt)
 
 void time_init()
 {
-	time_isr_StartEx(timer_interrupt);
-	Timer_1_Start();
+	//time_isr_StartEx(timer_interrupt);
+	//Timer_1_Start();
 } // time_init()
 
 

@@ -393,8 +393,6 @@
                         /* RX Full mailboxes handler */
                         switch(i)
                         {
-							case 0u : CAN_1_ReceiveMsg0();
-							break;
                             default:
                             break;
                         }

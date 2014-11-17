@@ -3,8 +3,6 @@
 
 
 const uint8_t test_message[] = {0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11};
-volatile uint8_t RX_DATA[8];
-volatile uint8_t RX_ID;
 volatile CanMessage can_queue[CAN_QUEUE_LENGTH];
 volatile uint8_t can_head = 0;
 volatile uint8_t can_tail = 0;
@@ -46,7 +44,7 @@ uint8_t can_test_send()
 	LCD_Char_1_PrintString("CAN:TX");
 
 	LCD_Char_1_Position(1,0);
-	LCD_Char_1_PrintNumber(RX_DATA[0]);
+	LCD_Char_1_PrintNumber(can_queue[can_head].data[0]);
 
 	if(state == CYRET_SUCCESS) /*LED ON if message is sent succesfully*/
 		LED_Write(1);
@@ -61,12 +59,27 @@ uint8_t can_test_send()
 
 
 
-uint8_t can_get(DataPacket* data_queue, uint8_t data_pos)
+uint8_t can_get(DataPacket* data_queue, uint8_t* data_pos)
 {
+	uint8_t index;
+	*data_pos = 0;
+
 	uint8_t atomic_state = CyEnterCriticalSection();
-	can_tail = data_pos;
-	// move and convert can message queue to data queue
-	can_head = can_tail = 0;
+	while(can_head != can_tail) // move and convert can message queue to data queue
+	{
+		switch(can_queue[can_head].id)
+		{
+			default:
+				data_queue[*data_pos].type = data_queue[*data_pos].value = 0;
+				for(index = 0; index < can_queue[can_head].length; index++)
+					data_queue[*data_pos].value |=
+						can_queue[can_head].data[index] << 8*index;
+		}; // switch can id
+
+		data_pos++;
+		can_head = (can_head + 1) % CAN_QUEUE_LENGTH;
+	} // for all can messages in queue
+
 	CyExitCriticalSection(atomic_state);
 	return 0;
 } // can_receive()

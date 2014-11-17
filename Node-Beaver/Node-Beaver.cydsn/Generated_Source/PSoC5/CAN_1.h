@@ -63,7 +63,7 @@ extern uint8 CAN_1_initVar;
 #define CAN_1_ADVANCED_INTERRUPT_CFG (0u)
 
 /* TX/RX Function Enable */
-#define CAN_1_TX0_FUNC_ENABLE 1u
+#define CAN_1_TX0_FUNC_ENABLE 0u
 #define CAN_1_TX1_FUNC_ENABLE 0u
 #define CAN_1_TX2_FUNC_ENABLE 0u
 #define CAN_1_TX3_FUNC_ENABLE 0u
@@ -71,7 +71,7 @@ extern uint8 CAN_1_initVar;
 #define CAN_1_TX5_FUNC_ENABLE 0u
 #define CAN_1_TX6_FUNC_ENABLE 0u
 #define CAN_1_TX7_FUNC_ENABLE 0u
-#define CAN_1_RX0_FUNC_ENABLE 1u
+#define CAN_1_RX0_FUNC_ENABLE 0u
 #define CAN_1_RX1_FUNC_ENABLE 0u
 #define CAN_1_RX2_FUNC_ENABLE 0u
 #define CAN_1_RX3_FUNC_ENABLE 0u
@@ -87,8 +87,8 @@ extern uint8 CAN_1_initVar;
 #define CAN_1_RX13_FUNC_ENABLE 0u
 #define CAN_1_RX14_FUNC_ENABLE 0u
 #define CAN_1_RX15_FUNC_ENABLE 0u
-#define CAN_1_RX_MAILBOX_TYPE	0x1u
-#define CAN_1_TX_MAILBOX_TYPE	0x1u
+#define CAN_1_RX_MAILBOX_TYPE	0x0u
+#define CAN_1_TX_MAILBOX_TYPE	0x0u
 
 
 /***************************************

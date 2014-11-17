@@ -34,7 +34,7 @@ void sd_init()
 
 
 
-void sd_push(DataPacket* data_queue, uint8_t data_pos)
+void sd_push(const DataPacket* data_queue, uint8_t data_pos)
 {
 	//push to queue
 	//if queue is full, write to sd
