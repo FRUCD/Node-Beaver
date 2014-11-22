@@ -5,6 +5,7 @@
 #define CAN_THROTTLE 0x001
 
 #include <project.h>
+#include <stdio.h>
 #include "data.h"
 
 

@@ -2,6 +2,7 @@
 #define USB_MANAGER_H
 
 #include <project.h>
+#include <stdio.h>
 #include "data.h"
 
 

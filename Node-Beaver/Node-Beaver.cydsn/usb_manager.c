@@ -3,6 +3,8 @@
 
 
 uint8_t test_usb_message[8] = {'P','S','o','C','!','!','\r','\n'};
+DataPacket usb_queue[USB_QUEUE_LENGTH];
+uint8_t usb_pos = 0;
 
 
 
@@ -17,7 +19,34 @@ void usb_init()
 
 void usb_put(const DataPacket* data_queue, uint8_t data_pos)
 {
+	uint8_t i;
+	uint32_t num_char;
+	char buffer[128];
+
   USBUART_1_GetConfiguration();
-  if(USBUART_1_CDCIsReady())
-	  USBUART_1_PutData(test_usb_message, 8);
+	
+  //if(USBUART_1_CDCIsReady())
+	//{
+	LCD_Char_1_Position(1,6);
+	LCD_Char_1_PrintNumber(data_pos);
+		
+		for(i = 0; i < data_pos; i++)
+		{
+	LCD_Char_1_Position(1,9);
+	LCD_Char_1_PrintNumber(data_pos);
+			num_char = sprintf(buffer,
+				"Type: %X\tID: %X\tValue: %lX\r\n",
+				data_queue[i].type,
+				data_queue[i].id,
+				(unsigned long)data_queue[i].value);	
+			
+	while(USBUART_1_CDCIsReady() == 0);
+			USBUART_1_PutData((uint8_t*)buffer, num_char);
+		} // for all messages in data queue
+	//} // if ready to send USB
+
+	while(USBUART_1_CDCIsReady() == 0);
+  //if(USBUART_1_CDCIsReady())
+		USBUART_1_PutData(test_usb_message, 8);
+		
 } // usb_send()
