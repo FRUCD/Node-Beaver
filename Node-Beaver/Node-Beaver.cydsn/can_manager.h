@@ -1,18 +1,21 @@
 #ifndef CAN_MANAGER_H
 #define CAN_MANAGER_H
 
-#define CAN_UNKNOWN 0x000
-#define CAN_THROTTLE 0x001
 
 #include <project.h>
 #include <stdio.h>
 #include "data.h"
 
 
+#define CAN_THROTTLE 517
+#define CAN_UNKNOWN 0
+
+#define TYPE_THROTTLE 1
+
 
 typedef struct
 {
-	uint8_t id;
+	uint16_t id;
 	uint8_t length;
 	uint8_t data[8];
 } CanMessage;

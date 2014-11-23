@@ -70,7 +70,7 @@ uint8 CAN_1_Init(void)
 
     static const CAN_1_TX_CFG CYCODE CAN_1_TXConfigStruct[] =
     {
-        { 0u, 0x88000Cu, 0x0u },
+        { 0u, 0x880008u, 0x0u },
         { 1u, 0x880008u, 0x0u },
         { 2u, 0x880008u, 0x0u },
         { 3u, 0x880008u, 0x0u },

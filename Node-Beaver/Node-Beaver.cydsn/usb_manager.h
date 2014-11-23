@@ -4,6 +4,7 @@
 #include <project.h>
 #include <stdio.h>
 #include "data.h"
+#include "can_manager.h"
 
 
 void usb_init();

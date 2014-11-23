@@ -2,7 +2,7 @@
 
 
 
-const uint8_t test_message[] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x11};
+const uint8_t test_message[] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
 volatile CanMessage can_queue[CAN_QUEUE_LENGTH];
 volatile uint8_t can_head = 0;
 volatile uint8_t can_tail = 0;
@@ -25,7 +25,7 @@ uint8_t can_test_send()
 	CAN_1_TX_MSG message;
 	CAN_1_DATA_BYTES_MSG payload;
 
-	message.id = 0x001;
+	message.id = 0x001; // edit for testing
 	message.rtr = 0;
 	message.ide = 0;
 	message.dlc = 0x08;
@@ -37,7 +37,7 @@ uint8_t can_test_send()
 
 	state = CAN_1_SendMsg(&message);
 
-	if(state != CYRET_SUCCESS) /*LED ON if message is sent succesfully*/
+	if(state != CYRET_SUCCESS)
 	{
 		LED_Write(1);
 		return CAN_1_FAIL;
@@ -72,14 +72,26 @@ uint8_t can_get(DataPacket* data_queue, uint8_t* data_pos)
 	uint8_t atomic_state = CyEnterCriticalSection(); // begin ATOMIC
 	while(can_head != can_tail) // move and convert can message queue to data queue
 	{
+		data_queue[*data_pos].id = can_queue[can_head].id; // CAN ID
+		data_queue[*data_pos].value = 0; // wipe value
+
 		switch(can_queue[can_head].id)
 		{
+			case CAN_THROTTLE:
+				data_queue[*data_pos].type = 1;
+				data_queue[*data_pos].value = can_queue[can_head].data[1]; // upper
+				data_queue[*data_pos].value <<= 8;
+				data_queue[*data_pos].value |= can_queue[can_head].data[0]; // lower
+				break;
+
 			default:
-				data_queue[*data_pos].id = can_queue[can_head].id;
-				data_queue[*data_pos].type = data_queue[*data_pos].value = 0;
+				data_queue[*data_pos].type = CAN_UNKNOWN;
+
 				for(index = 0; index < can_queue[can_head].length; index++)
-					data_queue[*data_pos].value |=
-						can_queue[can_head].data[index] ;//<< (8*index);
+				{
+					data_queue[*data_pos].value <<= 8;
+					data_queue[*data_pos].value |= can_queue[can_head].data[index];
+				} // for all bytes in message
 				break;
 		}; // switch can id
 
