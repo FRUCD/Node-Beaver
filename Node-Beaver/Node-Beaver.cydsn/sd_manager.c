@@ -30,6 +30,8 @@ void sd_init()
 		pfile = FS_FOpen("\\logs\\test.txt", "w"); // open test file
 		sd_ok = 1;
 	} // if a single file volume exists
+
+	sd_stop(); // for testing
 } // sd_init()
 
 

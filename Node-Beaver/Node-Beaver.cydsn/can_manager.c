@@ -39,25 +39,11 @@ uint8_t can_test_send()
 
 	if(state != CYRET_SUCCESS)
 	{
-		LED_Write(1);
+		//LED_Write(1);
 		return CAN_1_FAIL;
 	}
-			LED_Write(0);
 
-	LCD_Char_1_Position(0,1);
-	LCD_Char_1_PrintString("CAN:TX");
-
-	LCD_Char_1_Position(1,0);
-	LCD_Char_1_PrintNumber(can_queue[can_head].data[7]);
-
-/*
-	if(state == CYRET_SUCCESS) // test
-		LED_Write(1);
-	else
-		LED_Write(0);
-*/
-	//CyDelay(500);
-	//LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
+	//LED_Write(0);
 
 	return CYRET_SUCCESS;
 } // can_test_send()
@@ -78,27 +64,32 @@ uint8_t can_get(DataPacket* data_queue, uint8_t* data_pos)
 		switch(can_queue[can_head].id)
 		{
 			case CAN_THROTTLE:
-				data_queue[*data_pos].type = 1;
-				data_queue[*data_pos].value = can_queue[can_head].data[1]; // upper
-				data_queue[*data_pos].value <<= 8;
-				data_queue[*data_pos].value |= can_queue[can_head].data[0]; // lower
+				process_throttle(&data_queue[*data_pos]);
 				break;
-
-			default:
-				data_queue[*data_pos].type = CAN_UNKNOWN;
+			default: // if CAN message unrecognized, value is the concatenated payload
+				data_queue[*data_pos].type = TYPE_UNKNOWN;
 
 				for(index = 0; index < can_queue[can_head].length; index++)
 				{
-					data_queue[*data_pos].value <<= 8;
+					data_queue[*data_pos].value <<= 8; // Byte 0 is left-most
 					data_queue[*data_pos].value |= can_queue[can_head].data[index];
 				} // for all bytes in message
-				break;
 		}; // switch can id
 
-		(*data_pos)++; // data_pos is also the size at the end
+		(*data_pos)++; // note: data_pos is also the size at the end of loop
 		can_head = (can_head + 1) % CAN_QUEUE_LENGTH;
 	} // for all can messages in queue
 
 	CyExitCriticalSection(atomic_state); // end ATOMIC
 	return 0;
 } // can_receive()
+
+
+
+void process_throttle(DataPacket* data_queue)
+{
+	data_queue->type = TYPE_THROTTLE;
+	data_queue->value = can_queue[can_head].data[1]; // upper
+	data_queue->value <<= 8;
+	data_queue->value |= can_queue[can_head].data[0]; // lower
+} // process_throttle()

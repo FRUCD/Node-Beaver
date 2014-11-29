@@ -20,7 +20,7 @@ int main()
 	LED_Write(0);
 	LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
 
-	DataPacket data_queue[CAN_QUEUE_LENGTH];
+	DataPacket data_queue[DATA_QUEUE_LENGTH];
 	uint8_t data_pos = 0;
 
 	time_init();

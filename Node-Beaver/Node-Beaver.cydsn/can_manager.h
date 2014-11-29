@@ -7,11 +7,6 @@
 #include "data.h"
 
 
-#define CAN_THROTTLE 517
-#define CAN_UNKNOWN 0
-
-#define TYPE_THROTTLE 1
-
 
 typedef struct
 {
@@ -25,6 +20,8 @@ typedef struct
 void can_init();
 uint8_t can_test_send();
 uint8_t can_get(DataPacket* data_queue, uint8_t* data_pos);
+
+void process_throttle(DataPacket* data_queue);
 
 
 

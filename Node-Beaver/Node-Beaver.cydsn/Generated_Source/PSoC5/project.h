@@ -45,6 +45,7 @@
 #include <I2C_1_PVT.h>
 #include <Timer_1.h>
 #include <time_isr.h>
+#include <Clock_1.h>
 #include <emFile_1_SPI0.h>
 #include <emFile_1_SPI0_PVT.h>
 #include <emFile_1_mosi0_aliases.h>
