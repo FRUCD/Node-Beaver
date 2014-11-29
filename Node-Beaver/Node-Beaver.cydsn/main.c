@@ -21,7 +21,9 @@ int main()
 	LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
 
 	DataPacket data_queue[DATA_QUEUE_LENGTH];
-	uint8_t data_pos = 0;
+	uint8_t data_head, data_tail;
+	data_head = data_tail = 0;
+	//uint8_t data_pos = 0;
 
 	time_init();
 	can_init();
@@ -31,10 +33,17 @@ int main()
 	for(;;)
 	{
 		can_test_send();
+		/*
 		can_get(data_queue, &data_pos);
 		usb_put(data_queue, data_pos);
 		sd_push(data_queue, data_pos);
 		data_pos = 0; // clear buffer
+		*/
+		can_get(data_queue, &data_head, &data_tail);
+		usb_put(data_queue, data_head, data_tail);
+		sd_push(data_queue, data_head, data_tail);
+		data_head = data_tail = 0; // clear buffer
+
 		CyDelay(100);
 	} // main loop
 
