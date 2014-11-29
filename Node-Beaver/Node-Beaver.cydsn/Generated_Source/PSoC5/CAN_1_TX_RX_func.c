@@ -534,18 +534,18 @@ void CAN_1_ReceiveMsg(uint8 rxMailbox)
     if ((CAN_1_RX[rxMailbox].rxcmd.byte[0u] & CAN_1_RX_ACK_MSG) == CAN_1_RX_ACK_MSG)
     {
         /* `#START MESSAGE_BASIC_RECEIVED` */
-		uint8_t rx_length, rx_index;
-		rx_length = can_queue[can_tail].length = CAN_1_GET_DLC(rxMailbox);
-		can_queue[can_tail].id = CAN_1_GET_RX_ID(rxMailbox);
+			uint8_t rx_length, rx_index;
+			rx_length = can_queue[can_tail].length = CAN_1_GET_DLC(rxMailbox);
+			can_queue[can_tail].id = CAN_1_GET_RX_ID(rxMailbox);
 
-		for(rx_index = 0; rx_index < rx_length; rx_index++)
-			can_queue[can_tail].data[rx_index] =
-				CAN_1_RX_DATA_BYTE(rxMailbox, rx_index);
+			for(rx_index = 0; rx_index < rx_length; rx_index++)
+				can_queue[can_tail].data[rx_index] =
+					CAN_1_RX_DATA_BYTE(rxMailbox, rx_index);
 
-		can_tail = (can_tail + 1) % CAN_QUEUE_LENGTH;
+			can_tail = (can_tail + 1) % CAN_QUEUE_LENGTH;
 
-		if(can_tail == can_head) // if need to roll queue
-			can_head = (can_head + 1) % CAN_QUEUE_LENGTH;
+			if(can_tail == can_head) // if need to roll queue
+				can_head = (can_head + 1) % CAN_QUEUE_LENGTH;
 
         /* `#END` */
         

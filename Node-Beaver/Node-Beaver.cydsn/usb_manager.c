@@ -18,7 +18,7 @@ void usb_init()
 void usb_put(const DataPacket* data_queue, uint8_t data_head,
 	uint8_t data_tail)
 {
-	uint8_t i;
+	uint8_t pos;
 	uint32_t num_char;
 	char buffer[128];
 
@@ -26,24 +26,36 @@ void usb_put(const DataPacket* data_queue, uint8_t data_head,
 	{
 		USBUART_1_CDC_Init(); // USB Initialization
 
-		for(i = data_head; i != data_tail; i = (i+1)%DATA_QUEUE_LENGTH)
+		for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
 		{
-			switch(data_queue[i].type)
+			switch(data_queue[pos].type)
 			{
 				case TYPE_THROTTLE:
 					num_char = sprintf(buffer,
-						"Type: %X\tID: %X\tValue: %d\r\n",
-						data_queue[i].type,
-						data_queue[i].id,
-						(short)data_queue[i].value);
+						"Type: Throttle\tID: %X\tValue: %d\r\n",
+						data_queue[pos].id,
+						(short)data_queue[pos].value);
 					break;
 				case TYPE_UNKNOWN:
+				/*
 					num_char = sprintf(buffer,
-						"Type: %X\tID: %X\tValue: %08lX %08lX\r\n",
-						data_queue[i].type,
-						data_queue[i].id,
-						(unsigned long)((data_queue[i].value & 0xFFFFFFFF00000000) >> 32),
-						(unsigned long)data_queue[i].value);	
+						"Type: Unknown\tID: %X\tValue: %08lX %08lX\r\n",
+						data_queue[pos].id,
+						(unsigned long)((data_queue[pos].value & 0xFFFFFFFF00000000) >> 32),
+						(unsigned long)data_queue[pos].value);	
+					*/
+					num_char = sprintf(buffer,
+						"Type: Unknown\tID: %X\t"
+						"Value: %02X %02X %02X %02X  %02X %02X %02X %02X \r\n",
+						data_queue[pos].id,
+						(unsigned)((data_queue[pos].value & 0xFF00000000000000) >> 56),
+						(unsigned)((data_queue[pos].value & 0x00FF000000000000) >> 48),
+						(unsigned)((data_queue[pos].value & 0x0000FF0000000000) >> 40),
+						(unsigned)((data_queue[pos].value & 0x000000FF00000000) >> 32),
+						(unsigned)((data_queue[pos].value & 0x00000000FF000000) >> 24),
+						(unsigned)((data_queue[pos].value & 0x0000000000FF0000) >> 16),
+						(unsigned)((data_queue[pos].value & 0x000000000000FF00) >> 8),
+						(unsigned)(data_queue[pos].value & 0x00000000000000FF));
 					break;
 				default:
 					num_char = sprintf(buffer, "ERROR: Invalid data in queue!\r\n");
@@ -54,6 +66,6 @@ void usb_put(const DataPacket* data_queue, uint8_t data_head,
 		} // for all messages in data queue
 
 		while(USBUART_1_CDCIsReady() == 0);
-		USBUART_1_PutData(test_usb_message, 8);
+		USBUART_1_PutData(test_usb_message, 8); // Test message
 	}	// if configuration successful
 } // usb_send()

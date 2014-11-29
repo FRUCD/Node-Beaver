@@ -37,6 +37,7 @@ uint8_t can_test_send()
 
 	state = CAN_1_SendMsg(&message);
 
+/*
 	if(state != CYRET_SUCCESS)
 	{
 		//LED_Write(1);
@@ -46,21 +47,31 @@ uint8_t can_test_send()
 	//LED_Write(0);
 
 	return CYRET_SUCCESS;
+	*/
+	return state;
 } // can_test_send()
 
 
+/* can_get()
+	Takes data_queue, data_head, and data_tail.
+	Returns nothing.
 
-//uint8_t can_get(DataPacket* data_queue, uint8_t* data_pos)
+	Clears data_queue first. Goes through can_queue, extracts information
+	according to their type, and enqueues data to data_queue. Wraps data_queue if
+	it is full. Finally, clears can_queue. 
+
+	Note that global variables can_queue, can_head, and can_tail are used.
+*/
 void can_get(DataPacket* data_queue, uint8_t* data_head, uint8_t* data_tail)
 {
 	data_head = data_tail = 0;
 
-	uint8_t atomic_state = CyEnterCriticalSection(); // begin ATOMIC
+	uint8_t atomic_state = CyEnterCriticalSection(); // BEGIN ATOMIC
 
 	while(can_head != can_tail) // move and convert can message queue to data queue
 	{
 		data_queue[*data_tail].id = can_queue[can_head].id; // CAN ID
-		data_queue[*data_tail].value = 0; // wipe value
+		// remember that data_queue.value is unclean
 
 		switch(can_queue[can_head].id)
 		{
@@ -71,21 +82,18 @@ void can_get(DataPacket* data_queue, uint8_t* data_head, uint8_t* data_tail)
 				process_default(data_queue, data_head, data_tail);
 		}; // switch can id
 
-		*data_tail = (*data_tail + 1) % DATA_QUEUE_LENGTH;
-
-		if(data_tail == data_head) // if need to roll data queue
-			*data_head = (*data_head + 1) % DATA_QUEUE_LENGTH;
-
 		can_head = (can_head + 1) % CAN_QUEUE_LENGTH;
 	} // for all can messages in queue
 
-	CyExitCriticalSection(atomic_state); // end ATOMIC
+	can_head = can_tail = 0;
+
+	CyExitCriticalSection(atomic_state); // END ATOMIC
 	//return 0;
 } // can_receive()
 
 
 
-inline void wrap_data_queue(uint8_t* data_head, uint8_t* data_tail)
+void wrap_data_queue(uint8_t* data_head, uint8_t* data_tail)
 {
 	*data_tail = (*data_tail + 1) % DATA_QUEUE_LENGTH;
 
@@ -95,11 +103,12 @@ inline void wrap_data_queue(uint8_t* data_head, uint8_t* data_tail)
 
 
 
-void process_default(DataPacket* data_queue, uint8_t* data_head,
+inline void process_default(DataPacket* data_queue, uint8_t* data_head,
 	uint8_t* data_tail)
 {
 	uint8_t index;
 	data_queue[*data_tail].type = TYPE_UNKNOWN;
+	data_queue[*data_tail].value = 0; // wipe value
 
 	for(index = 0; index < can_queue[can_head].length; index++)
 	{
@@ -112,7 +121,7 @@ void process_default(DataPacket* data_queue, uint8_t* data_head,
 
 
 
-void process_throttle(DataPacket* data_queue, uint8_t* data_head,
+inline void process_throttle(DataPacket* data_queue, uint8_t* data_head,
 	uint8_t* data_tail)
 {
 	data_queue[*data_tail].type = TYPE_THROTTLE;
