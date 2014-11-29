@@ -50,46 +50,75 @@ uint8_t can_test_send()
 
 
 
-uint8_t can_get(DataPacket* data_queue, uint8_t* data_pos)
+//uint8_t can_get(DataPacket* data_queue, uint8_t* data_pos)
+void can_get(DataPacket* data_queue, uint8_t* data_head, uint8_t* data_tail)
 {
-	uint8_t index;
-	*data_pos = 0;
+	data_head = data_tail = 0;
 
 	uint8_t atomic_state = CyEnterCriticalSection(); // begin ATOMIC
+
 	while(can_head != can_tail) // move and convert can message queue to data queue
 	{
-		data_queue[*data_pos].id = can_queue[can_head].id; // CAN ID
-		data_queue[*data_pos].value = 0; // wipe value
+		data_queue[*data_tail].id = can_queue[can_head].id; // CAN ID
+		data_queue[*data_tail].value = 0; // wipe value
 
 		switch(can_queue[can_head].id)
 		{
 			case CAN_THROTTLE:
-				process_throttle(&data_queue[*data_pos]);
+				process_throttle(data_queue, data_head, data_tail);
 				break;
 			default: // if CAN message unrecognized, value is the concatenated payload
-				data_queue[*data_pos].type = TYPE_UNKNOWN;
-
-				for(index = 0; index < can_queue[can_head].length; index++)
-				{
-					data_queue[*data_pos].value <<= 8; // Byte 0 is left-most
-					data_queue[*data_pos].value |= can_queue[can_head].data[index];
-				} // for all bytes in message
+				process_default(data_queue, data_head, data_tail);
 		}; // switch can id
 
-		(*data_pos)++; // note: data_pos is also the size at the end of loop
+		*data_tail = (*data_tail + 1) % DATA_QUEUE_LENGTH;
+
+		if(data_tail == data_head) // if need to roll data queue
+			*data_head = (*data_head + 1) % DATA_QUEUE_LENGTH;
+
 		can_head = (can_head + 1) % CAN_QUEUE_LENGTH;
 	} // for all can messages in queue
 
 	CyExitCriticalSection(atomic_state); // end ATOMIC
-	return 0;
+	//return 0;
 } // can_receive()
 
 
 
-void process_throttle(DataPacket* data_queue)
+inline void wrap_data_queue(uint8_t* data_head, uint8_t* data_tail)
 {
-	data_queue->type = TYPE_THROTTLE;
-	data_queue->value = can_queue[can_head].data[1]; // upper
-	data_queue->value <<= 8;
-	data_queue->value |= can_queue[can_head].data[0]; // lower
+	*data_tail = (*data_tail + 1) % DATA_QUEUE_LENGTH;
+
+	if(data_tail == data_head) // if need to roll data queue
+		*data_head = (*data_head + 1) % DATA_QUEUE_LENGTH;
+} // wrap_data_queue()
+
+
+
+void process_default(DataPacket* data_queue, uint8_t* data_head,
+	uint8_t* data_tail)
+{
+	uint8_t index;
+	data_queue[*data_tail].type = TYPE_UNKNOWN;
+
+	for(index = 0; index < can_queue[can_head].length; index++)
+	{
+		data_queue[*data_tail].value <<= 8; // Byte 0 is left-most
+		data_queue[*data_tail].value |= can_queue[can_head].data[index];
+	} // for all bytes in message
+
+	wrap_data_queue(data_head, data_tail);
+} // process_default()
+
+
+
+void process_throttle(DataPacket* data_queue, uint8_t* data_head,
+	uint8_t* data_tail)
+{
+	data_queue[*data_tail].type = TYPE_THROTTLE;
+	data_queue[*data_tail].value = can_queue[can_head].data[1]; // upper
+	data_queue[*data_tail].value <<= 8;
+	data_queue[*data_tail].value |= can_queue[can_head].data[0]; // lower
+
+	wrap_data_queue(data_head, data_tail);
 } // process_throttle()

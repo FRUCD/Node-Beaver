@@ -15,7 +15,8 @@ void usb_init()
 
 
 
-void usb_put(const DataPacket* data_queue, uint8_t data_pos)
+void usb_put(const DataPacket* data_queue, uint8_t data_head,
+	uint8_t data_tail)
 {
 	uint8_t i;
 	uint32_t num_char;
@@ -25,7 +26,7 @@ void usb_put(const DataPacket* data_queue, uint8_t data_pos)
 	{
 		USBUART_1_CDC_Init(); // USB Initialization
 
-		for(i = 0; i < data_pos; i++)
+		for(i = data_head; i != data_tail; i = (i+1)%DATA_QUEUE_LENGTH)
 		{
 			switch(data_queue[i].type)
 			{

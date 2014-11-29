@@ -8,7 +8,8 @@
 
 
 void usb_init();
-void usb_put(const DataPacket* data_queue, const uint8_t data_pos);
+void usb_put(const DataPacket* data_queue, uint8_t data_head,
+	uint8_t data_tail);
 
 
 

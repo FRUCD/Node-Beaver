@@ -20,9 +20,13 @@ typedef struct
 void can_init();
 uint8_t can_test_send();
 //uint8_t can_get(DataPacket* data_queue, uint8_t* data_pos);
-uint8_t can_get(DataPacket* data_queue, uint8_t* data_head, uint8_t* data_tail);
+void can_get(DataPacket* data_queue, uint8_t* data_head, uint8_t* data_tail);
 
-void process_throttle(DataPacket* data_queue);
+inline void wrap_data_queue(uint8_t* data_head, uint8_t* data_tail);
+void process_default(DataPacket* data_queue, uint8_t* data_head,
+	uint8_t* data_tail);
+void process_throttle(DataPacket* data_queue, uint8_t* data_head,
+	uint8_t* data_tail);
 
 
 
