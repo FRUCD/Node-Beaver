@@ -91,3 +91,20 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 		USBUART_1_PutData(test_usb_message, 8); // Test message "PSoC!!!"
 	}	// if configuration successful
 } // usb_send()
+
+
+
+void usb_get()
+{
+	uint8_t count;
+	uint8_t rx_buffer[64];
+
+	if(USBUART_1_DataIsReady())
+	{   
+		count = USBUART_1_GetAll(rx_buffer); // maximum of 64 bits only
+		if(count)
+		{
+			//process user data
+		} // data exists
+	} // if data is to be received
+} // usb_get()
