@@ -4,7 +4,7 @@
 #include <project.h>
 #include <stdio.h>
 #include "data.h"
-#include "can_manager.h"
+#include "can_manager.h" // for probing can_queue head/tail
 
 
 void usb_init();

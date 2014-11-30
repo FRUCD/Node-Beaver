@@ -1,10 +1,12 @@
 #include "usb_manager.h"
 
+extern uint8_t can_head, can_tail; // for probing length
+
 
 
 uint8_t test_usb_message[8] = {'P','S','o','C','!','!','\r','\n'};
-DataPacket usb_queue[USB_QUEUE_LENGTH];
-uint8_t usb_pos = 0;
+//DataPacket usb_queue[USB_QUEUE_LENGTH];
+//uint8_t usb_pos = 0;
 
 
 
@@ -21,6 +23,8 @@ void usb_put(const DataPacket* data_queue, uint8_t data_head,
 	uint8_t pos;
 	uint32_t num_char;
 	char buffer[128];
+	int length_data, length_can; // Testing
+	length_data = length_can = 0; // Testing
 
   if(USBUART_1_GetConfiguration())
 	{
@@ -61,11 +65,29 @@ void usb_put(const DataPacket* data_queue, uint8_t data_head,
 					num_char = sprintf(buffer, "ERROR: Invalid data in queue!\r\n");
 			}; // switch data ID
 
+			
 			while(USBUART_1_CDCIsReady() == 0);
 			USBUART_1_PutData((uint8_t*)buffer, num_char);
 		} // for all messages in data queue
 
+		// Print lengths
+		length_data = (int)data_tail - (int)data_head;
+		if(length_data < 0)
+			length_data = (int)data_tail + (int)DATA_QUEUE_LENGTH - (int)data_head;
+
+		length_can = (int)can_tail - (int)can_head;
+		if(length_can < 0)
+			length_can = (int)can_tail + (int)CAN_QUEUE_LENGTH - (int)can_head;
+
+		num_char = sprintf(buffer, "DATA: %d/%d, CAN: %d/%d\r\n",
+			length_data, DATA_QUEUE_LENGTH, length_can, CAN_QUEUE_LENGTH);
+
 		while(USBUART_1_CDCIsReady() == 0);
-		USBUART_1_PutData(test_usb_message, 8); // Test message
+		USBUART_1_PutData((uint8_t*)buffer, num_char);
+		// End print lengths
+
+		
+		while(USBUART_1_CDCIsReady() == 0);
+		USBUART_1_PutData(test_usb_message, 8); // Test message "PSoC!!!"
 	}	// if configuration successful
 } // usb_send()
