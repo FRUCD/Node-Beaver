@@ -62,7 +62,7 @@ uint8_t can_test_send()
 
 	Note that global variables can_queue, can_head, and can_tail are used.
 */
-void can_get(DataPacket* data_queue, uint8_t* data_head, uint8_t* data_tail)
+void can_get(DataPacket* data_queue, uint16_t* data_head, uint16_t* data_tail)
 {
 	data_head = data_tail = 0;
 
@@ -93,7 +93,7 @@ void can_get(DataPacket* data_queue, uint8_t* data_head, uint8_t* data_tail)
 
 
 
-void wrap_data_queue(uint8_t* data_head, uint8_t* data_tail)
+void wrap_data_queue(uint16_t* data_head, uint16_t* data_tail)
 {
 	*data_tail = (*data_tail + 1) % DATA_QUEUE_LENGTH;
 
@@ -103,8 +103,8 @@ void wrap_data_queue(uint8_t* data_head, uint8_t* data_tail)
 
 
 
-inline void process_default(DataPacket* data_queue, uint8_t* data_head,
-	uint8_t* data_tail)
+inline void process_default(DataPacket* data_queue, uint16_t* data_head,
+	uint16_t* data_tail)
 {
 	uint8_t index;
 	data_queue[*data_tail].type = TYPE_UNKNOWN;
@@ -121,8 +121,8 @@ inline void process_default(DataPacket* data_queue, uint8_t* data_head,
 
 
 
-inline void process_throttle(DataPacket* data_queue, uint8_t* data_head,
-	uint8_t* data_tail)
+inline void process_throttle(DataPacket* data_queue, uint16_t* data_head,
+	uint16_t* data_tail)
 {
 	data_queue[*data_tail].type = TYPE_THROTTLE;
 	data_queue[*data_tail].value = can_queue[can_head].data[1]; // upper

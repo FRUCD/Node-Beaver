@@ -21,7 +21,7 @@ int main()
 	LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
 
 	DataPacket data_queue[DATA_QUEUE_LENGTH];
-	uint8_t data_head, data_tail;
+	uint16_t data_head, data_tail;
 	data_head = data_tail = 0;
 
 	time_init();
