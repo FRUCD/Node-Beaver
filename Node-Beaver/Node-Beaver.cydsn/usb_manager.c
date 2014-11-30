@@ -1,6 +1,6 @@
 #include "usb_manager.h"
 
-extern uint8_t can_head, can_tail; // for probing length
+extern uint16_t can_head, can_tail; // for probing length
 
 
 

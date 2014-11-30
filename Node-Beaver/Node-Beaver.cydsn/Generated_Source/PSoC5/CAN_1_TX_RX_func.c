@@ -27,8 +27,7 @@
 #include "can_manager.h"
 
 extern CanMessage can_queue[];
-extern uint8_t can_head;
-extern uint8_t can_tail;
+extern uint16_t can_head, can_tail;
 /* `#END` */
 
 

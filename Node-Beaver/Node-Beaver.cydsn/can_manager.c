@@ -4,8 +4,8 @@
 
 const uint8_t test_message[] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
 volatile CanMessage can_queue[CAN_QUEUE_LENGTH];
-volatile uint8_t can_head = 0;
-volatile uint8_t can_tail = 0;
+volatile uint16_t can_head = 0;
+volatile uint16_t can_tail = 0;
 
 
 
