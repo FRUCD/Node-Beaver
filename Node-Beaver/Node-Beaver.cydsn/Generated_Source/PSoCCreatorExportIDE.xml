@@ -39,6 +39,8 @@
           <File BuildType="BUILD" Toolchain="">.\usb_manager.c</File>
           <File BuildType="BUILD" Toolchain="">.\time.c</File>
           <File BuildType="BUILD" Toolchain="">.\time.h</File>
+          <File BuildType="BUILD" Toolchain="">.\radio_manager.c</File>
+          <File BuildType="BUILD" Toolchain="">.\radio_manager.h</File>
         </Files>
       </Folder>
       <Folder BuildType="STRICT" Path="C:\Users\Jonathan\Documents\PSoC Creator\Node-Beaver\Node-Beaver\Node-Beaver.cydsn\Generated_Source\PSoC5">

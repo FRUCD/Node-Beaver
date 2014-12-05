@@ -35,6 +35,7 @@ int main()
 		can_get(data_queue, &data_head, &data_tail);
 		usb_put(data_queue, data_head, data_tail);
 		sd_push(data_queue, data_head, data_tail);
+		radio_put(data_queue, data_head, data_tail);
 		data_head = data_tail = 0; // clear buffer
 
 		CyDelay(100);

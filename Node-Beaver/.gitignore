@@ -10,4 +10,5 @@
 *.cydsn/codegentemp
 *.cydsn/CortexM3
 
+*.vim
 *.swp
