@@ -34,7 +34,7 @@
 *   Conditional Compilation Parameters
 ***************************************/
 
-#define SPIM_1_INTERNAL_CLOCK             (1u)
+#define SPIM_1_INTERNAL_CLOCK             (0u)
 
 #if(0u != SPIM_1_INTERNAL_CLOCK)
     #include "SPIM_1_IntClock.h"

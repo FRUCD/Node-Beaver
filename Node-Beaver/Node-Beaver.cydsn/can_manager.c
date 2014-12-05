@@ -124,7 +124,7 @@ inline void process_default(DataPacket* data_queue, uint16_t* data_head,
 inline void process_throttle(DataPacket* data_queue, uint16_t* data_head,
 	uint16_t* data_tail)
 {
-	data_queue[*data_tail].type = TYPE_THROTTLE;
+	data_queue[*data_tail].type = TYPE_THROTTLE_1;
 	data_queue[*data_tail].value = can_queue[can_head].data[1]; // upper
 	data_queue[*data_tail].value <<= 8;
 	data_queue[*data_tail].value |= can_queue[can_head].data[0]; // lower

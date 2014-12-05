@@ -34,9 +34,9 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 		{
 			switch(data_queue[pos].type)
 			{
-				case TYPE_THROTTLE:
+				case TYPE_THROTTLE_1:
 					num_char = sprintf(buffer,
-						"Type: Throttle\tID: %X\tValue: %d\r\n",
+						"Type: Throttle 1\tID: %X\tValue: %d\r\n",
 						data_queue[pos].id,
 						(short)data_queue[pos].value);
 					break;

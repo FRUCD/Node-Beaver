@@ -41,7 +41,7 @@ void time_refresh()
 
 
 
-void time_get(Time* time)
+uint32_t time_get()
 {
-	*time = current_time;
+	return 0; // returns UNIX time
 } // time_get()

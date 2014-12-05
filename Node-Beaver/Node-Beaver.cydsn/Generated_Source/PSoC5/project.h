@@ -56,6 +56,7 @@
 #include <M_SCLK.h>
 #include <M_SS_aliases.h>
 #include <M_SS.h>
+#include <spi_clock.h>
 #include <emFile_1_SPI0.h>
 #include <emFile_1_SPI0_PVT.h>
 #include <emFile_1_mosi0_aliases.h>
@@ -73,7 +74,6 @@
 #include <USBUART_1_Dm.h>
 #include <USBUART_1_Dp_aliases.h>
 #include <USBUART_1_Dp.h>
-#include <SPIM_1_IntClock.h>
 #include <core_cm3_psoc5.h>
 #include <core_cm3.h>
 #include <CyDmac.h>

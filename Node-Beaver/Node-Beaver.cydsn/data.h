@@ -12,10 +12,13 @@
 #define CAN_UNKNOWN 0x000 // 0
 #define CAN_THROTTLE 0x205 // 517
 
+#define ID_UNKNOWN CAN_UNKNOWN
+#define ID_THROTTLE_1 CAN_THROTTLE
+
 enum Types
 {
 	TYPE_UNKNOWN,
-	TYPE_THROTTLE
+	TYPE_THROTTLE_1
 };
 
 
@@ -23,7 +26,8 @@ enum Types
 typedef struct
 {
   uint32_t time;
-  uint16_t type, id;
+  uint16_t type;
+	uint16_t id; // id is for tracking CAN ID
   uint64_t value;
 } DataPacket;
 

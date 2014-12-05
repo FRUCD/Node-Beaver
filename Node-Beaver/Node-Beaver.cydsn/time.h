@@ -17,7 +17,7 @@ typedef struct
 
 CY_ISR_PROTO(timer_interrupt);
 void time_init();
-void time_get();
+uint32_t time_get();
 void time_refresh();
 
 
