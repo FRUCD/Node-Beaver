@@ -3,7 +3,7 @@
 
 #include <project.h>
 
-// SD queue must be longer than can queue
+// SD queue should be longer than can queue
 #define CAN_QUEUE_LENGTH 32
 #define DATA_QUEUE_LENGTH CAN_QUEUE_LENGTH
 #define USB_QUEUE_LENGTH CAN_QUEUE_LENGTH
