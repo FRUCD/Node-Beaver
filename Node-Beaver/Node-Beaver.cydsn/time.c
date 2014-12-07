@@ -14,7 +14,7 @@ CY_ISR(timer_interrupt)
 
 	if(current_time.millisecond >= 1000)
 	{
-		LED_Write(blink);
+		//LED_Write(blink);
 		if(blink==1)
 			blink = 0;
 		else
