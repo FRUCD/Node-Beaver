@@ -19,7 +19,10 @@ CY_ISR(power_interrupt)
 
 void sd_init()
 {
-	// FIXME power_isr constantly triggers
+	/* power_isr note:
+		Triggers unexpectedly due to floating pin/environmental voltages and
+		capacitance. power isr is disabled for prototyping only.
+	*/
 	//power_isr_StartEx(power_interrupt);
 	FS_Init();
 

@@ -99,7 +99,6 @@ void wrap_data_queue(uint8_t* data_head, uint8_t* data_tail)
 
 	if(*data_tail == *data_head) // if need to roll data queue
 		*data_head = (*data_head + 1) % DATA_QUEUE_LENGTH;
-
 } // wrap_data_queue()
 
 

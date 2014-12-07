@@ -37,13 +37,6 @@ void usb_put(const DataPacket* data_queue, uint8_t data_head,
 						(short)data_queue[pos].value);
 					break;
 				case TYPE_UNKNOWN:
-				/*
-					num_char = sprintf(buffer,
-						"Type: Unknown\tID: %X\tValue: %08lX %08lX\r\n",
-						data_queue[pos].id,
-						(unsigned long)((data_queue[pos].value & 0xFFFFFFFF00000000) >> 32),
-						(unsigned long)data_queue[pos].value);	
-					*/
 					num_char = sprintf(buffer,
 						"Type: Unknown\tID: %X\t"
 						"Value: %02X %02X %02X %02X  %02X %02X %02X %02X \r\n",
