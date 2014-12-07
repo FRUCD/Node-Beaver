@@ -40,14 +40,14 @@ uint8_t can_test_send()
 /*
 	if(state != CYRET_SUCCESS)
 	{
-		//LED_Write(1);
+		LED_Write(1);
 		return CAN_1_FAIL;
 	}
 
-	//LED_Write(0);
-
+	LED_Write(0);
 	return CYRET_SUCCESS;
-	*/
+*/
+	
 	return state;
 } // can_test_send()
 
@@ -64,7 +64,7 @@ uint8_t can_test_send()
 */
 void can_get(DataPacket* data_queue, uint8_t* data_head, uint8_t* data_tail)
 {
-	data_head = data_tail = 0;
+	*data_head = *data_tail = 0;
 
 	uint8_t atomic_state = CyEnterCriticalSection(); // BEGIN ATOMIC
 
@@ -97,8 +97,9 @@ void wrap_data_queue(uint8_t* data_head, uint8_t* data_tail)
 {
 	*data_tail = (*data_tail + 1) % DATA_QUEUE_LENGTH;
 
-	if(data_tail == data_head) // if need to roll data queue
+	if(*data_tail == *data_head) // if need to roll data queue
 		*data_head = (*data_head + 1) % DATA_QUEUE_LENGTH;
+
 } // wrap_data_queue()
 
 

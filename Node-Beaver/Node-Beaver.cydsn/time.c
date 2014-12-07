@@ -28,7 +28,7 @@ CY_ISR(timer_interrupt)
 void time_init()
 {
 	time_refresh(); // get time from rtc
-	time_isr_StartEx(timer_interrupt);
+	//time_isr_StartEx(timer_interrupt);
 	Timer_1_Start();
 } // time_init()
 

@@ -19,7 +19,8 @@ CY_ISR(power_interrupt)
 
 void sd_init()
 {
-	power_isr_StartEx(power_interrupt);
+	// FIXME power_isr constantly triggers
+	//power_isr_StartEx(power_interrupt);
 	FS_Init();
 
 	if(FS_GetNumVolumes() == 1)
