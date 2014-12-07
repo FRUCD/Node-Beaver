@@ -14,7 +14,7 @@ CY_ISR(timer_interrupt)
 
 	if(current_time.millisecond >= 1000)
 	{
-		LED_Write(blink);
+		//LED_Write(blink);
 		if(blink==1)
 			blink = 0;
 		else
@@ -28,7 +28,7 @@ CY_ISR(timer_interrupt)
 void time_init()
 {
 	time_refresh(); // get time from rtc
-	time_isr_StartEx(timer_interrupt);
+	//time_isr_StartEx(timer_interrupt);
 	Timer_1_Start();
 } // time_init()
 

@@ -545,7 +545,6 @@ void CAN_1_ReceiveMsg(uint8 rxMailbox)
 
 			if(can_tail == can_head) // if need to roll queue
 				can_head = (can_head + 1) % CAN_QUEUE_LENGTH;
-
         /* `#END` */
         
         CAN_1_RX[rxMailbox].rxcmd.byte[0u] |= CAN_1_RX_ACK_MSG;
