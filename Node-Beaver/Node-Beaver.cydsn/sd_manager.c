@@ -17,7 +17,7 @@ CY_ISR(power_interrupt)
 
 
 
-void sd_init()
+void sd_init(Time time)
 {
 	/* power_isr note:
 		Triggers unexpectedly due to floating pin/environmental voltages and
@@ -32,12 +32,23 @@ void sd_init()
 	{
 		if(FS_ATTR_DIRECTORY != FS_GetFileAttributes("logs"))
 			if(FS_MkDir("logs")) // create logs directory
-				sd_ok = 0; // if mkdir failed
+			{
+				sd_ok = 0;
+				return;
+			} // if logs folder can't be created
 
 		// get time and date for naming day folder
+		/*
+		if(sd_ok)
+			sprintf(string[64], "%d/%d/%d", time.month, time.day, time.year);
+			*/
+
 		if(sd_ok && FS_ATTR_DIRECTORY != FS_GetFileAttributes("\\logs\\days"))
 			if(FS_MkDir("\\logs\\day")) // create runs directory
+			{
 				sd_ok = 0;
+				return;
+			} // if day folder can't be created
 
 
 		pfile = FS_FOpen("\\logs\\day\\run.csv", "w"); // open test file
