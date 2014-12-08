@@ -27,7 +27,15 @@ CY_ISR(timer_interrupt)
 
 void time_init()
 {
-	time_refresh(); // get time from rtc
+	// fill struct for debugging
+	current_time.month = 12;
+	current_time.day = 30;
+	current_time.year = 14;
+	current_time.hour = 1;
+	current_time.minute = 2;
+	current_time.second = 3;
+	current_time.millisecond = 4;
+
 	//time_isr_StartEx(timer_interrupt);
 	Timer_1_Start();
 } // time_init()
@@ -41,7 +49,14 @@ void time_refresh()
 
 
 
-uint32_t time_get()
+uint32_t time_get_unix()
 {
 	return 0; // returns UNIX time
+} // time_get_unix()
+
+
+
+Time time_get()
+{
+	return current_time;
 } // time_get()

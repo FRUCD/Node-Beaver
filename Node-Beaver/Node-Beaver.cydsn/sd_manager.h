@@ -4,6 +4,7 @@
 #include <project.h>
 #include <FS.h>
 #include "data.h"
+#include "time.h"
 
 
 CY_ISR_PROTO(power_interrupt);

@@ -28,7 +28,7 @@ int main()
 	time_init();
 	can_init();
 	usb_init();
-	sd_init();
+	sd_init(time_get());
 
 	for(;;)
 	{
