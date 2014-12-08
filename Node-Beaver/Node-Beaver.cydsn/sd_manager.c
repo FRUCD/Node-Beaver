@@ -26,11 +26,11 @@ void sd_init(Time time)
 	//power_isr_StartEx(power_interrupt);
 	FS_Init();
 	sd_ok = 1;
-	char string[64];
+	char date_str[32], run_str[64];
 
 	if(FS_GetNumVolumes() == 1)
 	{
-		if(FS_ATTR_DIRECTORY != FS_GetFileAttributes("logs"))
+		if(FS_ATTR_DIRECTORY != FS_GetFileAttributes("logs")) // if logs not a dir
 			if(FS_MkDir("logs")) // create logs directory
 			{
 				sd_ok = 0;
@@ -38,20 +38,25 @@ void sd_init(Time time)
 			} // if logs folder can't be created
 
 		// get time and date for naming day folder
-		/*
-		if(sd_ok)
-			sprintf(string[64], "%d/%d/%d", time.month, time.day, time.year);
-			*/
+		sprintf(date_str, "\\logs\\%u-%u-%u", time.month, time.day, time.year);
 
-		if(sd_ok && FS_ATTR_DIRECTORY != FS_GetFileAttributes("\\logs\\days"))
-			if(FS_MkDir("\\logs\\day")) // create runs directory
+		if(FS_ATTR_DIRECTORY != FS_GetFileAttributes(date_str)) // if day not a dir
+			if(FS_MkDir(date_str)) // create runs directory
 			{
 				sd_ok = 0;
 				return;
 			} // if day folder can't be created
 
+		sprintf(run_str, "%s\\%u-%u-%u.csv", date_str, time.hour, time.minute,
+			time.second);
 
-		pfile = FS_FOpen("\\logs\\day\\run.csv", "w"); // open test file
+		pfile = FS_FOpen(run_str, "w"); // open test file
+
+		if(pfile == NULL)
+		{
+			sd_ok = 0;
+			return;
+		} // if file does not exist
 	} // if a single file volume exists
 
 	sd_stop(); // for testing
