@@ -25,14 +25,22 @@ void sd_init()
 	*/
 	//power_isr_StartEx(power_interrupt);
 	FS_Init();
+	sd_ok = 1;
+	char string[64];
 
 	if(FS_GetNumVolumes() == 1)
 	{
 		if(FS_ATTR_DIRECTORY != FS_GetFileAttributes("logs"))
-			FS_MkDir("logs"); // create logs directory
+			if(FS_MkDir("logs")) // create logs directory
+				sd_ok = 0; // if mkdir failed
 
-		pfile = FS_FOpen("\\logs\\test.txt", "w"); // open test file
-		sd_ok = 1;
+		// get time and date for naming day folder
+		if(sd_ok && FS_ATTR_DIRECTORY != FS_GetFileAttributes("\\logs\\days"))
+			if(FS_MkDir("\\logs\\day")) // create runs directory
+				sd_ok = 0;
+
+
+		pfile = FS_FOpen("\\logs\\day\\run.csv", "w"); // open test file
 	} // if a single file volume exists
 
 	sd_stop(); // for testing
@@ -43,6 +51,8 @@ void sd_init()
 void sd_push(const DataPacket* data_queue, uint16_t data_head,
              uint16_t data_tail)
 {
+	if(!sd_ok)
+		return;
 	//push to queue
 	//if queue is full, write to sd
 } // sd_push()
