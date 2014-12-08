@@ -5,7 +5,7 @@
 FS_FILE* pfile;
 uint8_t sd_ok = 0;
 DataPacket sd_queue[SD_QUEUE_LENGTH];
-uint8_t sd_pos = 0;
+uint16_t sd_head = 0, sd_tail = 0;
 
 
 
@@ -57,7 +57,14 @@ void sd_init(Time time)
 			sd_ok = 0;
 			return;
 		} // if file does not exist
+
+		// Set file time here
+		// FS_SetFileTime()
 	} // if a single file volume exists
+
+	// test writing
+	FS_FWrite("HELLO,", 1, 5, pfile);
+	
 
 	sd_stop(); // for testing
 } // sd_init()
@@ -78,7 +85,7 @@ void sd_push(const DataPacket* data_queue, uint16_t data_head,
 void sd_write()
 {
 	// write queue to sd and clear queue
-	sd_pos = 0;
+	sd_head = sd_tail = 0
 } // sd_write()
 
 
