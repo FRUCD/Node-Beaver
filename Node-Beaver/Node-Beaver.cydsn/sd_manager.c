@@ -5,7 +5,7 @@
 FS_FILE* pfile;
 uint8_t sd_ok = 0;
 DataPacket sd_queue[SD_QUEUE_LENGTH];
-uint16_t sd_head = 0, sd_tail = 0;
+uint16_t sd_tail = 0;
 
 
 
@@ -31,7 +31,7 @@ void sd_init(Time time)
 	if(FS_GetNumVolumes() == 1)
 	{
 		if(FS_ATTR_DIRECTORY != FS_GetFileAttributes("logs")) // if logs not a dir
-			if(FS_MkDir("logs")) // create logs directory
+			if(FS_MkDir("logs"))
 			{
 				sd_ok = 0;
 				return;
@@ -41,7 +41,7 @@ void sd_init(Time time)
 		sprintf(date_str, "\\logs\\%u-%u-%u", time.month, time.day, time.year);
 
 		if(FS_ATTR_DIRECTORY != FS_GetFileAttributes(date_str)) // if day not a dir
-			if(FS_MkDir(date_str)) // create runs directory
+			if(FS_MkDir(date_str))
 			{
 				sd_ok = 0;
 				return;
@@ -72,12 +72,20 @@ void sd_init(Time time)
 
 
 void sd_push(const DataPacket* data_queue, uint16_t data_head,
-             uint16_t data_tail)
+	uint16_t data_tail)
 {
 	if(!sd_ok)
 		return;
 	//push to queue
-	//if queue is full, write to sd
+
+
+		uint16_t pos;
+		for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
+		{
+			//push to queue
+
+			//if queue is full, write to sd
+		} // for all messages in data queue
 } // sd_push()
 
 
@@ -85,7 +93,7 @@ void sd_push(const DataPacket* data_queue, uint16_t data_head,
 void sd_write()
 {
 	// write queue to sd and clear queue
-	sd_head = sd_tail = 0
+	sd_tail = 0;
 } // sd_write()
 
 

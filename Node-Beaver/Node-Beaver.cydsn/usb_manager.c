@@ -20,7 +20,7 @@ void usb_init()
 void usb_put(const DataPacket* data_queue, uint16_t data_head,
 	uint16_t data_tail)
 {
-	uint8_t pos;
+	uint16_t pos;
 	uint32_t num_char;
 	char buffer[128];
 	int length_data, length_can; // Testing
