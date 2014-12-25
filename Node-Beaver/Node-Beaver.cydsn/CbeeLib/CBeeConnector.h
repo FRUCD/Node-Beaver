@@ -9,7 +9,7 @@ and even Xbee emulator which is used during debugging and developing
 */
 #include <stdint.h>
 #include "data.h"
-#include "TransmitorSimu.h"
+#include "TransmitorSimu.h"  //XBVIRT
 #define XBSERIAL 0
 #define XBI2C 1
 #define XBSPI 2
@@ -24,7 +24,7 @@ typedef struct XBeePort{
 	uint16_t XBShortTgtAdd;
 	uint64_t XBLongTgtAdd;
 	uint8_t XBBaud;
-	uint32_t XBMqch;
+	key_t XBMqch;
 	char message[256];
 
 
