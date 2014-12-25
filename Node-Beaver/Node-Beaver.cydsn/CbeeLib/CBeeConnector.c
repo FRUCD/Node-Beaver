@@ -9,8 +9,7 @@ int XBConnet(myXBeePort* passport){
 		case (XBSPI):
 			break;
 		case (XBVIRT):
-			TranSimu_init(*passport.XBMqch,SENDERFLG);
-			break;
+			return TranSimu_init(*passport.XBMqch,SENDERFLG);
 		default:
 			break;
 	}
