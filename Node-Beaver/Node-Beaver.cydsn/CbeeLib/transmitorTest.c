@@ -10,17 +10,22 @@ int main(int argc, char** argv){
 	if (option==0){  //send mode
 		char message[MSGSZ];
 		TranSimu_init((key_t)1234,SENDERFLG);
+
 		while(1){
 			printf("Please input msg that you want to send: ");
 			scanf("%s",message);
 			TranSimu_send(message);
+			// TranSimu_dirsend(1234,"LOL");
 		}
 		return 0;
 
 
 	}else{  //rec mode
+		char message[MSGSZ];
 		TranSimu_init((key_t)1234,RECFLG);
 		TranSimu_recLoop(1);
+		// TranSimu_rec(message);
+		printf("Received %s\n",message);
 		return 0;
 	}
 	return 0;

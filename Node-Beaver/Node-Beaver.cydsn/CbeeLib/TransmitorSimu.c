@@ -3,7 +3,7 @@
 
 
 
-message_buf sbuf;
+
 message_buf rbuf;
 int msqid;
 size_t buf_length;
@@ -23,8 +23,8 @@ int TranSimu_init(key_t key, int msgflg){
 } //Transimu_init 
 
 int TranSimu_send(char* message){
-    sbuf.mtype = 1;
     message_buf sbuf;
+    sbuf.mtype = 1;
     if (strlen(message) > 127){
         strncpy(sbuf.mtext, message, 127);
         buf_length = 127;
