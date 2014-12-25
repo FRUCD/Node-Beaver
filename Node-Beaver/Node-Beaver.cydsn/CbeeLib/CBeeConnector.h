@@ -8,20 +8,36 @@ real world Serial, SPI,I2C
 and even Xbee emulator which is used during debugging and developing
 */
 #include <stdint.h>
+#include "data.h"
+#include "TransmitorSimu.h"
+#define XBSERIAL 0
+#define XBI2C 1
+#define XBSPI 2
+#define XBVIRT 3
+
 
 typedef struct XBeePort{
+	int XBType;
 	char* XBName[16];
-	uint16_t XBShortAdd;
-	uint64_t XBLongAdd;
+	uint16_t XBShortSelfAdd;
+	uint64_t XBLongSelfAdd;
+	uint16_t XBShortTgtAdd;
+	uint64_t XBLongTgtAdd;
 	uint8_t XBBaud;
 	uint32_t XBMqch;
+	char message[256];
 
 
 }myXBeePort;
 
-int XBConnect();
-int XBSend();
-int XBRec();
+int XBConnect(myXBeePort* passport);
+int XBSend(char message[256]);
+int XBRec(char *message);
+
+//virutal connection with XBeeEmulator
+//connect XBee by I2C
+//connect XBee by SPI
+//connect XBee by Serial
 
 
 
