@@ -61,11 +61,20 @@ void sd_init(Time time)
 		// FS_SetFileTime()
 	} // if a single file volume exists
 
-	// test writing
-	FS_Write(pfile, "HELLO,\n", 5);
-	
+	FS_Write(pfile, "Type,Time,Value,ID\n", 19);
+
+	// test data writing
+	char buffer[128];
+	short length = 0;
+
+	// test write
+	length = sprintf(buffer, "%u,%u,%llu,%u\n", 1,
+			0xFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 517);
+	FS_Write(pfile, buffer, length);
 
 	sd_stop(); // for testing
+	sd_ok = 0; // for testing
+	
 } // sd_init()
 
 
@@ -85,6 +94,11 @@ void sd_push(const DataPacket* data_queue, uint16_t data_head,
 	for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
 	{
 		//write
+		length = sprintf(buffer, "%u,%u,%llu,%u\n",
+			(unsigned)data_queue[pos].type,
+			(unsigned)data_queue[pos].time,
+			(unsigned long long)data_queue[pos].value,
+			(unsigned)data_queue[pos].id);
 		FS_Write(pfile, buffer, length);
 	} // for all messages in data queue
 } // sd_push()
@@ -93,7 +107,6 @@ void sd_push(const DataPacket* data_queue, uint16_t data_head,
 
 void sd_stop()
 {
-	sd_write();
 	FS_FClose(pfile);
 	FS_Sync("");
 	FS_Unmount("");

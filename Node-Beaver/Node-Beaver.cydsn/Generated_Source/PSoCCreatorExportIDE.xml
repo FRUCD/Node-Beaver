@@ -7,7 +7,7 @@
       <Tool Name="prebuild" Command="" Options="" />
       <Tool Name="assembler" Command="arm-none-eabi-as.exe" Options="-I. -I./Generated_Source/PSoC5 -mcpu=cortex-m3 -mthumb -g -alh=${OutputDir}/${CompileFile}.lst " />
       <Tool Name="compiler" Command="arm-none-eabi-gcc.exe" Options="-I. -I./Generated_Source/PSoC5 -Wno-main -mcpu=cortex-m3 -mthumb -I .\emFile_V322b\Code\Include\PSoC5 -I .\emFile_V322b\Code\Include\PSoC5\emf32nOS -Wall -g -D DEBUG -Wa,-alh=${OutputDir}\${CompileFile}.lst -ffunction-sections " />
-      <Tool Name="linker" Command="arm-none-eabi-gcc.exe" Options="-mthumb -march=armv7-m -mfix-cortex-m3-ldrd -T .\Generated_Source\PSoC5\cm3gcc.ld -L .\emFile_V322b\LinkLibrary\PSoC5\GCC -g -Wl,-Map,${OutputDir}\${ProjectShortName}.map -specs=nano.specs -Wl,--gc-sections " />
+      <Tool Name="linker" Command="arm-none-eabi-gcc.exe" Options="-mthumb -march=armv7-m -mfix-cortex-m3-ldrd -T .\Generated_Source\PSoC5\cm3gcc.ld -L .\emFile_V322b\LinkLibrary\PSoC5\GCC -g -Wl,-Map,${OutputDir}\${ProjectShortName}.map -Wl,--gc-sections " />
       <Tool Name="postbuild" Command="" Options="" />
     </Toolchain>
     <Toolchain Name="ARM Keil MDK" Selected="False">
