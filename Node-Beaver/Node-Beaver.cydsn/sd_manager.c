@@ -61,6 +61,7 @@ void sd_init(Time time)
 		// FS_SetFileTime()
 	} // if a single file volume exists
 
+/*
 	FS_Write(pfile, "Type,Time,Value,ID\n", 19);
 
 	// test data writing
@@ -74,7 +75,7 @@ void sd_init(Time time)
 
 	sd_stop(); // for testing
 	sd_ok = 0; // for testing
-	
+	*/
 } // sd_init()
 
 
@@ -93,14 +94,16 @@ void sd_push(const DataPacket* data_queue, uint16_t data_head,
 	uint16_t pos;
 	for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
 	{
-		//write
 		length = sprintf(buffer, "%u,%u,%llu,%u\n",
 			(unsigned)data_queue[pos].type,
 			(unsigned)data_queue[pos].time,
 			(unsigned long long)data_queue[pos].value,
 			(unsigned)data_queue[pos].id);
-		FS_Write(pfile, buffer, length);
+
+		FS_Write(pfile, buffer, length); // write to SD
 	} // for all messages in data queue
+
+	FS_Sync(""); // sync to SD
 } // sd_push()
 
 
