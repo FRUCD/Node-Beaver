@@ -4,8 +4,6 @@
 
 FS_FILE* pfile;
 uint8_t sd_ok = 0;
-DataPacket sd_queue[SD_QUEUE_LENGTH]; // sd_queue does not roll
-uint16_t sd_tail = 0; // sd_queue writes when full. sd_head is always 0;
 
 
 
@@ -13,7 +11,6 @@ CY_ISR(power_interrupt)
 {
 	sd_stop();
 } // CY_ISR(power_interrupt)
-
 
 
 
@@ -30,6 +27,8 @@ void sd_init(Time time)
 
 	if(FS_GetNumVolumes() == 1)
 	{
+		FS_SetFileWriteMode(FS_WRITEMODE_FAST);
+
 		if(FS_ATTR_DIRECTORY != FS_GetFileAttributes("logs")) // if logs not a dir
 			if(FS_MkDir("logs"))
 			{
@@ -63,7 +62,7 @@ void sd_init(Time time)
 	} // if a single file volume exists
 
 	// test writing
-	FS_FWrite("HELLO,", 1, 5, pfile);
+	FS_Write(pfile, "HELLO,\n", 5);
 	
 
 	sd_stop(); // for testing
@@ -78,27 +77,17 @@ void sd_push(const DataPacket* data_queue, uint16_t data_head,
 		return;
 	//push to queue
 
+	char buffer[128];
+	short length = 0;
 
-		uint16_t pos;
-		for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
-		{
-			//push to queue
-			sd_queue[sd_tail] = data_queue[data_head];	
-			sd_tail++;
 
-			//if queue is full, write to sd
-			if(sd_tail == SD)
-				sd_write();
-		} // for all messages in data queue
+	uint16_t pos;
+	for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
+	{
+		//write
+		FS_Write(pfile, buffer, length);
+	} // for all messages in data queue
 } // sd_push()
-
-
-
-void sd_write()
-{
-	// write queue to sd and clear queue
-	sd_tail = 0;
-} // sd_write()
 
 
 
@@ -106,5 +95,7 @@ void sd_stop()
 {
 	sd_write();
 	FS_FClose(pfile);
+	FS_Sync("");
+	FS_Unmount("");
 } // sd_stop()
 
