@@ -20,6 +20,11 @@ void usb_init()
 void usb_put(const DataPacket* data_queue, uint16_t data_head,
 	uint16_t data_tail)
 {
+
+
+#ifdef USB_DEBUGGING
+
+
 	uint16_t pos;
 	uint32_t num_char;
 	char buffer[128];
@@ -83,6 +88,31 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 		while(USBUART_1_CDCIsReady() == 0);
 		USBUART_1_PutData(test_usb_message, 8); // Test message "PSoC!!!"
 	}	// if configuration successful
+
+
+#else // USB_DEBUGGING
+
+
+	uint16_t pos;
+	uint32_t num_char;
+	char buffer[128];
+	int length_data, length_can; // Testing
+	length_data = length_can = 0; // Testing
+
+  if(USBUART_1_GetConfiguration())
+	{
+		USBUART_1_CDC_Init(); // USB Initialization
+
+		for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
+		{
+		} // for all messages in data queue
+
+	}	// if configuration successful
+
+
+#endif // else USB_DEBUGGING
+
+
 } // usb_send()
 
 

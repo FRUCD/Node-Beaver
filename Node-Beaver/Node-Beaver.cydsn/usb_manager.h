@@ -1,6 +1,8 @@
 #ifndef USB_MANAGER_H
 #define USB_MANAGER_H
 
+#define USB_DEBUGGING
+
 #include <project.h>
 #include <stdio.h>
 #include "data.h"
