@@ -4,8 +4,8 @@
 
 FS_FILE* pfile;
 uint8_t sd_ok = 0;
-DataPacket sd_queue[SD_QUEUE_LENGTH];
-uint16_t sd_tail = 0;
+DataPacket sd_queue[SD_QUEUE_LENGTH]; // sd_queue does not roll
+uint16_t sd_tail = 0; // sd_queue writes when full. sd_head is always 0;
 
 
 
@@ -83,8 +83,12 @@ void sd_push(const DataPacket* data_queue, uint16_t data_head,
 		for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
 		{
 			//push to queue
+			sd_queue[sd_tail] = data_queue[data_head];	
+			sd_tail++;
 
 			//if queue is full, write to sd
+			if(sd_tail == SD)
+				sd_write();
 		} // for all messages in data queue
 } // sd_push()
 
