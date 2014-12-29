@@ -1,7 +1,7 @@
 #ifndef USB_MANAGER_H
 #define USB_MANAGER_H
 
-#define USB_DEBUGGING
+//#define USB_DEBUGGING
 
 #include <project.h>
 #include <stdio.h>
@@ -21,7 +21,7 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 inline void usb_prebuff_val(const DataPacket* datum, uint8_t* prebuffer,
 	uint16_t* prebuff_end);
 
-inline void usb_hamming(uint8_t* buffer, uint16_t* buff_end, uint8_t* prebuffer,
+inline void usb_pack(uint8_t* buffer, uint16_t* buff_end, uint8_t* prebuffer,
 	uint16_t* prebuff_end);
 
 void usb_get();
