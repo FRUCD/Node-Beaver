@@ -127,7 +127,10 @@ void usb_get()
 		count = USBUART_1_GetAll(rx_buffer); // maximum of 64 bits only
 		if(count)
 		{
+			LED_Write(1);
 			//process user data
 		} // data exists
+		for(count=0;count<255;count++);
+		LED_Write(0);
 	} // if data is to be received
 } // usb_get()
