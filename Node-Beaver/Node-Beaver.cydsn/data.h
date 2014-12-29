@@ -24,7 +24,7 @@ enum Types
 typedef struct
 {
   uint32_t time;
-  uint16_t type;
+  uint8_t type;
 	uint16_t id; // id is for tracking CAN ID
   uint64_t value;
 } DataPacket;
