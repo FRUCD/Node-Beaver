@@ -96,8 +96,6 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 	uint16_t pos;
 	uint32_t num_char;
 	char buffer[128];
-	int length_data, length_can; // Testing
-	length_data = length_can = 0; // Testing
 
   if(USBUART_1_GetConfiguration())
 	{
