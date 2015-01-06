@@ -46,17 +46,7 @@
 #include <Timer_1.h>
 #include <time_isr.h>
 #include <timer_clock.h>
-#include <SPIM_1.h>
-#include <SPIM_1_PVT.h>
-#include <M_MISO_aliases.h>
-#include <M_MISO.h>
-#include <M_MOSI_aliases.h>
-#include <M_MOSI.h>
-#include <M_SCLK_aliases.h>
-#include <M_SCLK.h>
-#include <M_SS_aliases.h>
-#include <M_SS.h>
-#include <spi_clock.h>
+#include <UART_1.h>
 #include <emFile_1_SPI0.h>
 #include <emFile_1_SPI0_PVT.h>
 #include <emFile_1_mosi0_aliases.h>
@@ -74,6 +64,7 @@
 #include <USBUART_1_Dm.h>
 #include <USBUART_1_Dp_aliases.h>
 #include <USBUART_1_Dp.h>
+#include <UART_1_IntClock.h>
 #include <core_cm3_psoc5.h>
 #include <core_cm3.h>
 #include <CyDmac.h>
