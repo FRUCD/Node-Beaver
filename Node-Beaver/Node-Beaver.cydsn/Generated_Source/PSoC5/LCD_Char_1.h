@@ -1,6 +1,6 @@
 /*******************************************************************************
 * File Name: LCD_Char_1.h
-* Version 2.0
+* Version 2.10
 *
 * Description:
 *  This header file contains registers and constants associated with the
@@ -183,11 +183,15 @@ extern uint8 const CYCODE LCD_Char_1_customFonts[64u];
 #define LCD_Char_1_CUSTOM_7                 (0x07u)
 
 /* Other constants */
-#define LCD_Char_1_BYTE_UPPER_NIBBLE_SHIFT   (0x04u)
-#define LCD_Char_1_BYTE_LOWER_NIBBLE_MASK    (0x0Fu)
-#define LCD_Char_1_U16_UPPER_BYTE_SHIFT      (0x08u)
-#define LCD_Char_1_U16_LOWER_BYTE_MASK       (0xFFu)
-#define LCD_Char_1_CUSTOM_CHAR_SET_LEN       (0x40u)
+#define LCD_Char_1_BYTE_UPPER_NIBBLE_SHIFT  (0x04u)
+#define LCD_Char_1_BYTE_LOWER_NIBBLE_MASK   (0x0Fu)
+#define LCD_Char_1_U16_UPPER_BYTE_SHIFT     (0x08u)
+#define LCD_Char_1_U16_LOWER_BYTE_MASK      (0xFFu)
+#define LCD_Char_1_CUSTOM_CHAR_SET_LEN      (0x40u)
+
+#define LCD_Char_1_LONGEST_CMD_US           (0x651u)
+#define LCD_Char_1_WAIT_CYCLE               (0x10u)
+#define LCD_Char_1_READY_DELAY              ((LCD_Char_1_LONGEST_CMD_US * 4u)/(LCD_Char_1_WAIT_CYCLE))
 
 
 /***************************************
