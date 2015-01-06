@@ -1,6 +1,6 @@
 /*******************************************************************************
 * File Name: Rx_1.h  
-* Version 2.5
+* Version 2.10
 *
 * Description:
 *  This file containts Control Register function prototypes and register defines
@@ -25,7 +25,7 @@
 /***************************************
 *              Constants        
 ***************************************/
-#define Rx_1_0		Rx_1__0__PC
+#define Rx_1_0		(Rx_1__0__PC)
 
 #endif /* End Pins Rx_1_ALIASES_H */
 

@@ -1,6 +1,6 @@
 /*******************************************************************************
 * File Name: LED.h  
-* Version 2.5
+* Version 2.10
 *
 * Description:
 *  This file containts Control Register function prototypes and register defines
@@ -25,7 +25,7 @@
 /***************************************
 *              Constants        
 ***************************************/
-#define LED_0		LED__0__PC
+#define LED_0		(LED__0__PC)
 
 #endif /* End Pins LED_ALIASES_H */
 

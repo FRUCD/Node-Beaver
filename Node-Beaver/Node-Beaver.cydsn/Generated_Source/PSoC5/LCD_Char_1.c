@@ -1,6 +1,6 @@
 /*******************************************************************************
 * File Name: LCD_Char_1.c
-* Version 2.0
+* Version 2.10
 *
 * Description:
 *  This file provides source code for the Character LCD component's API.
@@ -22,7 +22,7 @@ static void LCD_Char_1_WrDatNib(uint8 nibble) ;
 static void LCD_Char_1_WrCntrlNib(uint8 nibble) ;
 
 /* Stores state of component. Indicates whether component is or not
-* in the enable state.
+* in enable state.
 */
 uint8 LCD_Char_1_enableState = 0u;
 
@@ -34,7 +34,7 @@ uint8 LCD_Char_1_initVar = 0u;
 ********************************************************************************
 *
 * Summary:
-*  Perform initialization required for the components normal work.
+*  Performs initialization required for the components normal work.
 *  This function initializes the LCD hardware module as follows:
 *        Enables a 4-bit interface
 *        Clears the display
@@ -113,7 +113,7 @@ void LCD_Char_1_Enable(void)
 ********************************************************************************
 *
 * Summary:
-*  Perform initialization required for the components normal work.
+*  Performs initialization required for the components normal work.
 *  This function initializes the LCD hardware module as follows:
 *        Enables 4-bit interface
 *        Clears the display
@@ -189,7 +189,7 @@ void LCD_Char_1_Stop(void)
 *
 * Note:
 *  This only applies for LCD displays that use the 2X40 address mode.
-*  In this case Row 2 starts with 0x28 offset from Row 1.
+*  In this case Row 2 starts with a 0x28 offset from Row 1.
 *  When there are more than 2 rows, each row must be fewer than 20 characters.
 *
 *******************************************************************************/
@@ -333,7 +333,7 @@ void LCD_Char_1_WriteControl(uint8 cByte)
 ********************************************************************************
 *
 * Summary:
-*  Polls the LCD until the ready bit is set.
+*  Polls the LCD until the ready bit is set or a timeout occurs.
 *
 * Parameters:
 *  None.
@@ -348,6 +348,8 @@ void LCD_Char_1_WriteControl(uint8 cByte)
 void LCD_Char_1_IsReady(void) 
 {
     uint8 value;
+    uint32 timeout;
+    timeout = LCD_Char_1_READY_DELAY;
 
     /* Clear LCD port*/
     LCD_Char_1_PORT_DR_REG &= ((uint8)(~LCD_Char_1_PORT_MASK));
@@ -415,15 +417,22 @@ void LCD_Char_1_IsReady(void)
         /* Set E high as we in 4-bit interface we need extra operation */
         LCD_Char_1_PORT_DR_REG |= LCD_Char_1_E;
 
-        /* 360 ns delay the setup time for data pins */
+        /* 360 ns delay setup time for data pins */
         CyDelayUs(1u);
 
         /* Set enable low */
         LCD_Char_1_PORT_DR_REG &= ((uint8)(~LCD_Char_1_E));
 
-        /* Repeat until bit 4 is not zero. */
+        /* If LCD is not ready make a delay */
+        if (value == 0u)
+        {
+            CyDelayUs(10u);
+        }
 
-    } while (value != 0u);
+        /* Repeat until bit 4 is not zero or until timeout. */
+        timeout--;
+
+    } while ((value != 0u) && (timeout > 0u));
 
     /* Set R/W low to write */
     LCD_Char_1_PORT_DR_REG &= ((uint8)(~LCD_Char_1_RW));
@@ -467,8 +476,8 @@ void LCD_Char_1_IsReady(void)
 *  Writes a data nibble to the LCD module.
 *
 * Parameters:
-*  nibble:  Byte containing nibble in least significant nibble to be written
-*           to LCD module.
+*  nibble:  Byte containing nibble in the least significant nibble to be
+*           written to the LCD module.
 *
 * Return:
 *  None.
@@ -606,7 +615,7 @@ static void LCD_Char_1_WrCntrlNib(uint8 nibble)
         
         while (shift != 0u)
         {
-            /* "shift" var should be subtracted by 8 prior shifting. This implements 
+            /* "shift" var is to be subtracted by 8 prior shifting. This implements 
             * shifting by 24, 16, 8 and 0u. 
             */
             shift -= LCD_Char_1_8_BIT_SHIFT;
