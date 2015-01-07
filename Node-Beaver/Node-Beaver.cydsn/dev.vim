@@ -27,17 +27,19 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
 endif
 set shortmess=aoO
 badd +1 main.c
-badd +1 can_manager.c
+badd +60 can_manager.c
 badd +1 usb_manager.h
 badd +1 usb_manager.c
-badd +1 can_manager.h
+badd +8 can_manager.h
 badd +1 sd_manager.c
 badd +12 sd_manager.h
 badd +1 data.h
 badd +1 time.c
 badd +1 time.h
-badd +0 Generated_Source/PSoC5/CAN_1_TX_RX_func.c
+badd +1 Generated_Source/PSoC5/CAN_1_TX_RX_func.c
 badd +7 can_table.h
+badd +0 hamfunc.h
+badd +0 hamfunc.c
 argglobal
 silent! argdel *
 argadd main.c
@@ -58,6 +60,7 @@ argglobal
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
+setlocal backupcopy=
 setlocal nobinary
 setlocal nobreakindent
 setlocal breakindentopt=
@@ -173,6 +176,7 @@ edit main.c
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
+setlocal backupcopy=
 setlocal nobinary
 setlocal nobreakindent
 setlocal breakindentopt=
@@ -283,7 +287,6 @@ normal! zt
 5
 normal! 04|
 wincmd w
-2wincmd w
 exe 'vert 1resize ' . ((&columns * 96 + 96) / 192)
 exe 'vert 2resize ' . ((&columns * 95 + 96) / 192)
 tabedit usb_manager.h
@@ -316,6 +319,7 @@ argglobal
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
+setlocal backupcopy=
 setlocal nobinary
 setlocal nobreakindent
 setlocal breakindentopt=
@@ -431,6 +435,7 @@ edit usb_manager.c
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
+setlocal backupcopy=
 setlocal nobinary
 setlocal nobreakindent
 setlocal breakindentopt=
@@ -539,13 +544,14 @@ if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
 14
-normal! 014|
+normal! 0
 wincmd w
 argglobal
-edit can_manager.h
+edit hamfunc.h
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
+setlocal backupcopy=
 setlocal nobinary
 setlocal nobreakindent
 setlocal breakindentopt=
@@ -649,18 +655,19 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 6 - ((5 * winheight(0) + 7) / 15)
+let s:l = 1 - ((0 * winheight(0) + 7) / 15)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-6
+1
 normal! 0
 wincmd w
 argglobal
-edit can_manager.c
+edit hamfunc.c
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
+setlocal backupcopy=
 setlocal nobinary
 setlocal nobreakindent
 setlocal breakindentopt=
@@ -764,14 +771,14 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 51 - ((4 * winheight(0) + 21) / 43)
+let s:l = 1 - ((0 * winheight(0) + 21) / 43)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-51
+1
 normal! 0
 wincmd w
-2wincmd w
+4wincmd w
 exe '1resize ' . ((&lines * 15 + 31) / 62)
 exe 'vert 1resize ' . ((&columns * 95 + 96) / 192)
 exe '2resize ' . ((&lines * 43 + 31) / 62)
@@ -810,6 +817,7 @@ argglobal
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
+setlocal backupcopy=
 setlocal nobinary
 setlocal nobreakindent
 setlocal breakindentopt=
@@ -918,13 +926,14 @@ if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
 8
-normal! 01|
+normal! 0
 wincmd w
 argglobal
 edit time.c
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
+setlocal backupcopy=
 setlocal nobinary
 setlocal nobreakindent
 setlocal breakindentopt=
@@ -1033,13 +1042,14 @@ if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
 13
-normal! 038|
+normal! 0
 wincmd w
 argglobal
 edit sd_manager.h
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
+setlocal backupcopy=
 setlocal nobinary
 setlocal nobreakindent
 setlocal breakindentopt=
@@ -1155,6 +1165,7 @@ edit sd_manager.c
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
+setlocal backupcopy=
 setlocal nobinary
 setlocal nobreakindent
 setlocal breakindentopt=
@@ -1265,7 +1276,7 @@ normal! zt
 18
 normal! 0
 wincmd w
-2wincmd w
+4wincmd w
 exe '1resize ' . ((&lines * 25 + 31) / 62)
 exe 'vert 1resize ' . ((&columns * 85 + 96) / 192)
 exe '2resize ' . ((&lines * 33 + 31) / 62)
@@ -1297,6 +1308,7 @@ argglobal
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
+setlocal backupcopy=
 setlocal nobinary
 setlocal nobreakindent
 setlocal breakindentopt=
@@ -1412,6 +1424,7 @@ edit can_manager.c
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
+setlocal backupcopy=
 setlocal nobinary
 setlocal nobreakindent
 setlocal breakindentopt=
@@ -1520,13 +1533,14 @@ if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
 40
-normal! 063|
+normal! 01|
 wincmd w
 argglobal
 edit Generated_Source/PSoC5/CAN_1_TX_RX_func.c
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
+setlocal backupcopy=
 setlocal nobinary
 setlocal nobreakindent
 setlocal breakindentopt=
@@ -1637,13 +1651,13 @@ normal! zt
 28
 normal! 0
 wincmd w
-2wincmd w
+4wincmd w
 exe '1resize ' . ((&lines * 29 + 31) / 62)
 exe 'vert 1resize ' . ((&columns * 96 + 96) / 192)
 exe '2resize ' . ((&lines * 29 + 31) / 62)
 exe 'vert 2resize ' . ((&columns * 96 + 96) / 192)
 exe 'vert 3resize ' . ((&columns * 95 + 96) / 192)
-tabnext 1
+tabnext 2
 set stal=1
 if exists('s:wipebuf')
   silent exe 'bwipe ' . s:wipebuf

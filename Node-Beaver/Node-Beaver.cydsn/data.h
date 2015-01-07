@@ -3,11 +3,9 @@
 
 #include <project.h>
 
-// SD queue should be longer than can queue
-#define CAN_QUEUE_LENGTH 32
-#define DATA_QUEUE_LENGTH CAN_QUEUE_LENGTH
-#define USB_QUEUE_LENGTH CAN_QUEUE_LENGTH
-#define SD_QUEUE_LENGTH 128
+#define CAN_QUEUE_LENGTH 128
+#define DATA_QUEUE_LENGTH 256
+#define USB_QUEUE_LENGTH 256
 
 #define CAN_UNKNOWN 0x000 // 0
 #define CAN_THROTTLE 0x205 // 517
@@ -26,7 +24,7 @@ enum Types
 typedef struct
 {
   uint32_t time;
-  uint16_t type;
+  uint8_t type;
 	uint16_t id; // id is for tracking CAN ID
   uint64_t value;
 } DataPacket;

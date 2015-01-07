@@ -4,8 +4,6 @@
 
 FS_FILE* pfile;
 uint8_t sd_ok = 0;
-DataPacket sd_queue[SD_QUEUE_LENGTH];
-uint16_t sd_tail = 0;
 
 
 
@@ -13,7 +11,6 @@ CY_ISR(power_interrupt)
 {
 	sd_stop();
 } // CY_ISR(power_interrupt)
-
 
 
 
@@ -30,6 +27,8 @@ void sd_init(Time time)
 
 	if(FS_GetNumVolumes() == 1)
 	{
+		FS_SetFileWriteMode(FS_WRITEMODE_FAST);
+
 		if(FS_ATTR_DIRECTORY != FS_GetFileAttributes("logs")) // if logs not a dir
 			if(FS_MkDir("logs"))
 			{
@@ -62,11 +61,21 @@ void sd_init(Time time)
 		// FS_SetFileTime()
 	} // if a single file volume exists
 
-	// test writing
-	FS_FWrite("HELLO,", 1, 5, pfile);
-	
+/*
+	FS_Write(pfile, "Type,Time,Value,ID\n", 19);
+
+	// test data writing
+	char buffer[128];
+	short length = 0;
+
+	// test write
+	length = sprintf(buffer, "%u,%u,%llu,%u\n", 1,
+			0xFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 517);
+	FS_Write(pfile, buffer, length);
 
 	sd_stop(); // for testing
+	sd_ok = 0; // for testing
+	*/
 } // sd_init()
 
 
@@ -78,29 +87,31 @@ void sd_push(const DataPacket* data_queue, uint16_t data_head,
 		return;
 	//push to queue
 
+	char buffer[128];
+	short length = 0;
 
-		uint16_t pos;
-		for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
-		{
-			//push to queue
 
-			//if queue is full, write to sd
-		} // for all messages in data queue
+	uint16_t pos;
+	for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
+	{
+		length = sprintf(buffer, "%u,%u,%llu,%u\n",
+			(unsigned)data_queue[pos].type,
+			(unsigned)data_queue[pos].time,
+			(unsigned long long)data_queue[pos].value,
+			(unsigned)data_queue[pos].id);
+
+		FS_Write(pfile, buffer, length); // write to SD
+	} // for all messages in data queue
+
+	FS_Sync(""); // sync to SD
 } // sd_push()
-
-
-
-void sd_write()
-{
-	// write queue to sd and clear queue
-	sd_tail = 0;
-} // sd_write()
 
 
 
 void sd_stop()
 {
-	sd_write();
 	FS_FClose(pfile);
+	FS_Sync("");
+	FS_Unmount("");
 } // sd_stop()
 

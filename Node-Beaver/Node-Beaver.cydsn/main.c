@@ -33,7 +33,16 @@ int main()
 	for(;;)
 	{
 		can_test_send();
-		can_get(data_queue, &data_head, &data_tail);
+		//can_get(data_queue, &data_head, &data_tail);
+		//usb_get();
+		
+		//inject message to test usb
+		data_queue[data_head].type= 0xFF;
+		data_queue[data_head].time= 0;
+		data_queue[data_head].id= 0;
+		data_queue[data_head].value= 0;
+		data_tail++;
+
 		usb_put(data_queue, data_head, data_tail);
 		sd_push(data_queue, data_head, data_tail);
 		radio_put(data_queue, data_head, data_tail);
