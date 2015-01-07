@@ -23,10 +23,10 @@ enum Types
   
 typedef struct
 {
-  uint32_t time;
-  uint8_t type;
-	uint16_t id; // id is for tracking CAN ID
-  uint64_t value;
+    uint32_t time;
+    uint8_t type;
+    uint16_t id; // id is for tracking CAN ID
+    uint64_t value;
 } DataPacket;
 
 #endif

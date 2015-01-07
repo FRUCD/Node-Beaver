@@ -5,7 +5,8 @@
 #include "data.h"
 
 #define RADIO_UART 1
-   
+#define DATA_LEN 15  
+ 
 void myUART_Start(uint8_t option);
    
 void radio_put(const DataPacket* data_queue, uint16_t data_head,
