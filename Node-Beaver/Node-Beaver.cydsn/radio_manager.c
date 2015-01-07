@@ -1,5 +1,33 @@
 #include "radio_manager.h"
 
+
+void _putByte_escape(uint8_t* msg){
+    uint8_t i=0;
+    for(i=0;i<(DATA_LEN+1);i++){
+        if (msg[i]==0x7E){
+            UART_1_PutChar(ESCAPE);
+            UART_1_PutChar(msg[i]);
+    }else{
+        UART_1_PutChar(msg[i]);
+    }
+    }
+    return;
+
+}
+
+
+uint8_t checksum(uint8_t* msg){
+    uint8_t cksum=0x00;
+    uint8_t i=0;
+    for (i=0;i<DATA_LEN;i++){
+        cksum=cksum+msg[i];
+    }
+    cksum=0xff-cksum;
+    return cksum;
+}
+
+
+
 void myUART_Start(uint8_t option){
     switch (option){
         case 0:
@@ -11,7 +39,7 @@ void myUART_Start(uint8_t option){
     return;
 }
 
-void _get_bytes(const DataPacket* in_pkt,uint8_t* byte_ptr){
+void radio_get_bytes(const DataPacket* in_pkt,uint8_t* byte_ptr){
     uint8_t i=0;
     
     //bound is 8
@@ -40,12 +68,14 @@ void radio_put(const DataPacket* data_queue, uint16_t data_head,
 	uint16_t data_tail)
 {
     uint8_t i=0;
-    uint8_t all_data[DATA_LEN];
+    uint8_t all_data[DATA_LEN+1];
     myUART_Start(RADIO_UART);       //start uart_1
-    _get_bytes(data_queue,all_data);
+    radio_get_bytes(data_queue,all_data);
+    all_data[DATA_LEN]=checksum(all_data);
+    
     
     //send byte by byte
-    UART_1_PutArray(all_data,DATA_LEN);
+    _putByte_escape(all_data);
     
 } // radio_put()
 
