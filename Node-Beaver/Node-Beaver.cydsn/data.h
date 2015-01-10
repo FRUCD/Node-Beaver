@@ -12,6 +12,8 @@
 
 #define ID_UNKNOWN CAN_UNKNOWN
 #define ID_THROTTLE_1 CAN_THROTTLE
+    
+#define DATA_PAC_LENGTH 15
 
 enum Types
 {
