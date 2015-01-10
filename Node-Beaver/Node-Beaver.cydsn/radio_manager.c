@@ -31,7 +31,7 @@ uint8_t checksum(uint8_t* msg){
 void myUART_Start(uint8_t option){
     switch (option){
         case 0:
-             UART_1_Start();
+            UART_1_Start();
             break;
         default:
             return;
@@ -42,21 +42,21 @@ void myUART_Start(uint8_t option){
 void radio_get_bytes(const DataPacket in_pkt,uint8_t* byte_ptr){
     uint8_t i=0;
     
-    //bound is 8
-    for (i=0;i<8;i++){    
-        byte_ptr[7-i]=((in_pkt.time)>>(i*8))&0xFF;
+    //bound is 4
+    for (i=0;i<4;i++){    
+        byte_ptr[7-i]=((in_pkt.time)>>(8))&0xFF;
     }
     
     byte_ptr[4]=(in_pkt.type);
     
     //bound is 2
-    byte_ptr[5]=((in_pkt.id)&0xFF00)>>8;
     byte_ptr[6]=((in_pkt.id)&0xFF);
+    byte_ptr[5]=((in_pkt.id)>>8)&0xFF;
     
-    //bound is 16
+    //bound is 8
     
-    for (i=0;i<16;i++){    
-        byte_ptr[15-i]=((in_pkt.value)>>(i*8))&0xFF;
+    for (i=0;i<8;i++){    
+        byte_ptr[15-i]=((in_pkt.value)>>(8))&0xFF;
     }
     
     return;
@@ -68,18 +68,18 @@ void radio_put(const DataPacket* data_queue, uint16_t data_head,
 	uint16_t data_tail)
 {
     uint8_t all_data[DATA_LEN+1];
-    myUART_Start(RADIO_UART);       //start uart_1
+    myUART_Start(0);       //start uart_1
     uint16_t data_ptr;
-    
+    uint8_t i=0;
     for(data_ptr=data_head;data_ptr<=data_tail;data_ptr++){
         radio_get_bytes(data_queue[data_ptr],all_data);
         all_data[DATA_LEN]=checksum(all_data);
         //send byte by byte
-        _putByte_escape(all_data);
+        for (i=0;i<DATA_LEN;i++){
+            UART_1_PutChar(all_data[i]);
+        }
     }
-    
-    
-    
+
 } // radio_put()
 
 
