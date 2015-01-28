@@ -47,6 +47,8 @@
 #include <time_isr.h>
 #include <timer_clock.h>
 #include <UART_1.h>
+#include <uart_term_aliases.h>
+#include <uart_term.h>
 #include <emFile_1_SPI0.h>
 #include <emFile_1_SPI0_PVT.h>
 #include <emFile_1_mosi0_aliases.h>
