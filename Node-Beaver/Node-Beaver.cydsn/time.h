@@ -2,6 +2,7 @@
 #define TIME_H
 
 #include <project.h>
+#include "data.h"
 
 
 
@@ -15,11 +16,13 @@ typedef struct
 
 
 
-CY_ISR_PROTO(timer_interrupt);
+CY_ISR_PROTO(time_one_sec_vector);
+CY_ISR_PROTO(time_refresh_vector);
 void time_init();
 uint32_t time_get_unix();
 Time time_get();
-void time_refresh();
+void time_announce(DataPacket* data_queue, uint16_t* data_head,
+	uint16_t* data_tail);
 
 
 

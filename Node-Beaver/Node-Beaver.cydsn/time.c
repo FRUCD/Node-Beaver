@@ -3,12 +3,20 @@
 
 
 volatile Time current_time;
+volatile uint8_t init_status = 0, refresh_status = 0;
 uint8_t blink = 0;
 
 
 
-CY_ISR(timer_interrupt)
+CY_ISR(time_one_sec_vector)
 {
+	// if need to initialize, start ms at 0 and set init to 1
+	// snap ms counter to next ms
+	// calculate next ms
+	// get time from RTC
+	// write new time to struct
+
+	/*
 	current_time.millisecond += 10;
 
 
@@ -21,7 +29,16 @@ CY_ISR(timer_interrupt)
 			blink =1;
 		current_time.millisecond = 0;
 	}
-} // CY_ISR(timer_interrupt)
+	*/
+} // CY_ISR(time_one_sec_vector)
+
+
+
+CY_ISR(time_refresh_vector)
+{
+	// get UNIX Time with milli counter ready for injection into data_queue
+	refresh_status = 1;
+} // CY_ISR(time_refresh_vector)
 
 
 
@@ -36,15 +53,23 @@ void time_init()
 	current_time.second = 3;
 	current_time.millisecond = 4;
 
-	//time_isr_StartEx(timer_interrupt);
-	Timer_1_Start();
+	time_one_sec_isr_StartEx(time_one_sec_vector); // enable rtc isr
+	while(!init_status); // wait for second synchronization
+	time_refresh_isr_StartEx(time_refresh_vector); // enable 10 second isr
+
+
+	// Start timers
+	millis_timer_Start();
+	time_refresh_timer_Start();
 } // time_init()
 
 
 
-void time_refresh()
+void time_announce(DataPacket* data_queue, uint16_t* data_head,
+	uint16_t* data_tail)
 {
-	//get time from rtc
+	if(refresh_status);
+		// inject prepared time packet into queue
 } // time_refresh()
 
 

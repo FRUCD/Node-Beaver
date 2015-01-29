@@ -35,6 +35,7 @@ int main()
 		can_test_send();
 		//can_get(data_queue, &data_head, &data_tail);
 		//usb_get();
+		time_announce(data_queue, &data_head, &data_tail);
 		
 		//inject message to test usb
 		data_queue[data_head].type= 0xFF;
