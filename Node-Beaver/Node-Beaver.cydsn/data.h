@@ -20,11 +20,19 @@ enum Types
 };
 
 
+
+typedef struct
+{
+	uint8_t month, day, hour, minute, second;
+	uint16_t millicounter;
+	uint16_t year;
+} Time;
+
+
   
 typedef struct
 {
-  uint32_t time;
-	uint32_t milli_count; // only uses 24 bits
+  Time time;
   uint8_t type;
 	uint16_t id; // id is for tracking CAN ID
   uint64_t value;

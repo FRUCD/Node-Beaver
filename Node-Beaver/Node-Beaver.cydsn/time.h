@@ -2,19 +2,8 @@
 #define TIME_H
 
 #include <project.h>
-#include <time.h>
 #include <stdlib.h>
 #include "data.h"
-
-
-
-typedef struct
-{
-	uint8_t month, day, hour, minute, second;
-	uint16_t millicounter;
-	uint16_t year;
-} Time;
-
 
 
 
