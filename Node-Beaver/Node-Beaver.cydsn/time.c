@@ -4,6 +4,7 @@
 
 volatile Time current_time;
 volatile uint8_t init_status = 0, refresh_status = 0;
+volatile uint32_t next_millis = 0;
 uint8_t blink = 0;
 
 
@@ -11,25 +12,19 @@ uint8_t blink = 0;
 CY_ISR(time_one_sec_vector)
 {
 	// if need to initialize, start ms at 0 and set init to 1
-	// snap ms counter to next ms
-	// calculate next ms
-	// get time from RTC
-	// write new time to struct
-
-	/*
-	current_time.millisecond += 10;
-
-
-	if(current_time.millisecond >= 1000)
+	if(!init_status)
 	{
-		//LED_Write(blink);
-		if(blink==1)
-			blink = 0;
-		else
-			blink =1;
-		current_time.millisecond = 0;
-	}
-	*/
+		millis_timer_WriteCounter(0);
+		next_millis = 1000;
+		init_status = 1;	
+	} // if need to init
+	else
+	{
+		millis_timer_WriteCounter(next_millis); // snap ms counter to next ms
+		next_millis = (next_millis + 1000) & 0xFFFF; // calculate next ms and wrap
+	} // else snap to next millis
+
+	time_retreive(); // get time from rtc
 } // CY_ISR(time_one_sec_vector)
 
 
@@ -37,6 +32,8 @@ CY_ISR(time_one_sec_vector)
 CY_ISR(time_refresh_vector)
 {
 	// get UNIX Time with milli counter ready for injection into data_queue
+	time_retreive(); // get time from rtc
+	current_time.millicounter= millis_timer_ReadCounter();
 	refresh_status = 1;
 } // CY_ISR(time_refresh_vector)
 
@@ -51,12 +48,14 @@ void time_init()
 	current_time.hour = 1;
 	current_time.minute = 2;
 	current_time.second = 3;
-	current_time.millisecond = 4;
+	current_time.millicounter= 4;
+
+	rtc_i2c_Start();
 
 	time_one_sec_isr_StartEx(time_one_sec_vector); // enable rtc isr
 	while(!init_status); // wait for second synchronization
-	time_refresh_isr_StartEx(time_refresh_vector); // enable 10 second isr
 
+	time_refresh_isr_StartEx(time_refresh_vector); // enable 10 second isr
 
 	// Start timers
 	millis_timer_Start();
@@ -68,16 +67,11 @@ void time_init()
 void time_announce(DataPacket* data_queue, uint16_t* data_head,
 	uint16_t* data_tail)
 {
-	if(refresh_status);
-		// inject prepared time packet into queue
+	if(refresh_status)
+	{
+		;// inject prepared time packet into queue
+	}
 } // time_refresh()
-
-
-
-uint32_t time_get_unix()
-{
-	return 0; // returns UNIX time
-} // time_get_unix()
 
 
 
@@ -85,3 +79,9 @@ Time time_get()
 {
 	return current_time;
 } // time_get()
+
+
+
+void time_retreive()
+{
+}
