@@ -108,12 +108,12 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 
 			// LSB is Sent first
 			prebuffer[prebuff_end++] = data_queue[pos].type;
-
+/*
 			prebuffer[prebuff_end++] = data_queue[pos].time & 0x000000FF;
 			prebuffer[prebuff_end++] = (data_queue[pos].time & 0x0000FF00) >> 8;
 			prebuffer[prebuff_end++] = (data_queue[pos].time & 0x00FF0000) >> 16;
 			prebuffer[prebuff_end++] = (data_queue[pos].time & 0xFF000000) >> 24;
-
+*/
 			prebuffer[prebuff_end++] = data_queue[pos].id & 0x00FF;
 			prebuffer[prebuff_end++] = data_queue[pos].id & (0xFF00) >> 8;
 

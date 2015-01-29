@@ -11,6 +11,7 @@ uint8_t blink = 0;
 
 CY_ISR(time_one_sec_vector)
 {
+	LED_Write(1);
 	// if need to initialize, start ms at 0 and set init to 1
 	if(!init_status)
 	{
@@ -33,7 +34,7 @@ CY_ISR(time_refresh_vector)
 {
 	// get UNIX Time with milli counter ready for injection into data_queue
 	time_retreive(); // get time from rtc
-	current_time.millicounter= millis_timer_ReadCounter();
+	current_time.millicounter = millis_timer_ReadCounter();
 	refresh_status = 1;
 } // CY_ISR(time_refresh_vector)
 
@@ -51,6 +52,13 @@ void time_init()
 	current_time.millicounter= 4;
 
 	rtc_i2c_Start();
+	//configure RTC
+
+	rtc_i2c_MasterSendStart(RTC_ADDR, 0);
+	rtc_i2c_MasterWriteByte(RTC_CONFIG);
+	rtc_i2c_MasterWriteByte(0x40);
+	rtc_i2c_MasterSendStop();
+
 
 	time_one_sec_isr_StartEx(time_one_sec_vector); // enable rtc isr
 	while(!init_status); // wait for second synchronization
@@ -77,11 +85,19 @@ void time_announce(DataPacket* data_queue, uint16_t* data_head,
 
 Time time_get()
 {
+	current_time.millicounter = millis_timer_ReadCounter();
 	return current_time;
 } // time_get()
 
 
 
-void time_retreive()
+Time time_retreive()
 {
-}
+	Time tmp_time;
+	// Set register pointer to 0
+	rtc_i2c_MasterSendStart(RTC_ADDR, 0);
+	rtc_i2c_MasterWriteByte(0x00);
+	rtc_i2c_MasterSendStop();
+
+	return tmp_time; 
+} // time_retreive()

@@ -35,11 +35,12 @@ int main()
 		can_test_send();
 		//can_get(data_queue, &data_head, &data_tail);
 		//usb_get();
-		time_announce(data_queue, &data_head, &data_tail);
+		time_retreive();
+		//time_announce(data_queue, &data_head, &data_tail);
 		
 		//inject message to test usb
+		/*
 		data_queue[data_head].type= 0xFF;
-		data_queue[data_head].time= 0;
 		data_queue[data_head].id= 0;
 		data_queue[data_head].value= 0;
 		data_tail++;
@@ -47,6 +48,7 @@ int main()
 		usb_put(data_queue, data_head, data_tail);
 		sd_push(data_queue, data_head, data_tail);
 		radio_put(data_queue, data_head, data_tail);
+		*/
 		data_head = data_tail = 0; // clear buffer
 
 		CyDelay(100);

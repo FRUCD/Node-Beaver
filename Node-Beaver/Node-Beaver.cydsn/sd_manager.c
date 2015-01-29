@@ -96,7 +96,7 @@ void sd_push(const DataPacket* data_queue, uint16_t data_head,
 	{
 		length = sprintf(buffer, "%u,%u,%llu,%u\n",
 			(unsigned)data_queue[pos].type,
-			(unsigned)data_queue[pos].time,
+			0,// time here
 			(unsigned long long)data_queue[pos].value,
 			(unsigned)data_queue[pos].id);
 
