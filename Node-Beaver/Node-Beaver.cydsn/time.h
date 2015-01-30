@@ -11,6 +11,15 @@
 
 
 
+typedef struct
+{
+	uint8_t month, day, hour, minute, second;
+	uint16_t millicounter;
+	uint16_t year;
+} Time;
+
+
+
 CY_ISR_PROTO(time_one_sec_vector);
 CY_ISR_PROTO(time_refresh_vector);
 void time_init();
