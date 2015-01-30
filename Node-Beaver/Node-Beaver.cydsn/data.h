@@ -13,7 +13,8 @@ typedef struct
 {
 	uint32_t millicounter;
 	uint16_t id; // id is for tracking CAN ID
-  uint64_t value;
+	uint8_t length;
+	uint8_t data[8];
 } DataPacket;
 
 #endif
