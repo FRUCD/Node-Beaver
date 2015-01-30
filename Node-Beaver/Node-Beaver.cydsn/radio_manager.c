@@ -2,13 +2,12 @@
 /*
 typedef struct
 {
-    uint32_t time;
-    uint8_t type;
-    uint16_t id; // id is for tracking CAN ID
-    uint64_t value;
+	uint32_t millicounter;
+	uint16_t id; // id is for tracking CAN ID
+	uint8_t length;
+	uint8_t data[8];
 } DataPacket;
 */
-
 
 
 
@@ -60,25 +59,28 @@ void _XBee_tx_req_(const DataPacket* msg){
     send_msg[15]=0x00;          //Broadcast
     send_msg[16]=0x00;          //opions
     
-    send_msg[20]=(msg->time)&0xff;      //time
-    send_msg[19]=(msg->time)>>8&0xff;
-    send_msg[18]=(msg->time)>>16&0xff;
-    send_msg[17]=(msg->time)>>24&0xff;
+    send_msg[20]=(msg->millicounter)&0xff;      //time
+    send_msg[19]=(msg->millicounter)>>8&0xff;
+    send_msg[18]=(msg->millicounter)>>16&0xff;
+    send_msg[17]=(msg->millicounter)>>24&0xff;
+    
+    send_msg[22]=msg->id&0xff;      //id
+    send_msg[21]=(msg->id>>8)&0xff;
+    
+    send_msg[23]=msg->length;      //length
     
     
-    send_msg[21]=msg->type;     //type
+    send_msg[24]=msg->data[0];     //value
+    send_msg[25]=msg->data[1];
+    send_msg[26]=msg->data[2];  
+    send_msg[27]=msg->data[3];  
+    send_msg[28]=msg->data[4];  
+    send_msg[29]=msg->data[5];  
+    send_msg[30]=msg->data[6];  
+    send_msg[31]=msg->data[7];  
+   
     
-    send_msg[23]=msg->id&0xff;      //id
-    send_msg[22]=(msg->id>>8)&0xff;
-    
-    send_msg[31]=(msg->value)&0xff;     //value
-    send_msg[30]=(msg->value)>>8&0xff;
-    send_msg[29]=(msg->value)>>16&0xff;
-    send_msg[28]=(msg->value)>>24&0xff;
-    send_msg[27]=(msg->value)>>32&0xff;
-    send_msg[26]=(msg->value)>>40&0xff;
-    send_msg[25]=(msg->value)>>48&0xff;
-    send_msg[24]=(msg->value)>>56&0xff;
+
     
     send_msg[32]=checksum(send_msg,32);
     
@@ -137,6 +139,7 @@ void myUART_Start(uint8_t option){
     return;
 }
 
+/*
 void radio_get_bytes(const DataPacket in_pkt,uint8_t* byte_ptr){
     uint8_t i=0;
     
@@ -160,6 +163,8 @@ void radio_get_bytes(const DataPacket in_pkt,uint8_t* byte_ptr){
     return;
 
 }
+
+*/
 
 void dummy_put(){
      int i=0;

@@ -7,28 +7,14 @@
 #define DATA_QUEUE_LENGTH 256
 #define USB_QUEUE_LENGTH 256
 
-#define CAN_UNKNOWN 0x000 // 0
-#define CAN_THROTTLE 0x205 // 517
+ 
 
-#define ID_UNKNOWN CAN_UNKNOWN
-#define ID_THROTTLE_1 CAN_THROTTLE
-    
-#define DATA_PAC_LENGTH 15
-
-enum Types
-{
-	TYPE_UNKNOWN,
-	TYPE_THROTTLE_1
-};
-
-
-  
 typedef struct
 {
-    uint32_t time;
-    uint8_t type;
-    uint16_t id; // id is for tracking CAN ID
-    uint64_t value;
+	uint32_t millicounter;
+	uint16_t id; // id is for tracking CAN ID
+	uint8_t length;
+	uint8_t data[8];
 } DataPacket;
 
 #endif
