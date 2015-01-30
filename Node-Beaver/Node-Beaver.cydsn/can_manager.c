@@ -84,6 +84,11 @@ void can_get(DataPacket* data_queue, uint16_t* data_head, uint16_t* data_tail)
 		data_queue[*data_tail].data[7] = can_queue[can_head].data[7];
 
 		can_head = (can_head + 1) % CAN_QUEUE_LENGTH; // discard copied packet
+
+		*data_tail = (*data_tail + 1) % DATA_QUEUE_LENGTH; // increment data tail
+
+		if(*data_tail == *data_head) // if need to roll data queue
+			*data_head = (*data_head + 1) % DATA_QUEUE_LENGTH;
 	} // for all can messages in queue
 
 	can_head = can_tail = 0;
