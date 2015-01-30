@@ -7,6 +7,7 @@
 
 #define RTC_ADDR 0x68
 #define RTC_CONFIG 0x0E
+#define RTC_HOURS 0x02
 
 
 
