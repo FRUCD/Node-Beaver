@@ -11,6 +11,7 @@
 #include "can_manager.h" // for probing can_queue head/tail
 #endif
 
+#define UART_BUFF_LENGTH 512
 #define START_B 0x7E
 #define ESCAP_B 0x7D
 #define XOR_B 0x20

@@ -94,9 +94,8 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 
 
 	uint16_t pos;
-	uint16_t buff_end = 0, prebuff_end = 0; // points to next empty space
-	uint8_t buffer[512];
-	uint8_t prebuffer[128];
+	uint16_t buff_end = 0; // points to next empty space
+	uint8_t buffer[UART_BUFF_LENGTH];
 	int8_t byte;
 
   if(USBUART_1_GetConfiguration())
@@ -128,11 +127,11 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 
 			usb_escape(buffer, &buff_end, data_queue[pos].id >> 8);
 			usb_escape(buffer, &buff_end, data_queue[pos].id);
-			usb_escape(buffer, &buff_end, (data_queue[pos].millicounter >> 16);
-			usb_escape(buffer, &buff_end, (data_queue[pos].millicounter >> 8);
+			usb_escape(buffer, &buff_end, data_queue[pos].millicounter >> 16);
+			usb_escape(buffer, &buff_end, data_queue[pos].millicounter >> 8);
 			usb_escape(buffer, &buff_end, data_queue[pos].millicounter);
 
-			for(byte = length; byte >= 0; byte--)
+			for(byte = data_queue[pos].length; byte >= 0; byte--)
 				usb_escape(buffer, &buff_end, data_queue[pos].data[byte]);
 			
 

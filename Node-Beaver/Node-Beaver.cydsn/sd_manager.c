@@ -94,11 +94,17 @@ void sd_push(const DataPacket* data_queue, uint16_t data_head,
 	uint16_t pos;
 	for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
 	{
-		length = sprintf(buffer, "%u,%u,%llu,%u\n",
-			(unsigned)data_queue[pos].type,
-			0,// time here
-			(unsigned long long)data_queue[pos].value,
-			(unsigned)data_queue[pos].id);
+		length = sprintf(buffer, "%u,%u,%X,%X,%X,%X,%X,%X,%X,%X\n",
+			(unsigned)data_queue[pos].id,
+			(unsigned)data_queue[pos].millicounter,
+			(unsigned)data_queue[pos].data[7],
+			(unsigned)data_queue[pos].data[6],
+			(unsigned)data_queue[pos].data[5],
+			(unsigned)data_queue[pos].data[4],
+			(unsigned)data_queue[pos].data[3],
+			(unsigned)data_queue[pos].data[2],
+			(unsigned)data_queue[pos].data[1],
+			(unsigned)data_queue[pos].data[0]);
 
 		FS_Write(pfile, buffer, length); // write to SD
 	} // for all messages in data queue
