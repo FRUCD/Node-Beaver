@@ -23,8 +23,6 @@ CY_ISR(time_one_sec_vector)
 		millis_timer_WriteCounter(next_millis); // snap ms counter to next ms
 		next_millis = (next_millis + 1000) & 0xFFFFFF; // calculate next ms and wrap
 	} // else snap to next millis
-
-	time_retreive(); // get time from rtc
 } // CY_ISR(time_one_sec_vector)
 
 
@@ -32,7 +30,7 @@ CY_ISR(time_one_sec_vector)
 CY_ISR(time_refresh_vector)
 {
 	// get UNIX Time with milli counter ready for injection into data_queue
-	time_retreive(); // get time from rtc
+	current_time = time_retreive(); // get time from rtc
 	current_time.millicounter = millis_timer_ReadCounter();
 	refresh_status = 1;
 } // CY_ISR(time_refresh_vector)
@@ -84,6 +82,8 @@ void time_init()
 	// Start timers
 	millis_timer_Start();
 	time_refresh_timer_Start();
+
+	current_time = time_retreive();
 } // time_init()
 
 
