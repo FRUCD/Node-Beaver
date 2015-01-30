@@ -97,6 +97,7 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 	uint16_t buff_end = 0, prebuff_end = 0; // points to next empty space
 	uint8_t buffer[512];
 	uint8_t prebuffer[128];
+	int8_t byte;
 
   if(USBUART_1_GetConfiguration())
 	{
@@ -104,16 +105,16 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 
 		for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
 		{
+/*
 			prebuff_end = 0;
 
 			// LSB is Sent first
 			prebuffer[prebuff_end++] = data_queue[pos].type;
-/*
 			prebuffer[prebuff_end++] = data_queue[pos].time & 0x000000FF;
 			prebuffer[prebuff_end++] = (data_queue[pos].time & 0x0000FF00) >> 8;
 			prebuffer[prebuff_end++] = (data_queue[pos].time & 0x00FF0000) >> 16;
 			prebuffer[prebuff_end++] = (data_queue[pos].time & 0xFF000000) >> 24;
-*/
+
 			prebuffer[prebuff_end++] = data_queue[pos].id & 0x00FF;
 			prebuffer[prebuff_end++] = data_queue[pos].id & (0xFF00) >> 8;
 
@@ -121,6 +122,19 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 			
 
 			usb_pack(buffer, &buff_end, prebuffer, &prebuff_end);
+*/
+			buff_end = 0;
+			buffer[buff_end++] = START_B;	
+
+			usb_escape(buffer, &buff_end, data_queue[pos].id >> 8);
+			usb_escape(buffer, &buff_end, data_queue[pos].id);
+			usb_escape(buffer, &buff_end, (data_queue[pos].millicounter >> 16);
+			usb_escape(buffer, &buff_end, (data_queue[pos].millicounter >> 8);
+			usb_escape(buffer, &buff_end, data_queue[pos].millicounter);
+
+			for(byte = length; byte >= 0; byte--)
+				usb_escape(buffer, &buff_end, data_queue[pos].data[byte]);
+			
 
 			while(USBUART_1_CDCIsReady() == 0);
 			USBUART_1_PutData(buffer, buff_end);
@@ -136,6 +150,20 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 
 
 
+void usb_escape(uint8_t* buffer, uint16_t* buff_end, uint8_t byte)
+{
+	if(byte == START_B || byte == ESCAP_B)
+	{
+		buffer[(*buff_end)++] = ESCAP_B;
+		buffer[(*buff_end)++] = byte ^ XOR_B; // XOR 0x20 Escaped byte
+	} // if need to escape byte
+	else
+		buffer[(*buff_end)++] = byte;
+} // usb_escape()
+
+
+
+/*
 void usb_prebuff_val(const DataPacket* datum, uint8_t* prebuffer,
 	uint16_t* prebuff_end)
 {
@@ -155,7 +183,6 @@ void usb_prebuff_val(const DataPacket* datum, uint8_t* prebuffer,
 			break;
 	} // switch datum->type
 } // usb_prebuff_val()
-
 
 
 void usb_pack(uint8_t* buffer, uint16_t* buff_end, uint8_t* prebuffer,
@@ -188,7 +215,7 @@ void usb_pack(uint8_t* buffer, uint16_t* buff_end, uint8_t* prebuffer,
 			buffer[(*buff_end)++] = upper;
 	} // for all bytes in message
 } // usb_hamming()
-
+*/
 
 
 void usb_get()

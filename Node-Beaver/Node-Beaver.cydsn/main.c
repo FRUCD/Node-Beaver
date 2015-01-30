@@ -33,7 +33,7 @@ int main()
 	for(;;)
 	{
 		can_test_send();
-		//can_get(data_queue, &data_head, &data_tail);
+		can_get(data_queue, &data_head, &data_tail);
 		//usb_get();
 		//time_announce(data_queue, &data_head, &data_tail);
 		
