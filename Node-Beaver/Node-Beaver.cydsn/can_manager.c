@@ -3,7 +3,7 @@
 
 
 const uint8_t test_message[] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
-volatile CanMessage can_queue[CAN_QUEUE_LENGTH];
+volatile DataPacket can_queue[CAN_QUEUE_LENGTH];
 volatile uint16_t can_head = 0;
 volatile uint16_t can_tail = 0;
 
@@ -70,29 +70,28 @@ void can_get(DataPacket* data_queue, uint16_t* data_head, uint16_t* data_tail)
 
 	while(can_head != can_tail) // move and convert can message queue to data queue
 	{
-		data_queue[*data_tail].id = can_queue[can_head].id; // CAN ID
-		// remember that data_queue.value is unclean
+		data_queue[*data_tail].id = can_queue[can_head].id;
+		data_queue[*data_tail].length = can_queue[can_head].length;
+		data_queue[*data_tail].millicounter = can_queue[can_head].millicounter;
 
-		switch(can_queue[can_head].id)
-		{
-			case CAN_THROTTLE:
-				process_throttle(data_queue, data_head, data_tail);
-				break;
-			default: // if CAN message unrecognized, value is the concatenated payload
-				process_default(data_queue, data_head, data_tail);
-		}; // switch can id
+		data_queue[*data_tail].data[0] = can_queue[can_head].data[0];
+		data_queue[*data_tail].data[1] = can_queue[can_head].data[1];
+		data_queue[*data_tail].data[2] = can_queue[can_head].data[2];
+		data_queue[*data_tail].data[3] = can_queue[can_head].data[3];
+		data_queue[*data_tail].data[4] = can_queue[can_head].data[4];
+		data_queue[*data_tail].data[5] = can_queue[can_head].data[5];
+		data_queue[*data_tail].data[6] = can_queue[can_head].data[6];
+		data_queue[*data_tail].data[7] = can_queue[can_head].data[7];
 
-		can_head = (can_head + 1) % CAN_QUEUE_LENGTH;
+		can_head = (can_head + 1) % CAN_QUEUE_LENGTH; // discard copied packet
 	} // for all can messages in queue
 
 	can_head = can_tail = 0;
-
 	CyExitCriticalSection(atomic_state); // END ATOMIC
-	//return 0;
 } // can_receive()
 
 
-
+/*
 void wrap_data_queue(uint16_t* data_head, uint16_t* data_tail)
 {
 	*data_tail = (*data_tail + 1) % DATA_QUEUE_LENGTH;
@@ -131,3 +130,4 @@ inline void process_throttle(DataPacket* data_queue, uint16_t* data_head,
 
 	wrap_data_queue(data_head, data_tail);
 } // process_throttle()
+*/

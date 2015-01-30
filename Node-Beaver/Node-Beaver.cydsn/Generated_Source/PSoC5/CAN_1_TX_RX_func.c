@@ -26,7 +26,7 @@
 /* `#START TX_RX_FUNCTION` */
 #include "can_manager.h"
 
-extern CanMessage can_queue[];
+extern DataPacket can_queue[];
 extern uint16_t can_head, can_tail;
 /* `#END` */
 
@@ -534,8 +534,12 @@ void CAN_1_ReceiveMsg(uint8 rxMailbox)
     {
         /* `#START MESSAGE_BASIC_RECEIVED` */
 			uint8_t rx_length, rx_index;
-			rx_length = can_queue[can_tail].length = CAN_1_GET_DLC(rxMailbox);
+
+			rx_length = CAN_1_GET_DLC(rxMailbox);
+
+ 			can_queue[can_tail].length = rx_length;
 			can_queue[can_tail].id = CAN_1_GET_RX_ID(rxMailbox);
+			can_queue[can_tail].millicounter = millis_timer_ReadCounter();
 
 			for(rx_index = 0; rx_index < rx_length; rx_index++)
 				can_queue[can_tail].data[rx_index] =
