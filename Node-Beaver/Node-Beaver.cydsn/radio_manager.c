@@ -186,7 +186,7 @@ void radio_put(const DataPacket* data_queue, uint16_t data_head,
     
     
     int data_ptr;
-    for(data_ptr=data_head;data_ptr<=data_tail;data_ptr++){
+    for(data_ptr=data_head;data_ptr<data_tail;data_ptr++){
         _XBee_tx_req_(&(data_queue[data_ptr]));
         //dummy_put();
     }
