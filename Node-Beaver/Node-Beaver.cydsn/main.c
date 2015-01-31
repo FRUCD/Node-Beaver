@@ -33,11 +33,11 @@ int main()
 
 	for(;;)
 	{
-		can_test_send();
-		//can_get(data_queue, &data_head, &data_tail);
+		//can_test_send();
+		can_get(data_queue, &data_head, &data_tail);
 		//usb_get();
-		//time_announce(data_queue, &data_head, &data_tail);
-		
+		time_announce(data_queue, &data_head, &data_tail);
+	/*	
 		//inject message to test usb
 		data_queue[data_head].millicounter = millis_timer_ReadCounter();
 		data_queue[data_head].id = 0x111;
@@ -51,7 +51,7 @@ int main()
 		data_queue[data_head].data[6]= 6;
 		data_queue[data_head].data[7]= 0x7E;
 		data_tail++;
-
+*/
 		usb_put(data_queue, data_head, data_tail);
 		sd_push(data_queue, data_head, data_tail);
 		radio_put(data_queue, data_head, data_tail);

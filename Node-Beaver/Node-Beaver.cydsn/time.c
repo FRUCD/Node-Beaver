@@ -14,13 +14,13 @@ CY_ISR(time_one_sec_vector)
 	if(!init_status)
 	{
 		millis_timer_WriteCounter(0); // start ms at 0
-		next_millis = 1000;
+		next_millis = -1000;
 		init_status = 1;	
 	} // if need to init
 	else
 	{
-		millis_timer_WriteCounter(next_millis); // snap ms counter to next ms
-		next_millis = (next_millis + 1000) & 0xFFFFFF; // calculate next ms and wrap
+		//millis_timer_WriteCounter(next_millis); // snap ms counter to next ms
+		//next_millis = (next_millis - 1000) & 0xFFFFFF; // calculate next ms and wrap
 	} // else snap to next millis
 } // CY_ISR(time_one_sec_vector)
 
@@ -71,11 +71,11 @@ void time_init()
 	rtc_i2c_MasterWriteByte(RTC_HOURS);
 	rtc_i2c_MasterWriteByte(0x40 | byte);
 	rtc_i2c_MasterSendStop();
-
+/*
 	time_one_sec_isr_StartEx(time_one_sec_vector); // enable rtc isr
 	
 	while(!init_status); // wait for second synchronization
-
+*/
 	time_refresh_isr_StartEx(time_refresh_vector); // enable 10 second isr
 
 	// Start timers
@@ -114,7 +114,10 @@ void time_announce(DataPacket* data_queue, uint16_t* data_head,
 
 		if(*data_tail == *data_head) // if need to roll data queue
 			*data_head = (*data_head + 1) % DATA_QUEUE_LENGTH;
+
+		refresh_status = 0;
 	} // if refresh status set by time_refresh isr
+
 } // time_refresh()
 
 
