@@ -36,7 +36,7 @@ void _set_des_addr(uint64_t newAddr){
 
 void _XBee_tx_req_(const DataPacket* msg){
     int i=0;
-    uint8_t send_msg[33];
+    uint8_t send_msg[32];
     
     send_msg[0]=STARTER_DELIM;  //starter   
     send_msg[1]=0x00;           //MSB L
@@ -59,32 +59,32 @@ void _XBee_tx_req_(const DataPacket* msg){
     send_msg[15]=0x00;          //Broadcast
     send_msg[16]=0x00;          //opions
     
-    send_msg[20]=(msg->millicounter)&0xff;      //time
-    send_msg[19]=(msg->millicounter)>>8&0xff;
-    send_msg[18]=(msg->millicounter)>>16&0xff;
-    send_msg[17]=(msg->millicounter)>>24&0xff;
+    send_msg[19]=(msg->millicounter)&0xff;      //time
+    send_msg[18]=(msg->millicounter)>>8&0xff;
+    send_msg[17]=(msg->millicounter)>>16&0xff;
+
     
-    send_msg[22]=msg->id&0xff;      //id
-    send_msg[21]=(msg->id>>8)&0xff;
+    send_msg[21]=msg->id&0xff;      //id
+    send_msg[20]=(msg->id>>8)&0xff;
     
-    send_msg[23]=msg->length;      //length
+    send_msg[22]=msg->length;      //length
     
     
-    send_msg[24]=msg->data[0];     //value
-    send_msg[25]=msg->data[1];
-    send_msg[26]=msg->data[2];  
-    send_msg[27]=msg->data[3];  
-    send_msg[28]=msg->data[4];  
-    send_msg[29]=msg->data[5];  
-    send_msg[30]=msg->data[6];  
-    send_msg[31]=msg->data[7];  
+    send_msg[23]=msg->data[0];     //value
+    send_msg[24]=msg->data[1];
+    send_msg[25]=msg->data[2];  
+    send_msg[26]=msg->data[3];  
+    send_msg[27]=msg->data[4];  
+    send_msg[28]=msg->data[5];  
+    send_msg[29]=msg->data[6];  
+    send_msg[30]=msg->data[7];  
    
     
 
     
-    send_msg[32]=checksum(send_msg,32);
+    send_msg[31]=checksum(send_msg,31);
     
-    for (i=0;i<33;i++){
+    for (i=0;i<32;i++){
         UART_1_PutChar(send_msg[i]);
         //UART_1_PutChar(' ');
     //    translator(send_msg[i]);
@@ -186,7 +186,7 @@ void radio_put(const DataPacket* data_queue, uint16_t data_head,
     
     
     int data_ptr;
-    for(data_ptr=data_head;data_ptr<=data_tail;data_ptr++){
+    for(data_ptr=data_head;data_ptr<data_tail;data_ptr++){
         _XBee_tx_req_(&(data_queue[data_ptr]));
         //dummy_put();
     }
