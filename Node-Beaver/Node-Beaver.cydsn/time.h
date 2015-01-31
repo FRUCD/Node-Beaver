@@ -9,6 +9,8 @@
 #define RTC_CONFIG 0x0E
 #define RTC_HOURS 0x02
 
+#define ID_TIME 0x123
+
 
 
 typedef struct

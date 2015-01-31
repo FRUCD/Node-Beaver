@@ -35,7 +35,7 @@ int main()
 		can_test_send();
 		//can_get(data_queue, &data_head, &data_tail);
 		//usb_get();
-		//time_announce(data_queue, &data_head, &data_tail);
+		time_announce(data_queue, &data_head, &data_tail);
 		
 		//inject message to test usb
 		data_queue[data_head].millicounter = millis_timer_ReadCounter();
@@ -48,7 +48,7 @@ int main()
 		data_queue[data_head].data[4]= 4;
 		data_queue[data_head].data[5]= 5;
 		data_queue[data_head].data[6]= 6;
-		data_queue[data_head].data[7]= 7;
+		data_queue[data_head].data[7]= 0x7E;
 		data_tail++;
 
 		usb_put(data_queue, data_head, data_tail);

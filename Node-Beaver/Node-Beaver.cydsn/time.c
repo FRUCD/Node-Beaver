@@ -91,10 +91,31 @@ void time_init()
 void time_announce(DataPacket* data_queue, uint16_t* data_head,
 	uint16_t* data_tail)
 {
+	/* Time Frame
+		START COUNTER year_upper, year_lower, month, date, hour, minutes, seconds
+	*/
+
+
 	if(refresh_status)
 	{
-		;// inject prepared time packet into queue
-	}
+		data_queue[*data_tail].id = ID_TIME;
+		data_queue[*data_tail].length = 8;
+		data_queue[*data_tail].millicounter = current_time.millicounter;
+
+		data_queue[*data_tail].data[0] = 0;
+		data_queue[*data_tail].data[1] = current_time.year >> 8;
+		data_queue[*data_tail].data[2] = current_time.year;
+		data_queue[*data_tail].data[3] = current_time.month;
+		data_queue[*data_tail].data[4] = current_time.day;
+		data_queue[*data_tail].data[5] = current_time.hour;
+		data_queue[*data_tail].data[6] = current_time.minute;
+		data_queue[*data_tail].data[7] = current_time.second;
+
+		*data_tail = (*data_tail + 1) % DATA_QUEUE_LENGTH; // increment data tail
+
+		if(*data_tail == *data_head) // if need to roll data queue
+			*data_head = (*data_head + 1) % DATA_QUEUE_LENGTH;
+	} // if refresh status set by time_refresh isr
 } // time_refresh()
 
 
