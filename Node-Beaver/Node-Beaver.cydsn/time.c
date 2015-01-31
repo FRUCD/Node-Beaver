@@ -11,7 +11,6 @@ volatile uint8_t blink = 0;
 
 CY_ISR(time_one_sec_vector)
 {
-	LED_Write(blink^0x01);
 	if(!init_status)
 	{
 		millis_timer_WriteCounter(0); // start ms at 0

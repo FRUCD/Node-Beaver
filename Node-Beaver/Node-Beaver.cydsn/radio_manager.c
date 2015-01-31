@@ -10,6 +10,12 @@ typedef struct
 */
 
 
+void radio_init(void)
+{
+	myUART_Start(0);
+}
+
+
 
 uint64_t addr[8];
 
@@ -182,14 +188,19 @@ void radio_put(const DataPacket* data_queue, uint16_t data_head,
     
     _set_des_addr(_RECEIVER_ADDR);        //set default receiver addr
     
-    myUART_Start(0);       //start uart_1
     
     
-    int data_ptr;
-    for(data_ptr=data_head;data_ptr<data_tail;data_ptr++){
+    uint16_t data_ptr;
+    //_XBee_tx_req_(&(data_queue[0])); // test
+
+		
+    for(data_ptr=data_head; data_ptr!=data_tail; data_ptr=(data_ptr+1)%DATA_QUEUE_LENGTH){
         _XBee_tx_req_(&(data_queue[data_ptr]));
+
+    
         //dummy_put();
     }
+    
 
 } // radio_put()
 
