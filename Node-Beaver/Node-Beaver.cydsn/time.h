@@ -2,24 +2,33 @@
 #define TIME_H
 
 #include <project.h>
+#include <stdlib.h>
+#include "data.h"
+
+#define RTC_ADDR 0x68
+#define RTC_CONFIG 0x0E
+#define RTC_HOURS 0x02
+
+#define ID_TIME 0x123
 
 
 
 typedef struct
 {
 	uint8_t month, day, hour, minute, second;
-	uint16_t millisecond;
+	uint16_t millicounter;
 	uint16_t year;
 } Time;
 
 
 
-
-CY_ISR_PROTO(timer_interrupt);
+CY_ISR_PROTO(time_one_sec_vector);
+CY_ISR_PROTO(time_refresh_vector);
 void time_init();
-uint32_t time_get_unix();
 Time time_get();
-void time_refresh();
+void time_announce(DataPacket* data_queue, uint16_t* data_head,
+	uint16_t* data_tail);
+Time time_retreive(); // retreives full time from RTC
 
 
 

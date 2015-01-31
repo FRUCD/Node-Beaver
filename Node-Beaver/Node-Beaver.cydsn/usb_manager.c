@@ -20,6 +20,11 @@ void usb_init()
 void usb_put(const DataPacket* data_queue, uint16_t data_head,
 	uint16_t data_tail)
 {
+
+
+#ifdef USB_DEBUGGING
+
+
 	uint16_t pos;
 	uint32_t num_char;
 	char buffer[128];
@@ -83,8 +88,133 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 		while(USBUART_1_CDCIsReady() == 0);
 		USBUART_1_PutData(test_usb_message, 8); // Test message "PSoC!!!"
 	}	// if configuration successful
+
+
+#else // USB_DEBUGGING
+
+
+	uint16_t pos;
+	uint16_t buff_end = 0; // points to next empty space
+	uint8_t buffer[UART_BUFF_LENGTH];
+	int8_t byte;
+
+  if(USBUART_1_GetConfiguration())
+	{
+		USBUART_1_CDC_Init(); // USB Initialization
+
+		for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
+		{
+/*
+			prebuff_end = 0;
+
+			// LSB is Sent first
+			prebuffer[prebuff_end++] = data_queue[pos].type;
+			prebuffer[prebuff_end++] = data_queue[pos].time & 0x000000FF;
+			prebuffer[prebuff_end++] = (data_queue[pos].time & 0x0000FF00) >> 8;
+			prebuffer[prebuff_end++] = (data_queue[pos].time & 0x00FF0000) >> 16;
+			prebuffer[prebuff_end++] = (data_queue[pos].time & 0xFF000000) >> 24;
+
+			prebuffer[prebuff_end++] = data_queue[pos].id & 0x00FF;
+			prebuffer[prebuff_end++] = data_queue[pos].id & (0xFF00) >> 8;
+
+			usb_prebuff_val(&data_queue[pos], prebuffer, &prebuff_end);
+			
+
+			usb_pack(buffer, &buff_end, prebuffer, &prebuff_end);
+*/
+			buff_end = 0;
+			buffer[buff_end++] = START_B;	
+
+			usb_escape(buffer, &buff_end, data_queue[pos].id >> 8);
+			usb_escape(buffer, &buff_end, data_queue[pos].id);
+			usb_escape(buffer, &buff_end, data_queue[pos].millicounter >> 16);
+			usb_escape(buffer, &buff_end, data_queue[pos].millicounter >> 8);
+			usb_escape(buffer, &buff_end, data_queue[pos].millicounter);
+
+			for(byte = data_queue[pos].length; byte >= 0; byte--)
+				usb_escape(buffer, &buff_end, data_queue[pos].data[byte]);
+			
+
+			while(USBUART_1_CDCIsReady() == 0);
+			USBUART_1_PutData(buffer, buff_end);
+		} // for all messages in data queue
+
+	}	// if configuration successful
+
+
+#endif // else USB_DEBUGGING
+
+
 } // usb_send()
 
+
+
+void usb_escape(uint8_t* buffer, uint16_t* buff_end, uint8_t byte)
+{
+	if(byte == START_B || byte == ESCAP_B)
+	{
+		buffer[(*buff_end)++] = ESCAP_B;
+		buffer[(*buff_end)++] = byte ^ XOR_B; // XOR 0x20 Escaped byte
+	} // if need to escape byte
+	else
+		buffer[(*buff_end)++] = byte;
+} // usb_escape()
+
+
+
+/*
+void usb_prebuff_val(const DataPacket* datum, uint8_t* prebuffer,
+	uint16_t* prebuff_end)
+{
+	uint64_t value = datum->value;
+	switch(datum->type)
+	{
+		case TYPE_UNKNOWN: case TYPE_THROTTLE_1:
+			// 8 bytes
+			prebuffer[(*prebuff_end)++] = value & 0x00000000000000FF;
+			prebuffer[(*prebuff_end)++] = (value <<=8) & 0x00000000000000FF;
+			prebuffer[(*prebuff_end)++] = (value <<=8) & 0x00000000000000FF;
+			prebuffer[(*prebuff_end)++] = (value <<=8) & 0x00000000000000FF;
+			prebuffer[(*prebuff_end)++] = (value <<=8) & 0x00000000000000FF;
+			prebuffer[(*prebuff_end)++] = (value <<=8) & 0x00000000000000FF;
+			prebuffer[(*prebuff_end)++] = (value <<=8) & 0x00000000000000FF;
+			prebuffer[(*prebuff_end)++] = (value <<=8) & 0x00000000000000FF;
+			break;
+	} // switch datum->type
+} // usb_prebuff_val()
+
+
+void usb_pack(uint8_t* buffer, uint16_t* buff_end, uint8_t* prebuffer,
+	uint16_t* prebuff_end)
+{
+	uint16_t pre_ind;
+	uint8_t upper, lower;
+
+	*buff_end = 0;
+	buffer[(*buff_end)++] = 0x7E; // Start byte
+
+	for(pre_ind = 0; pre_ind < *prebuff_end; pre_ind++)
+	{
+		ham_byte(prebuffer[pre_ind], &upper, &lower);
+
+		if(lower == 0x7E || lower == 0x7D)
+		{
+			buffer[(*buff_end)++] = 0x7D;
+			buffer[(*buff_end)++] = lower ^ 0x20; // XOR 0x20 Escaped byte
+		} // if need to escape lower
+		else
+			buffer[(*buff_end)++] = lower;
+
+		if(upper == 0x7E || upper == 0x7D)
+		{
+			buffer[(*buff_end)++] = 0x7D;
+			buffer[(*buff_end)++] = upper ^ 0x20; // XOR 0x20 Escaped byte
+		} // if need to escape upper
+		else
+			buffer[(*buff_end)++] = upper;
+	} // for all bytes in message
+} // usb_hamming()
+*/
 
 
 void usb_get()
@@ -97,7 +227,10 @@ void usb_get()
 		count = USBUART_1_GetAll(rx_buffer); // maximum of 64 bits only
 		if(count)
 		{
+			LED_Write(1);
 			//process user data
 		} // data exists
+		for(count=0;count<255;count++);
+		LED_Write(0);
 	} // if data is to be received
 } // usb_get()
