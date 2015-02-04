@@ -53,6 +53,16 @@
 #include <time_one_sec_isr.h>
 #include <time_refresh_timer.h>
 #include <time_refresh_isr.h>
+#include <SPIM_1.h>
+#include <SPIM_1_PVT.h>
+#include <XBEE_MOSI_aliases.h>
+#include <XBEE_MOSI.h>
+#include <XBEE_SS_aliases.h>
+#include <XBEE_SS.h>
+#include <XBEE_CLK_aliases.h>
+#include <XBEE_CLK.h>
+#include <XBEE_MISO_aliases.h>
+#include <XBEE_MISO.h>
 #include <emFile_1_SPI0.h>
 #include <emFile_1_SPI0_PVT.h>
 #include <emFile_1_mosi0_aliases.h>
@@ -71,6 +81,7 @@
 #include <USBUART_1_Dp_aliases.h>
 #include <USBUART_1_Dp.h>
 #include <UART_1_IntClock.h>
+#include <SPIM_1_IntClock.h>
 #include <core_cm3_psoc5.h>
 #include <core_cm3.h>
 #include <CyDmac.h>
