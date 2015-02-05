@@ -6,14 +6,28 @@ FS_FILE* pfile;
 uint8_t sd_ok = 0;
 
 
-
+/*
 CY_ISR(power_interrupt)
 {
 	sd_stop();
 } // CY_ISR(power_interrupt)
+*/
 
 
 
+/* sd_init()
+	Takes Time struct (time). Returns nothing.
+
+	Initializes SD card filesystem.
+	The following events will cause the sd_ok flag to be reset, which aborts all
+	SD functions:
+		- the SD card is not found
+		- unable to create the "LOGS" directory
+		- unable to create a directory named after the date
+		- unable to create and open file for writing
+
+	sd_ok is set when the SD card is functional
+*/
 void sd_init(Time time)
 {
 	/* power_isr note:
@@ -80,18 +94,22 @@ void sd_init(Time time)
 
 
 
+/* sd_push()
+	Takes DataPacket queue (data_queue) with its head and tail indices.
+	Returns nothing.
+
+	Writes all messages in data_queue to the SD card. Synchronizes the filesystem
+	after all messages are written.
+*/
 void sd_push(const DataPacket* data_queue, uint16_t data_head,
 	uint16_t data_tail)
 {
-	if(!sd_ok)
-		return;
-	//push to queue
+	if(!sd_ok) return;
 
 	char buffer[128];
 	short length = 0;
-
-
 	uint16_t pos;
+
 	for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
 	{
 		length = sprintf(buffer, "%u,%u,%X,%X,%X,%X,%X,%X,%X,%X\n",
@@ -114,7 +132,12 @@ void sd_push(const DataPacket* data_queue, uint16_t data_head,
 
 
 
-void sd_stop()
+/* sd_stop()
+	Takes and returns nothing.
+
+	Closes the file, synchronizes, and unmounts SD card to prevent corruption.
+*/
+void sd_stop(void)
 {
 	FS_FClose(pfile);
 	FS_Sync("");

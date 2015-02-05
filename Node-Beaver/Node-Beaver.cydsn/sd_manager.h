@@ -7,6 +7,7 @@
 #include "data.h"
 #include "time_manager.h"
 
+/*
 #define CAN_UNKNOWN 0x000 // 0
 #define CAN_THROTTLE 0x205 // 517
 
@@ -18,16 +19,16 @@ enum Types
 	TYPE_UNKNOWN,
 	TYPE_THROTTLE_1
 };
+*/
 
+//CY_ISR_PROTO(power_interrupt);
 
-CY_ISR_PROTO(power_interrupt);
-
-void sd_init();
+void sd_init(Time time);
 
 void sd_push(const DataPacket* data_queue, uint16_t data_head,
-             uint16_t data_tail);
+	uint16_t data_tail);
 
-void sd_stop();
+void sd_stop(void);
 
 
 #endif
