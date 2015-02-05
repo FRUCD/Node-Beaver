@@ -23,9 +23,9 @@ uint64_t addr[8];
 uint8_t translator(uint8_t data){
     uint8_t Lside=data&0xf;
     uint8_t Hside=(data>>4)&0xf;
-    UART_1_PutChar(Hside<0xa ? Hside+'0':Hside+'A'-0xa);
-    UART_1_PutChar(Lside<0xa ? Lside+'0':Lside+'A'-0xa);
-    UART_1_PutChar(' ');
+    //UART_1_PutChar(Hside<0xa ? Hside+'0':Hside+'A'-0xa);
+    //UART_1_PutChar(Lside<0xa ? Lside+'0':Lside+'A'-0xa);
+    //UART_1_PutChar(' ');
     return 0;
 }
 
@@ -91,7 +91,7 @@ void _XBee_tx_req_(const DataPacket* msg){
     send_msg[31]=checksum(send_msg,31);
     
     for (i=0;i<32;i++){
-        UART_1_PutChar(send_msg[i]);
+        //UART_1_PutChar(send_msg[i]);
         //UART_1_PutChar(' ');
     //    translator(send_msg[i]);
         
@@ -111,10 +111,10 @@ void _putByte_escape(uint8_t* msg){
     uint8_t i=0;
     for(i=0;i<(DATA_LEN+1);i++){
         if (msg[i]==0x7E){
-            UART_1_PutChar(ESCAPE);
-            UART_1_PutChar(msg[i]);
+            //UART_1_PutChar(ESCAPE);
+            //UART_1_PutChar(msg[i]);
     }else{
-        UART_1_PutChar(msg[i]);
+        //UART_1_PutChar(msg[i]);
     }
     }
     return;
@@ -137,7 +137,7 @@ uint8_t checksum(uint8_t* msg,int len){
 void myUART_Start(uint8_t option){
     switch (option){
         case 0:
-            UART_1_Start();
+            //UART_1_Start();
             break;
         default:
             return;
@@ -176,7 +176,7 @@ void dummy_put(){
      int i=0;
     uint8_t send_msg[40]={0x7e,0x00,0x24,0x10,0x01,0x00,0x13,0xa2,0x00,0x40,0xc8,0x4f,0xbf,0xff,0xfe,0x00,0x00,0x73,0x65,0x6e,0x64,0x20,0x66,0x72,0x6f,0x6d,0x20,0x61,0x6c,0x69,0x65,0x6e,0x20,0x70,0x6c,0x61,0x6e,0x65,0x74,0xdb};
     for (i=0;i<40;i++){
-        UART_1_PutChar(send_msg[i]);
+        //UART_1_PutChar(send_msg[i]);
     }
     return;
 }

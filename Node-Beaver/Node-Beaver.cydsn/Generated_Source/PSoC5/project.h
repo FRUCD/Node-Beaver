@@ -45,7 +45,12 @@
 #include <rtc_i2c_PVT.h>
 #include <millis_timer.h>
 #include <timer_clock.h>
-#include <UART_1.h>
+#include <xbee_sclk_aliases.h>
+#include <xbee_sclk.h>
+#include <xbee_mosi_aliases.h>
+#include <xbee_mosi.h>
+#include <xbee_ss_aliases.h>
+#include <xbee_ss.h>
 #include <uart_term_aliases.h>
 #include <uart_term.h>
 #include <rtc_int_aliases.h>
@@ -53,6 +58,11 @@
 #include <time_one_sec_isr.h>
 #include <time_refresh_timer.h>
 #include <time_refresh_isr.h>
+#include <xbee_spi.h>
+#include <xbee_spi_PVT.h>
+#include <xbee_miso_aliases.h>
+#include <xbee_miso.h>
+#include <Clock_1.h>
 #include <emFile_1_SPI0.h>
 #include <emFile_1_SPI0_PVT.h>
 #include <emFile_1_mosi0_aliases.h>
@@ -70,7 +80,6 @@
 #include <USBUART_1_Dm.h>
 #include <USBUART_1_Dp_aliases.h>
 #include <USBUART_1_Dp.h>
-#include <UART_1_IntClock.h>
 #include <core_cm3_psoc5.h>
 #include <core_cm3.h>
 #include <CyDmac.h>
