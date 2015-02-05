@@ -53,9 +53,6 @@
 #include <xbee_ss.h>
 #include <uart_term_aliases.h>
 #include <uart_term.h>
-#include <rtc_int_aliases.h>
-#include <rtc_int.h>
-#include <time_one_sec_isr.h>
 #include <time_refresh_timer.h>
 #include <time_refresh_isr.h>
 #include <xbee_spi.h>
