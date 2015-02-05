@@ -1,5 +1,5 @@
-#ifndef TIME_H
-#define TIME_H
+#ifndef TIME_MANAGER_H
+#define TIME_MANAGER_H
 
 #include <project.h>
 #include "data.h"

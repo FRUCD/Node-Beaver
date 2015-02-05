@@ -18,7 +18,6 @@ set shiftwidth=2
 set smartindent
 set tabstop=2
 set textwidth=80
-set window=87
 let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0
 let v:this_session=expand("<sfile>:p")
 silent only
@@ -41,7 +40,9 @@ badd +1 Generated_Source/PSoC5/CAN_1_TX_RX_func.c
 badd +7 can_table.h
 badd +1 hamfunc.h
 badd +1 hamfunc.c
-badd +0 radio_manager.c
+badd +1 radio_manager.c
+badd +0 time_manager.h
+badd +0 time_manager.c
 argglobal
 silent! argdel *
 argadd main.c
@@ -57,7 +58,7 @@ set nosplitright
 wincmd t
 set winheight=1 winwidth=1
 exe '1resize ' . ((&lines * 59 + 44) / 88)
-exe 'vert 1resize ' . ((&columns * 96 + 135) / 271)
+exe 'vert 1resize ' . ((&columns * 175 + 135) / 271)
 exe '2resize ' . ((&lines * 59 + 44) / 88)
 exe 'vert 2resize ' . ((&columns * 95 + 135) / 271)
 argglobal
@@ -292,7 +293,7 @@ normal! zt
 normal! 0
 wincmd w
 exe '1resize ' . ((&lines * 59 + 44) / 88)
-exe 'vert 1resize ' . ((&columns * 96 + 135) / 271)
+exe 'vert 1resize ' . ((&columns * 175 + 135) / 271)
 exe '2resize ' . ((&lines * 59 + 44) / 88)
 exe 'vert 2resize ' . ((&columns * 95 + 135) / 271)
 tabedit usb_manager.h
@@ -415,11 +416,11 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 27 - ((14 * winheight(0) + 7) / 15)
+let s:l = 24 - ((11 * winheight(0) + 7) / 15)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-27
+24
 normal! 02|
 wincmd w
 argglobal
@@ -531,17 +532,16 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 14 - ((13 * winheight(0) + 34) / 69)
+let s:l = 11 - ((10 * winheight(0) + 34) / 69)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-14
-normal! 0
+11
+normal! 031|
 wincmd w
-2wincmd w
 exe '1resize ' . ((&lines * 15 + 44) / 88)
 exe '2resize ' . ((&lines * 69 + 44) / 88)
-tabedit time.h
+tabedit time_manager.h
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
@@ -675,15 +675,15 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 12 - ((11 * winheight(0) + 12) / 25)
+let s:l = 1 - ((0 * winheight(0) + 12) / 25)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-12
-normal! 021|
+1
+normal! 0
 wincmd w
 argglobal
-edit time.c
+edit time_manager.c
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
@@ -791,12 +791,12 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 23 - ((22 * winheight(0) + 29) / 59)
+let s:l = 1 - ((0 * winheight(0) + 29) / 59)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-23
-normal! 040|
+1
+normal! 0
 wincmd w
 argglobal
 edit sd_manager.h
@@ -1166,11 +1166,11 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 24 - ((23 * winheight(0) + 14) / 29)
+let s:l = 14 - ((13 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-24
+14
 normal! 0
 wincmd w
 argglobal
@@ -1532,7 +1532,7 @@ normal! zt
 86
 normal! 032|
 2wincmd w
-tabnext 2
+tabnext 3
 set stal=1
 if exists('s:wipebuf')
   silent exe 'bwipe ' . s:wipebuf
