@@ -72,7 +72,18 @@ void sd_init(Time time)
 		} // if file does not exist
 
 		// Set file time here
-		// FS_SetFileTime()
+		FS_FILETIME file_time;
+		uint32_t file_time_string;
+
+		file_time.Year = time.year;
+		file_time.Month = time.month;
+		file_time.Day = time.day;
+		file_time.Hour = time.hour;
+		file_time.Minute = time.minute;
+		file_time.Second = time.second;
+
+		FS_FileTimeToTimeStamp(&file_time, &file_time_string);
+		FS_SetFileTime(run_str, file_time_string);
 	} // if a single file volume exists
 
 /*
