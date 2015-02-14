@@ -34,7 +34,7 @@
 *   Conditional Compilation Parameters
 ***************************************/
 
-#define xbee_spi_INTERNAL_CLOCK             (0u)
+#define xbee_spi_INTERNAL_CLOCK             (1u)
 
 #if(0u != xbee_spi_INTERNAL_CLOCK)
     #include "xbee_spi_IntClock.h"

@@ -12,7 +12,11 @@ typedef struct
 
 void radio_init(void)
 {
-	myUART_Start(0);
+    if (XBEE_SPI){
+        xbee_spi_Start();
+    }else{
+	    myUART_Start(0);
+    }
 }
 
 
@@ -41,6 +45,7 @@ void _set_des_addr(uint64_t newAddr){
 
 
 void _XBee_tx_req_(const DataPacket* msg){
+    
     int i=0;
     uint8_t send_msg[32];
     
@@ -90,6 +95,12 @@ void _XBee_tx_req_(const DataPacket* msg){
     
     send_msg[31]=checksum(send_msg,31);
     
+    
+    if(XBEE_SPI){
+        for (i=0;i<32;i++){
+            xbee_spi_WriteByte(send_msg[i]);
+        }
+    }else{
     for (i=0;i<32;i++){
         //UART_1_PutChar(send_msg[i]);
         //UART_1_PutChar(' ');
@@ -98,6 +109,7 @@ void _XBee_tx_req_(const DataPacket* msg){
     }
    // UART_1_PutChar('\r');
    // UART_1_PutChar('\n');
+    }
     return;
     
     
@@ -138,6 +150,7 @@ void myUART_Start(uint8_t option){
     switch (option){
         case 0:
             //UART_1_Start();
+        
             break;
         default:
             return;
