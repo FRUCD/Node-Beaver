@@ -1428,7 +1428,7 @@
 #define BCLK__BUS_CLK__HZ 24000000U
 #define BCLK__BUS_CLK__KHZ 24000U
 #define BCLK__BUS_CLK__MHZ 24U
-#define CY_VERSION "PSoC Creator  3.1 Component Pack 1"
+#define CY_VERSION "PSoC Creator  3.1"
 #define CYDEV_CHIP_DIE_LEOPARD 1u
 #define CYDEV_CHIP_DIE_PANTHER 6u
 #define CYDEV_CHIP_DIE_PSOC4A 3u
