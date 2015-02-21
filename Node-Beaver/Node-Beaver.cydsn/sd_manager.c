@@ -6,14 +6,28 @@ FS_FILE* pfile;
 uint8_t sd_ok = 0;
 
 
-
+/*
 CY_ISR(power_interrupt)
 {
 	sd_stop();
 } // CY_ISR(power_interrupt)
+*/
 
 
 
+/* sd_init()
+	Takes Time struct (time). Returns nothing.
+
+	Initializes SD card filesystem.
+	The following events will cause the sd_ok flag to be reset, which aborts all
+	SD functions:
+		- the SD card is not found
+		- unable to create the "LOGS" directory
+		- unable to create a directory named after the date
+		- unable to create and open file for writing
+
+	sd_ok is set when the SD card is functional
+*/
 void sd_init(Time time)
 {
 	/* power_isr note:
@@ -58,7 +72,18 @@ void sd_init(Time time)
 		} // if file does not exist
 
 		// Set file time here
-		// FS_SetFileTime()
+		FS_FILETIME file_time;
+		uint32_t file_time_string;
+
+		file_time.Year = time.year;
+		file_time.Month = time.month;
+		file_time.Day = time.day;
+		file_time.Hour = time.hour;
+		file_time.Minute = time.minute;
+		file_time.Second = time.second;
+
+		FS_FileTimeToTimeStamp(&file_time, &file_time_string);
+		FS_SetFileTime(run_str, file_time_string);
 	} // if a single file volume exists
 
 /*
@@ -80,31 +105,35 @@ void sd_init(Time time)
 
 
 
+/* sd_push()
+	Takes DataPacket queue (data_queue) with its head and tail indices.
+	Returns nothing.
+
+	Writes all messages in data_queue to the SD card. Synchronizes the filesystem
+	after all messages are written.
+*/
 void sd_push(const DataPacket* data_queue, uint16_t data_head,
 	uint16_t data_tail)
 {
-	if(!sd_ok)
-		return;
-	//push to queue
+	if(!sd_ok) return;
 
 	char buffer[128];
 	short length = 0;
-
-
 	uint16_t pos;
+
 	for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
 	{
 		length = sprintf(buffer, "%u,%u,%X,%X,%X,%X,%X,%X,%X,%X\n",
 			(unsigned)data_queue[pos].id,
 			(unsigned)data_queue[pos].millicounter,
-			(unsigned)data_queue[pos].data[7],
-			(unsigned)data_queue[pos].data[6],
-			(unsigned)data_queue[pos].data[5],
-			(unsigned)data_queue[pos].data[4],
-			(unsigned)data_queue[pos].data[3],
-			(unsigned)data_queue[pos].data[2],
+			(unsigned)data_queue[pos].data[0],
 			(unsigned)data_queue[pos].data[1],
-			(unsigned)data_queue[pos].data[0]);
+			(unsigned)data_queue[pos].data[2],
+			(unsigned)data_queue[pos].data[3],
+			(unsigned)data_queue[pos].data[4],
+			(unsigned)data_queue[pos].data[5],
+			(unsigned)data_queue[pos].data[6],
+			(unsigned)data_queue[pos].data[7]);
 
 		FS_Write(pfile, buffer, length); // write to SD
 	} // for all messages in data queue
@@ -114,7 +143,12 @@ void sd_push(const DataPacket* data_queue, uint16_t data_head,
 
 
 
-void sd_stop()
+/* sd_stop()
+	Takes and returns nothing.
+
+	Closes the file, synchronizes, and unmounts SD card to prevent corruption.
+*/
+void sd_stop(void)
 {
 	FS_FClose(pfile);
 	FS_Sync("");

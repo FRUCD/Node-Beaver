@@ -5,7 +5,7 @@
 #include <project.h>
 
 #include "data.h"
-#include "time.h"
+#include "time_manager.h"
 #include "can_manager.h"
 #include "usb_manager.h"
 #include "sd_manager.h"
@@ -33,10 +33,10 @@ int main()
 
 	for(;;)
 	{
-		can_test_send();
-		//can_get(data_queue, &data_head, &data_tail);
+		//can_test_send();
+		can_get(data_queue, &data_head, &data_tail);
 		//usb_get();
-		//time_announce(data_queue, &data_head, &data_tail);
+		time_announce(data_queue, &data_head, &data_tail);
 		
 		//inject message to test usb
 		data_queue[data_head].millicounter = millis_timer_ReadCounter();

@@ -10,7 +10,8 @@
 #define STANDARD_LEN 
 #define STARTER_DELIM 0x7e
 #define _RECEIVER_ADDR 0x0013A20040C84FBF
- 
+
+#define XBEE_SPI 1
 
     
 void _XBee_tx_req_(const DataPacket* msg);
