@@ -6,12 +6,14 @@ FS_FILE* pfile;
 uint8_t sd_ok = 0;
 
 
-/*
+
 CY_ISR(power_interrupt)
 {
+	test_Write(1);
 	sd_stop();
+	test_Write(0);
 } // CY_ISR(power_interrupt)
-*/
+
 
 
 
@@ -34,7 +36,7 @@ void sd_init(Time time)
 		Triggers unexpectedly due to floating pin/environmental voltages and
 		capacitance. power isr is disabled for prototyping only.
 	*/
-	//power_isr_StartEx(power_interrupt);
+	power_isr_StartEx(power_interrupt);
 	FS_Init();
 	sd_ok = 1;
 	char date_str[32], run_str[64];
