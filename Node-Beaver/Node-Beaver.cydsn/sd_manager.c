@@ -52,6 +52,8 @@ void sd_init(Time time)
 				return;
 			} // if logs folder can't be created
 
+		// insert time getting
+
 		// get time and date for naming day folder
 		sprintf(date_str, "\\logs\\%u-%u-%u", time.month, time.day, time.year);
 
