@@ -1,15 +1,12 @@
 /*******************************************************************************
 * File Name: rtc_i2c_PM.c
-* Version 3.30
+* Version 3.40
 *
 * Description:
-*  This file provides Low power mode APIs for I2C component.
-*
-* Note:
-*  None
+*  This file provides low power mode APIs for the I2C component.
 *
 ********************************************************************************
-* Copyright 2008-2012, Cypress Semiconductor Corporation.  All rights reserved.
+* Copyright 2008-2015, Cypress Semiconductor Corporation. All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
@@ -19,47 +16,25 @@
 
 rtc_i2c_BACKUP_STRUCT rtc_i2c_backup =
 {
-    rtc_i2c_DISABLE, /* enableState */
+    rtc_i2c_DISABLE,
 
-    #if(rtc_i2c_FF_IMPLEMENTED)
-        rtc_i2c_DEFAULT_XCFG,  /* xcfg */
-        rtc_i2c_DEFAULT_CFG,   /* cfg  */
+#if (rtc_i2c_FF_IMPLEMENTED)
+    rtc_i2c_DEFAULT_XCFG,
+    rtc_i2c_DEFAULT_CFG,
+    rtc_i2c_DEFAULT_ADDR,
+    LO8(rtc_i2c_DEFAULT_DIVIDE_FACTOR),
+    HI8(rtc_i2c_DEFAULT_DIVIDE_FACTOR),
+#else  /* (rtc_i2c_UDB_IMPLEMENTED) */
+    rtc_i2c_DEFAULT_CFG,
+#endif /* (rtc_i2c_FF_IMPLEMENTED) */
 
-        #if(rtc_i2c_MODE_SLAVE_ENABLED)
-            rtc_i2c_DEFAULT_ADDR, /* addr */
-        #endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
-
-        #if(CY_PSOC5A)
-            LO8(rtc_i2c_DEFAULT_DIVIDE_FACTOR),  /* div */
-        #else
-            LO8(rtc_i2c_DEFAULT_DIVIDE_FACTOR), /* div1 */
-            HI8(rtc_i2c_DEFAULT_DIVIDE_FACTOR), /* div2 */
-        #endif /* (CY_PSOC5A) */
-
-    #else  /* (rtc_i2c_UDB_IMPLEMENTED) */
-        rtc_i2c_DEFAULT_CFG,    /* control */
-
-        #if(CY_UDB_V0)
-            rtc_i2c_INT_ENABLE_MASK, /* aux_ctl */
-
-            #if(rtc_i2c_MODE_SLAVE_ENABLED)
-                rtc_i2c_DEFAULT_ADDR, /* addr_d0 */
-            #endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
-        #endif /* (CY_UDB_V0) */
-    #endif /* (rtc_i2c_FF_IMPLEMENTED) */
-
-    #if(rtc_i2c_TIMEOUT_ENABLED)
-        rtc_i2c_DEFAULT_TMOUT_PERIOD,
-        rtc_i2c_DEFAULT_TMOUT_INTR_MASK,
-
-        #if(rtc_i2c_TIMEOUT_PRESCALER_ENABLED && CY_UDB_V0)
-            rtc_i2c_DEFAULT_TMOUT_PRESCALER_PRD,
-        #endif /* (rtc_i2c_TIMEOUT_PRESCALER_ENABLED) */
-
-    #endif /* (rtc_i2c_TIMEOUT_ENABLED) */
+#if (rtc_i2c_TIMEOUT_ENABLED)
+    rtc_i2c_DEFAULT_TMOUT_PERIOD,
+    rtc_i2c_DEFAULT_TMOUT_INTR_MASK,
+#endif /* (rtc_i2c_TIMEOUT_ENABLED) */
 };
 
-#if((rtc_i2c_FF_IMPLEMENTED) && (rtc_i2c_WAKEUP_ENABLED))
+#if ((rtc_i2c_FF_IMPLEMENTED) && (rtc_i2c_WAKEUP_ENABLED))
     volatile uint8 rtc_i2c_wakeupSource;
 #endif /* ((rtc_i2c_FF_IMPLEMENTED) && (rtc_i2c_WAKEUP_ENABLED)) */
 
@@ -69,95 +44,79 @@ rtc_i2c_BACKUP_STRUCT rtc_i2c_backup =
 ********************************************************************************
 *
 * Summary:
-*  Wakeup on address match enabled: disables I2C Master(if was enabled before go
-*  to sleep), enables I2C backup regulator. Waits while on-going transaction be
-*  will completed and I2C will be ready go to sleep. All incoming transaction
-*  will be NACKed till power down will be asserted. The address match event
-*  wakes up the chip.
-*  Wakeup on address match disabled: saves I2C configuration and non-retention
-*  register values.
+*  The Enable wakeup from Sleep Mode selection influences this function
+*  implementation:
+*   Unchecked: Stores the component non-retention configuration registers.
+*   Checked:   Disables the master, if it was enabled before, and enables
+*              backup regulator of the I2C hardware. If a transaction intended
+*              for component executes during this function call, it waits until
+*              the current transaction is completed and I2C hardware is ready
+*              to enter sleep mode. All subsequent I2C traffic is NAKed until
+*              the device is put into sleep mode.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
 *
 * Global Variables:
-*  rtc_i2c_backup - used to save component configuration and
-*       none-retention registers before enter sleep mode.
+*  rtc_i2c_backup - The global variable used to save the component
+*                            configuration and non-retention registers before
+*                            entering the sleep mode.
 *
 * Reentrant:
-*  No
+*  No.
 *
 *******************************************************************************/
 void rtc_i2c_SaveConfig(void) 
 {
-    #if(rtc_i2c_FF_IMPLEMENTED)
-        #if(rtc_i2c_WAKEUP_ENABLED)
-            uint8 enableInterrupts;
-        #endif /* (rtc_i2c_WAKEUP_ENABLED) */
+#if (rtc_i2c_FF_IMPLEMENTED)
+    #if (rtc_i2c_WAKEUP_ENABLED)
+        uint8 intState;
+    #endif /* (rtc_i2c_WAKEUP_ENABLED) */
 
-        /* Store regiters in either Sleep mode */
-        rtc_i2c_backup.cfg  = rtc_i2c_CFG_REG;
-        rtc_i2c_backup.xcfg = rtc_i2c_XCFG_REG;
+    /* Store registers before enter low power mode */
+    rtc_i2c_backup.cfg     = rtc_i2c_CFG_REG;
+    rtc_i2c_backup.xcfg    = rtc_i2c_XCFG_REG;
+    rtc_i2c_backup.addr    = rtc_i2c_ADDR_REG;
+    rtc_i2c_backup.clkDiv1 = rtc_i2c_CLKDIV1_REG;
+    rtc_i2c_backup.clkDiv2 = rtc_i2c_CLKDIV2_REG;
 
-        #if(rtc_i2c_MODE_SLAVE_ENABLED)
-            rtc_i2c_backup.addr = rtc_i2c_ADDR_REG;
-        #endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
+#if (rtc_i2c_WAKEUP_ENABLED)
+    /* Disable master */
+    rtc_i2c_CFG_REG &= (uint8) ~rtc_i2c_ENABLE_MASTER;
 
-        #if(CY_PSOC5A)
-            rtc_i2c_backup.clkDiv   = rtc_i2c_CLKDIV_REG;
-        #else
-            rtc_i2c_backup.clkDiv1  = rtc_i2c_CLKDIV1_REG;
-            rtc_i2c_backup.clkDiv2  = rtc_i2c_CLKDIV2_REG;
-        #endif /* (CY_PSOC5A) */
+    /* Enable backup regulator to keep block powered in low power mode */
+    intState = CyEnterCriticalSection();
+    rtc_i2c_PWRSYS_CR1_REG |= rtc_i2c_PWRSYS_CR1_I2C_REG_BACKUP;
+    CyExitCriticalSection(intState);
 
-        #if(rtc_i2c_WAKEUP_ENABLED)
-            /* Need to disable Master */
-            rtc_i2c_CFG_REG &= ((uint8) ~rtc_i2c_ENABLE_MASTER);
+    /* 1) Set force NACK to ignore I2C transactions;
+    *  2) Wait unti I2C is ready go to Sleep; !!
+    *  3) These bits are cleared on wake up.
+    */
+    /* Wait when block is ready for sleep */
+    rtc_i2c_XCFG_REG |= rtc_i2c_XCFG_FORCE_NACK;
+    while (0u == (rtc_i2c_XCFG_REG & rtc_i2c_XCFG_RDY_TO_SLEEP))
+    {
+    }
 
-            /* Enable the I2C regulator backup */
-            enableInterrupts = CyEnterCriticalSection();
-            rtc_i2c_PWRSYS_CR1_REG |= rtc_i2c_PWRSYS_CR1_I2C_REG_BACKUP;
-            CyExitCriticalSection(enableInterrupts);
+    /* Setup wakeup interrupt */
+    rtc_i2c_DisableInt();
+    (void) CyIntSetVector(rtc_i2c_ISR_NUMBER, &rtc_i2c_WAKEUP_ISR);
+    rtc_i2c_wakeupSource = 0u;
+    rtc_i2c_EnableInt();
+#endif /* (rtc_i2c_WAKEUP_ENABLED) */
 
-            /* 1) Set force NACK to ignore I2C transactions
-               2) Wait while I2C will be ready go to Sleep
-               3) These bits are cleared on wake up */
-            rtc_i2c_XCFG_REG |= rtc_i2c_XCFG_FORCE_NACK;
-            while(0u == (rtc_i2c_XCFG_REG & rtc_i2c_XCFG_RDY_TO_SLEEP))
-            {
-                ; /* Wait when block is ready to Sleep */
-            }
+#else
+    /* Store only address match bit */
+    rtc_i2c_backup.control = (rtc_i2c_CFG_REG & rtc_i2c_CTRL_ANY_ADDRESS_MASK);
+#endif /* (rtc_i2c_FF_IMPLEMENTED) */
 
-            /* Setup wakeup interrupt */
-            rtc_i2c_DisableInt();
-            (void) CyIntSetVector(rtc_i2c_ISR_NUMBER, &rtc_i2c_WAKEUP_ISR);
-            rtc_i2c_wakeupSource = 0u;
-            rtc_i2c_EnableInt();
-
-        #endif /* (rtc_i2c_WAKEUP_ENABLED) */
-
-    #else
-        /* Store only address match bit */
-        rtc_i2c_backup.control = (rtc_i2c_CFG_REG & rtc_i2c_CTRL_ANY_ADDRESS_MASK);
-
-        #if(CY_UDB_V0)
-            /* Store interrupt mask bits */
-            rtc_i2c_backup.intMask = rtc_i2c_INT_MASK_REG;
-
-            #if(rtc_i2c_MODE & rtc_i2c_MODE_SLAVE)
-                rtc_i2c_backup.addr = rtc_i2c_ADDR_REG;
-            #endif /* (rtc_i2c_MODE & rtc_i2c_MODE_SLAVE) */
-
-        #endif /* (CY_UDB_V0) */
-
-    #endif /* (rtc_i2c_FF_IMPLEMENTED) */
-
-    #if(rtc_i2c_TIMEOUT_ENABLED)
-        rtc_i2c_TimeoutSaveConfig();   /* Save Timeout config */
-    #endif /* (rtc_i2c_TIMEOUT_ENABLED) */
+#if (rtc_i2c_TIMEOUT_ENABLED)
+    rtc_i2c_TimeoutSaveConfig();
+#endif /* (rtc_i2c_TIMEOUT_ENABLED) */
 }
 
 
@@ -166,42 +125,48 @@ void rtc_i2c_SaveConfig(void)
 ********************************************************************************
 *
 * Summary:
-*  Wakeup on address match enabled: All incoming transaction will be NACKed till
-*  power down will be asserted. The address match event wakes up the chip.
-*  Wakeup on address match disabled: Disables active mode power template bits or
-*  clock gating as appropriate. Saves I2C configuration and non-retention
-*  register values.
-*  Disables I2C interrupt.
+*  This is the preferred method to prepare the component before device enters
+*  sleep mode. The Enable wakeup from Sleep Mode selection influences this
+*  function implementation:
+*   Unchecked: Checks current I2C component state, saves it, and disables the
+*              component by calling I2C_Stop() if it is currently enabled.
+*              I2C_SaveConfig() is then called to save the component
+*              non-retention configuration registers.
+*   Checked:   If a transaction intended for component executes during this
+*              function call, it waits until the current transaction is
+*              completed. All subsequent I2C traffic intended for component
+*              is NAKed until the device is put to sleep mode. The address
+*              match event wakes up the device.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
 *
 * Reentrant:
-*  No
+*  No.
 *
 *******************************************************************************/
 void rtc_i2c_Sleep(void) 
 {
-    #if(rtc_i2c_WAKEUP_ENABLED)
-        /* The I2C block should be always enabled if used as wakeup source */
-        rtc_i2c_backup.enableState = rtc_i2c_DISABLE;
+#if (rtc_i2c_WAKEUP_ENABLED)
+    /* Do not enable block after exit low power mode if it is wakeup source */
+    rtc_i2c_backup.enableState = rtc_i2c_DISABLE;
 
-        #if(rtc_i2c_TIMEOUT_ENABLED)
-            rtc_i2c_TimeoutStop();
-        #endif /* (rtc_i2c_TIMEOUT_ENABLED) */
+    #if (rtc_i2c_TIMEOUT_ENABLED)
+        rtc_i2c_TimeoutStop();
+    #endif /* (rtc_i2c_TIMEOUT_ENABLED) */
 
-    #else
+#else
+    /* Store enable state */
+    rtc_i2c_backup.enableState = (uint8) rtc_i2c_IS_ENABLED;
 
-        rtc_i2c_backup.enableState = ((uint8) rtc_i2c_IS_ENABLED);
-
-        if(rtc_i2c_IS_ENABLED)
-        {
-            rtc_i2c_Stop();
-        }
-    #endif /* (rtc_i2c_WAKEUP_ENABLED) */
+    if (0u != rtc_i2c_backup.enableState)
+    {
+        rtc_i2c_Stop();
+    }
+#endif /* (rtc_i2c_WAKEUP_ENABLED) */
 
     rtc_i2c_SaveConfig();
 }
@@ -212,109 +177,91 @@ void rtc_i2c_Sleep(void)
 ********************************************************************************
 *
 * Summary:
-*  Wakeup on address match enabled: enables I2C Master (if was enabled before go
-*  to sleep), disables I2C backup regulator.
-*  Wakeup on address match disabled: Restores I2C configuration and
-*  non-retention register values.
+*  The Enable wakeup from Sleep Mode selection influences this function
+*  implementation:
+*   Unchecked: Restores the component non-retention configuration registers
+*              to the state they were in before I2C_Sleep() or I2C_SaveConfig()
+*              was called.
+*   Checked:   Disables the backup regulator of the I2C hardware. Sets up the
+*              regular component interrupt handler and generates the component
+*              interrupt if it was wake up source to release the bus and
+*              continue in-coming I2C transaction.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
 *
 * Global Variables:
-*  rtc_i2c_backup - used to save component configuration and
-*  none-retention registers before exit sleep mode.
+*  rtc_i2c_backup - The global variable used to save the component
+*                            configuration and non-retention registers before
+*                            exiting the sleep mode.
+*
+* Reentrant:
+*  No.
+*
+* Side Effects:
+*  Calling this function before rtc_i2c_SaveConfig() or
+*  rtc_i2c_Sleep() will lead to unpredictable results.
 *
 *******************************************************************************/
 void rtc_i2c_RestoreConfig(void) 
 {
-    #if(rtc_i2c_FF_IMPLEMENTED)
-        uint8 enableInterrupts;
+#if (rtc_i2c_FF_IMPLEMENTED)
+    uint8 intState;
 
-        if(rtc_i2c_CHECK_PWRSYS_I2C_BACKUP)    /* Enabled if was in Sleep */
-        {
-            /* Disable back-up regulator */
-            enableInterrupts = CyEnterCriticalSection();
-            rtc_i2c_PWRSYS_CR1_REG &= ((uint8) ~rtc_i2c_PWRSYS_CR1_I2C_REG_BACKUP);
-            CyExitCriticalSection(enableInterrupts);
+    if (rtc_i2c_CHECK_PWRSYS_I2C_BACKUP)
+    /* Low power mode was Sleep - backup regulator is enabled */
+    {
+        /* Enable backup regulator in active mode */
+        intState = CyEnterCriticalSection();
+        rtc_i2c_PWRSYS_CR1_REG &= (uint8) ~rtc_i2c_PWRSYS_CR1_I2C_REG_BACKUP;
+        CyExitCriticalSection(intState);
 
-            /* Re-enable Master */
-            rtc_i2c_CFG_REG = rtc_i2c_backup.cfg;
-        }
-        else /* The I2C_REG_BACKUP was cleaned by PM API: it means Hibernate or wake-up not set */
-        {
-            #if(rtc_i2c_WAKEUP_ENABLED)
-                /* Disable power to I2C block before register restore */
-                enableInterrupts = CyEnterCriticalSection();
-                rtc_i2c_ACT_PWRMGR_REG  &= ((uint8) ~rtc_i2c_ACT_PWR_EN);
-                rtc_i2c_STBY_PWRMGR_REG &= ((uint8) ~rtc_i2c_STBY_PWR_EN);
-                CyExitCriticalSection(enableInterrupts);
+        /* Restore master */
+        rtc_i2c_CFG_REG = rtc_i2c_backup.cfg;
+    }
+    else
+    /* Low power mode was Hibernate - backup regulator is disabled. All registers are cleared */
+    {
+    #if (rtc_i2c_WAKEUP_ENABLED)
+        /* Disable power to block before register restore */
+        intState = CyEnterCriticalSection();
+        rtc_i2c_ACT_PWRMGR_REG  &= (uint8) ~rtc_i2c_ACT_PWR_EN;
+        rtc_i2c_STBY_PWRMGR_REG &= (uint8) ~rtc_i2c_STBY_PWR_EN;
+        CyExitCriticalSection(intState);
 
-                /* Enable component after restore complete */
-                rtc_i2c_backup.enableState = rtc_i2c_ENABLE;
-            #endif /* (rtc_i2c_WAKEUP_ENABLED) */
+        /* Enable component in I2C_Wakeup() after register restore */
+        rtc_i2c_backup.enableState = rtc_i2c_ENABLE;
+    #endif /* (rtc_i2c_WAKEUP_ENABLED) */
 
-            /* Restore component registers: Hibernate disable power */
-            rtc_i2c_XCFG_REG = rtc_i2c_backup.xcfg;
-            rtc_i2c_CFG_REG  = rtc_i2c_backup.cfg;
+        /* Restore component registers after Hibernate */
+        rtc_i2c_XCFG_REG    = rtc_i2c_backup.xcfg;
+        rtc_i2c_CFG_REG     = rtc_i2c_backup.cfg;
+        rtc_i2c_ADDR_REG    = rtc_i2c_backup.addr;
+        rtc_i2c_CLKDIV1_REG = rtc_i2c_backup.clkDiv1;
+        rtc_i2c_CLKDIV2_REG = rtc_i2c_backup.clkDiv2;
+    }
 
-            #if(rtc_i2c_MODE_SLAVE_ENABLED)
-                rtc_i2c_ADDR_REG = rtc_i2c_backup.addr;
-            #endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
+#if (rtc_i2c_WAKEUP_ENABLED)
+    rtc_i2c_DisableInt();
+    (void) CyIntSetVector(rtc_i2c_ISR_NUMBER, &rtc_i2c_ISR);
+    if (0u != rtc_i2c_wakeupSource)
+    {
+        /* Generate interrupt to process incoming transaction */
+        rtc_i2c_SetPendingInt();
+    }
+    rtc_i2c_EnableInt();
+#endif /* (rtc_i2c_WAKEUP_ENABLED) */
 
-            #if(CY_PSOC5A)
-                rtc_i2c_CLKDIV_REG  = rtc_i2c_backup.clkDiv;
-            #else
-                rtc_i2c_CLKDIV1_REG = rtc_i2c_backup.clkDiv1;
-                rtc_i2c_CLKDIV2_REG = rtc_i2c_backup.clkDiv2;
-            #endif /* (CY_PSOC5A) */
-        }
+#else
+    rtc_i2c_CFG_REG = rtc_i2c_backup.control;
+#endif /* (rtc_i2c_FF_IMPLEMENTED) */
 
-        #if(rtc_i2c_WAKEUP_ENABLED)
-            rtc_i2c_DisableInt();
-            (void) CyIntSetVector(rtc_i2c_ISR_NUMBER, &rtc_i2c_ISR);
-            if(0u != rtc_i2c_wakeupSource)
-            {
-                rtc_i2c_SetPendingInt();   /* Generate interrupt to process incomming transcation */
-            }
-            rtc_i2c_EnableInt();
-        #endif /* (rtc_i2c_WAKEUP_ENABLED) */
-
-    #else
-
-        #if(CY_UDB_V0)
-            uint8 enableInterrupts;
-
-            rtc_i2c_INT_MASK_REG |= rtc_i2c_backup.intMask;
-
-            enableInterrupts = CyEnterCriticalSection();
-            rtc_i2c_INT_ENABLE_REG |= rtc_i2c_INT_ENABLE_MASK;
-            CyExitCriticalSection(enableInterrupts);
-
-            #if(rtc_i2c_MODE_MASTER_ENABLED)
-                /* Restore Master Clock generator */
-                rtc_i2c_MCLK_PRD_REG = rtc_i2c_DEFAULT_MCLK_PRD;
-                rtc_i2c_MCLK_CMP_REG = rtc_i2c_DEFAULT_MCLK_CMP;
-            #endif /* (rtc_i2c_MODE_MASTER_ENABLED) */
-
-            #if(rtc_i2c_MODE_SLAVE_ENABLED)
-                rtc_i2c_ADDR_REG = rtc_i2c_backup.addr;
-
-                /* Restore slave bit counter period */
-                rtc_i2c_PERIOD_REG = rtc_i2c_DEFAULT_PERIOD;
-            #endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
-
-        #endif /* (CY_UDB_V0) */
-
-        rtc_i2c_CFG_REG = rtc_i2c_backup.control;
-
-    #endif /* (rtc_i2c_FF_IMPLEMENTED) */
-
-    #if(rtc_i2c_TIMEOUT_ENABLED)
-        rtc_i2c_TimeoutRestoreConfig();
-    #endif /* (rtc_i2c_TIMEOUT_ENABLED) */
+#if (rtc_i2c_TIMEOUT_ENABLED)
+    rtc_i2c_TimeoutRestoreConfig();
+#endif /* (rtc_i2c_TIMEOUT_ENABLED) */
 }
 
 
@@ -323,38 +270,48 @@ void rtc_i2c_RestoreConfig(void)
 ********************************************************************************
 *
 * Summary:
-*  Wakeup on address match enabled: enables I2C Master (if was enabled before go
-*  to sleep) and disables I2C backup regulator.
-*  Wakeup on address match disabled: Restores I2C configuration and
-*  non-retention register values. Restores Active mode power template bits or
-*  clock gating as appropriate.
-*  The I2C interrupt remains disabled after function call.
+*  This is the preferred method to prepare the component for active mode
+*  operation (when device exits sleep mode). The Enable wakeup from Sleep Mode
+*  selection influences this function implementation:
+*   Unchecked: Restores the component non-retention configuration registers
+*              by calling I2C_RestoreConfig(). If the component was enabled
+*              before the I2C_Sleep() function was called, I2C_Wakeup()
+*              re-enables it.
+*   Checked:   Enables  master functionality if it was enabled before sleep,
+*              and disables the backup regulator of the I2C hardware.
+*              The incoming transaction continues as soon as the regular
+*              I2C interrupt handler is set up (global interrupts has to be
+*              enabled to service I2C component interrupt).
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
 *
 * Reentrant:
-*  No
+*  No.
+*
+* Side Effects:
+*  Calling this function before rtc_i2c_SaveConfig() or
+*  rtc_i2c_Sleep() will lead to unpredictable results.
 *
 *******************************************************************************/
 void rtc_i2c_Wakeup(void) 
 {
-    rtc_i2c_RestoreConfig();   /* Restore I2C register settings */
+    rtc_i2c_RestoreConfig();
 
     /* Restore component enable state */
-    if(0u != rtc_i2c_backup.enableState)
+    if (0u != rtc_i2c_backup.enableState)
     {
         rtc_i2c_Enable();
         rtc_i2c_EnableInt();
     }
     else
     {
-        #if(rtc_i2c_TIMEOUT_ENABLED)
-            rtc_i2c_TimeoutEnable();
-        #endif /* (rtc_i2c_TIMEOUT_ENABLED) */
+    #if (rtc_i2c_TIMEOUT_ENABLED)
+        rtc_i2c_TimeoutEnable();
+    #endif /* (rtc_i2c_TIMEOUT_ENABLED) */
     }
 }
 

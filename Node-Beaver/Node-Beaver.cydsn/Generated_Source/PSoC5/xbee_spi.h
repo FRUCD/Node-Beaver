@@ -1,6 +1,6 @@
 /*******************************************************************************
 * File Name: xbee_spi.h
-* Version 2.40
+* Version 2.50
 *
 * Description:
 *  Contains the function prototypes, constants and register definition
@@ -10,7 +10,7 @@
 *  None
 *
 ********************************************************************************
-* Copyright 2008-2012, Cypress Semiconductor Corporation.  All rights reserved.
+* Copyright 2008-2015, Cypress Semiconductor Corporation.  All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
@@ -26,7 +26,7 @@
 /* Check to see if required defines such as CY_PSOC5A are available */
 /* They are defined starting with cy_boot v3.0 */
 #if !defined (CY_PSOC5A)
-    #error Component SPI_Master_v2_40 requires cy_boot v3.0 or later
+    #error Component SPI_Master_v2_50 requires cy_boot v3.0 or later
 #endif /* (CY_PSOC5A) */
 
 
@@ -71,11 +71,6 @@ typedef struct
 {
     uint8 enableState;
     uint8 cntrPeriod;
-    #if(CY_UDB_V0)
-        uint8 saveSrTxIntMask;
-        uint8 saveSrRxIntMask;
-    #endif /* (CY_UDB_V0) */
-
 } xbee_spi_BACKUP_STRUCT;
 
 
@@ -123,9 +118,9 @@ CY_ISR_PROTO(xbee_spi_TX_ISR);
 CY_ISR_PROTO(xbee_spi_RX_ISR);
 
 
-/**********************************
+/***************************************
 *   Variable with external linkage
-**********************************/
+***************************************/
 
 extern uint8 xbee_spi_initVar;
 
@@ -181,7 +176,6 @@ extern uint8 xbee_spi_initVar;
 /***************************************
 *             Registers
 ***************************************/
-
 #if(CY_PSOC3 || CY_PSOC5)
     #define xbee_spi_TXDATA_REG (* (reg8 *) \
                                                 xbee_spi_BSPIM_sR8_Dp_u0__F0_REG)
@@ -199,7 +193,7 @@ extern uint8 xbee_spi_initVar;
                                           xbee_spi_BSPIM_sR8_Dp_u0__16BIT_F0_REG)
         #define xbee_spi_RXDATA_REG (* (reg16 *) \
                                           xbee_spi_BSPIM_sR8_Dp_u0__16BIT_F1_REG)
-        #define xbee_spi_RXDATA_PTR         (  (reg16 *) \
+        #define xbee_spi_RXDATA_PTR (  (reg16 *) \
                                           xbee_spi_BSPIM_sR8_Dp_u0__16BIT_F1_REG)
     #else
         #define xbee_spi_TXDATA_REG (* (reg8 *) \
@@ -236,9 +230,9 @@ extern uint8 xbee_spi_initVar;
 #define xbee_spi_RX_STATUS_PTR          (  (reg8 *) xbee_spi_BSPIM_RxStsReg__STATUS_REG)
 
 #define xbee_spi_CONTROL_REG            (* (reg8 *) \
-                                      xbee_spi_BSPIM_BidirMode_SyncCtl_CtrlReg__CONTROL_REG)
+                                      xbee_spi_BSPIM_BidirMode_CtrlReg__CONTROL_REG)
 #define xbee_spi_CONTROL_PTR            (  (reg8 *) \
-                                      xbee_spi_BSPIM_BidirMode_SyncCtl_CtrlReg__CONTROL_REG)
+                                      xbee_spi_BSPIM_BidirMode_CtrlReg__CONTROL_REG)
 
 #define xbee_spi_TX_STATUS_MASK_REG     (* (reg8 *) xbee_spi_BSPIM_TxStsReg__MASK_REG)
 #define xbee_spi_TX_STATUS_MASK_PTR     (  (reg8 *) xbee_spi_BSPIM_TxStsReg__MASK_REG)
@@ -323,13 +317,9 @@ extern uint8 xbee_spi_initVar;
 
 
 /***************************************
-*       Obsolete definitions
+* The following code is DEPRECATED and 
+* should not be used in new projects.
 ***************************************/
-
-/* Following definitions are for version compatibility.
-*  They are obsolete in SPIM v2_30.
-*  Please do not use it in new projects
-*/
 
 #define xbee_spi_WriteByte   xbee_spi_WriteTxData
 #define xbee_spi_ReadByte    xbee_spi_ReadRxData
@@ -338,7 +328,6 @@ uint8 xbee_spi_ReadStatus(void)                     ;
 void  xbee_spi_EnableInt(void)                      ;
 void  xbee_spi_DisableInt(void)                     ;
 
-/* Obsolete register names. Not to be used in new designs */
 #define xbee_spi_TXDATA                 (xbee_spi_TXDATA_REG)
 #define xbee_spi_RXDATA                 (xbee_spi_RXDATA_REG)
 #define xbee_spi_AUX_CONTROLDP0         (xbee_spi_AUX_CONTROL_DP0_REG)
@@ -362,11 +351,6 @@ void  xbee_spi_DisableInt(void)                     ;
                                                 xbee_spi_INT_ON_RX_OVER      | \
                                                 xbee_spi_INT_ON_BYTE_COMP)
                                                 
-/* Following definitions are for version Compatibility.
-*  They are obsolete in SPIM v2_40.
-*  Please do not use it in new projects
-*/
-
 #define xbee_spi_DataWidth                  (xbee_spi_DATA_WIDTH)
 #define xbee_spi_InternalClockUsed          (xbee_spi_INTERNAL_CLOCK)
 #define xbee_spi_InternalTxInterruptEnabled (xbee_spi_INTERNAL_TX_INT_ENABLED)

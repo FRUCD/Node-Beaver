@@ -1,16 +1,14 @@
 /*******************************************************************************
 * File Name: rtc_i2c.c
-* Version 3.30
+* Version 3.40
 *
 * Description:
 *  This file provides the source code of APIs for the I2C component.
-*  Actual protocol and operation code resides in the interrupt service routine
-*  file.
-*
-* Note:
+*  The actual protocol and operation code resides in the interrupt service
+*  routine file.
 *
 *******************************************************************************
-* Copyright 2008-2012, Cypress Semiconductor Corporation. All rights reserved.
+* Copyright 2008-2015, Cypress Semiconductor Corporation. All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
@@ -23,7 +21,7 @@
 *      System variables
 **********************************/
 
-uint8 rtc_i2c_initVar = 0u;    /* Defines if component was initialized */
+uint8 rtc_i2c_initVar = 0u; /* Defines if component was initialized */
 
 volatile uint8 rtc_i2c_state;  /* Current state of I2C FSM */
 
@@ -36,84 +34,82 @@ volatile uint8 rtc_i2c_state;  /* Current state of I2C FSM */
 *  Initializes I2C registers with initial values provided from customizer.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
 *
 * Global variables:
-*  None
+*  None.
 *
 * Reentrant:
-*  No
+*  No.
 *
 *******************************************************************************/
 void rtc_i2c_Init(void) 
 {
-    #if(rtc_i2c_FF_IMPLEMENTED)
-        rtc_i2c_CFG_REG  = rtc_i2c_DEFAULT_CFG;
-        rtc_i2c_XCFG_REG = rtc_i2c_DEFAULT_XCFG;
+#if (rtc_i2c_FF_IMPLEMENTED)
+    /* Configure fixed function block */
+    rtc_i2c_CFG_REG  = rtc_i2c_DEFAULT_CFG;
+    rtc_i2c_XCFG_REG = rtc_i2c_DEFAULT_XCFG;
+    rtc_i2c_ADDR_REG = rtc_i2c_DEFAULT_ADDR;
+    rtc_i2c_CLKDIV1_REG = LO8(rtc_i2c_DEFAULT_DIVIDE_FACTOR);
+    rtc_i2c_CLKDIV2_REG = HI8(rtc_i2c_DEFAULT_DIVIDE_FACTOR);
 
-        #if(CY_PSOC5A)
-            rtc_i2c_CLKDIV_REG  = LO8(rtc_i2c_DEFAULT_DIVIDE_FACTOR);
-        #else
-            rtc_i2c_CLKDIV1_REG = LO8(rtc_i2c_DEFAULT_DIVIDE_FACTOR);
-            rtc_i2c_CLKDIV2_REG = HI8(rtc_i2c_DEFAULT_DIVIDE_FACTOR);
-        #endif /* (CY_PSOC5A) */
+#else
+    uint8 intState;
 
-    #else
-        uint8 enableInterrupts;
+    /* Configure control and interrupt sources */
+    rtc_i2c_CFG_REG      = rtc_i2c_DEFAULT_CFG;
+    rtc_i2c_INT_MASK_REG = rtc_i2c_DEFAULT_INT_MASK;
 
-        rtc_i2c_CFG_REG      = rtc_i2c_DEFAULT_CFG;      /* control  */
-        rtc_i2c_INT_MASK_REG = rtc_i2c_DEFAULT_INT_MASK; /* int_mask */
+    /* Enable interrupt generation in status */
+    intState = CyEnterCriticalSection();
+    rtc_i2c_INT_ENABLE_REG |= rtc_i2c_INTR_ENABLE;
+    CyExitCriticalSection(intState);
 
-        /* Enable interrupts from block */
-        enableInterrupts = CyEnterCriticalSection();
-        rtc_i2c_INT_ENABLE_REG |= rtc_i2c_INTR_ENABLE; /* aux_ctl */
-        CyExitCriticalSection(enableInterrupts);
+    /* Configure bit counter */
+    #if (rtc_i2c_MODE_SLAVE_ENABLED)
+        rtc_i2c_PERIOD_REG = rtc_i2c_DEFAULT_PERIOD;
+    #endif  /* (rtc_i2c_MODE_SLAVE_ENABLED) */
 
-        #if(rtc_i2c_MODE_MASTER_ENABLED)
-            rtc_i2c_MCLK_PRD_REG = rtc_i2c_DEFAULT_MCLK_PRD;
-            rtc_i2c_MCLK_CMP_REG = rtc_i2c_DEFAULT_MCLK_CMP;
-         #endif /* (rtc_i2c_MODE_MASTER_ENABLED) */
+    /* Configure clock generator */
+    #if (rtc_i2c_MODE_MASTER_ENABLED)
+        rtc_i2c_MCLK_PRD_REG = rtc_i2c_DEFAULT_MCLK_PRD;
+        rtc_i2c_MCLK_CMP_REG = rtc_i2c_DEFAULT_MCLK_CMP;
+    #endif /* (rtc_i2c_MODE_MASTER_ENABLED) */
+#endif /* (rtc_i2c_FF_IMPLEMENTED) */
 
-        #if(rtc_i2c_MODE_SLAVE_ENABLED)
-            rtc_i2c_PERIOD_REG = rtc_i2c_DEFAULT_PERIOD;
-        #endif  /* (rtc_i2c_MODE_SLAVE_ENABLED) */
+#if (rtc_i2c_TIMEOUT_ENABLED)
+    rtc_i2c_TimeoutInit();
+#endif /* (rtc_i2c_TIMEOUT_ENABLED) */
 
-    #endif /* (rtc_i2c_FF_IMPLEMENTED) */
-
-    #if(rtc_i2c_TIMEOUT_ENABLED)
-        rtc_i2c_TimeoutInit();
-    #endif /* (rtc_i2c_TIMEOUT_ENABLED) */
-
-    /* Disable Interrupt and set vector and priority */
+    /* Configure internal interrupt */
     CyIntDisable    (rtc_i2c_ISR_NUMBER);
     CyIntSetPriority(rtc_i2c_ISR_NUMBER, rtc_i2c_ISR_PRIORITY);
-    #if(rtc_i2c_INTERN_I2C_INTR_HANDLER)
+    #if (rtc_i2c_INTERN_I2C_INTR_HANDLER)
         (void) CyIntSetVector(rtc_i2c_ISR_NUMBER, &rtc_i2c_ISR);
     #endif /* (rtc_i2c_INTERN_I2C_INTR_HANDLER) */
 
-
-    /* Put state machine in idle state */
+    /* Set FSM to default state */
     rtc_i2c_state = rtc_i2c_SM_IDLE;
 
-    #if(rtc_i2c_MODE_SLAVE_ENABLED)
-        /* Reset status and buffers index */
-        rtc_i2c_SlaveClearReadBuf();
-        rtc_i2c_SlaveClearWriteBuf();
-        rtc_i2c_slStatus = 0u; /* Reset slave status */
+#if (rtc_i2c_MODE_SLAVE_ENABLED)
+    /* Clear status and buffers index */
+    rtc_i2c_slStatus = 0u;
+    rtc_i2c_slRdBufIndex = 0u;
+    rtc_i2c_slWrBufIndex = 0u;
 
-        /* Set default address */
-        rtc_i2c_SlaveSetAddress(rtc_i2c_DEFAULT_ADDR);
-    #endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
+    /* Configure matched address */
+    rtc_i2c_SlaveSetAddress(rtc_i2c_DEFAULT_ADDR);
+#endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
 
-    #if(rtc_i2c_MODE_MASTER_ENABLED)
-        /* Reset status and buffers index */
-        rtc_i2c_MasterClearReadBuf();
-        rtc_i2c_MasterClearWriteBuf();
-        (void) rtc_i2c_MasterClearStatus();
-    #endif /* (rtc_i2c_MODE_MASTER_ENABLED) */
+#if (rtc_i2c_MODE_MASTER_ENABLED)
+    /* Clear status and buffers index */
+    rtc_i2c_mstrStatus = 0u;
+    rtc_i2c_mstrRdBufIndex = 0u;
+    rtc_i2c_mstrWrBufIndex = 0u;
+#endif /* (rtc_i2c_MODE_MASTER_ENABLED) */
 }
 
 
@@ -125,46 +121,40 @@ void rtc_i2c_Init(void)
 *  Enables I2C operations.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
 *
 * Global variables:
-*  None
+*  None.
 *
 *******************************************************************************/
 void rtc_i2c_Enable(void) 
 {
-    #if(rtc_i2c_FF_IMPLEMENTED)
-        uint8 enableInterrupts;
+#if (rtc_i2c_FF_IMPLEMENTED)
+    uint8 intState;
 
-        /* Enable power to I2C FF block */
-        enableInterrupts = CyEnterCriticalSection();
-        rtc_i2c_ACT_PWRMGR_REG  |= rtc_i2c_ACT_PWR_EN;
-        rtc_i2c_STBY_PWRMGR_REG |= rtc_i2c_STBY_PWR_EN;
-        CyExitCriticalSection(enableInterrupts);
+    /* Enable power to block */
+    intState = CyEnterCriticalSection();
+    rtc_i2c_ACT_PWRMGR_REG  |= rtc_i2c_ACT_PWR_EN;
+    rtc_i2c_STBY_PWRMGR_REG |= rtc_i2c_STBY_PWR_EN;
+    CyExitCriticalSection(intState);
+#else
+    #if (rtc_i2c_MODE_SLAVE_ENABLED)
+        /* Enable bit counter */
+        uint8 intState = CyEnterCriticalSection();
+        rtc_i2c_COUNTER_AUX_CTL_REG |= rtc_i2c_CNT7_ENABLE;
+        CyExitCriticalSection(intState);
+    #endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
 
-    #else
+    /* Enable slave or master bits */
+    rtc_i2c_CFG_REG |= rtc_i2c_ENABLE_MS;
+#endif /* (rtc_i2c_FF_IMPLEMENTED) */
 
-        #if(rtc_i2c_MODE_SLAVE_ENABLED)
-            uint8 enableInterrupts;
-        #endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
-
-        #if(rtc_i2c_MODE_SLAVE_ENABLED)
-            /* Enable slave bit counter */
-            enableInterrupts = CyEnterCriticalSection();
-            rtc_i2c_COUNTER_AUX_CTL_REG |= rtc_i2c_CNT7_ENABLE;   /* aux_ctl */
-            CyExitCriticalSection(enableInterrupts);
-        #endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
-
-        rtc_i2c_CFG_REG |= rtc_i2c_ENABLE_MS;
-
-    #endif /* (rtc_i2c_FF_IMPLEMENTED) */
-
-    #if(rtc_i2c_TIMEOUT_ENABLED)
-        rtc_i2c_TimeoutEnable();
-    #endif /* (rtc_i2c_TIMEOUT_ENABLED) */
+#if (rtc_i2c_TIMEOUT_ENABLED)
+    rtc_i2c_TimeoutEnable();
+#endif /* (rtc_i2c_TIMEOUT_ENABLED) */
 }
 
 
@@ -178,27 +168,27 @@ void rtc_i2c_Enable(void)
 *  operation.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
 *
 * Side Effects:
-*  This component automatically enables it's interrupt.  If I2C is enabled
-*  without the interrupt enabled, it could lock up the I2C bus.
+*  This component automatically enables its interrupt.  If I2C is enabled !
+*  without the interrupt enabled, it can lock up the I2C bus.
 *
 * Global variables:
-*  rtc_i2c_initVar - used to check initial configuration, modified
-*  on first function call.
+*  rtc_i2c_initVar - This variable is used to check the initial
+*                             configuration, modified on the first
+*                             function call.
 *
 * Reentrant:
-*  No
+*  No.
 *
 *******************************************************************************/
 void rtc_i2c_Start(void) 
 {
-    /* Initialize I2C registers, reset I2C buffer index and clears status */
-    if(0u == rtc_i2c_initVar)
+    if (0u == rtc_i2c_initVar)
     {
         rtc_i2c_Init();
         rtc_i2c_initVar = 1u; /* Component initialized */
@@ -218,78 +208,82 @@ void rtc_i2c_Start(void)
 *  template bits or clock gating as appropriate.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
 *
 *******************************************************************************/
 void rtc_i2c_Stop(void) 
 {
-    #if((rtc_i2c_FF_IMPLEMENTED)  || \
-        (rtc_i2c_UDB_IMPLEMENTED && rtc_i2c_MODE_SLAVE_ENABLED))
-        uint8 enableInterrupts;
-    #endif /* ((rtc_i2c_FF_IMPLEMENTED)  || \
-               (rtc_i2c_UDB_IMPLEMENTED && rtc_i2c_MODE_SLAVE_ENABLED)) */
-
     rtc_i2c_DisableInt();
 
-    rtc_i2c_DISABLE_INT_ON_STOP;   /* Interrupt on Stop can be enabled by write */
-    (void) rtc_i2c_CSR_REG;        /* Clear CSR reg */
-    
-    #if(rtc_i2c_TIMEOUT_ENABLED)
-        rtc_i2c_TimeoutStop();
-    #endif  /* End (rtc_i2c_TIMEOUT_ENABLED) */
+#if (rtc_i2c_TIMEOUT_ENABLED)
+    rtc_i2c_TimeoutStop();
+#endif  /* End (rtc_i2c_TIMEOUT_ENABLED) */
 
-    #if(rtc_i2c_FF_IMPLEMENTED)
-        #if(CY_PSOC3 || CY_PSOC5LP)
-            /* Store registers which are held in reset when Master and Slave bits are cleared */
-            #if(rtc_i2c_MODE_SLAVE_ENABLED)
-                rtc_i2c_backup.addr = rtc_i2c_ADDR_REG;
-            #endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
+#if (rtc_i2c_FF_IMPLEMENTED)
+    {
+        uint8 intState;
+        uint16 blockResetCycles;
 
-            rtc_i2c_backup.clkDiv1  = rtc_i2c_CLKDIV1_REG;
-            rtc_i2c_backup.clkDiv2  = rtc_i2c_CLKDIV2_REG;
+        /* Store registers effected by block disable */
+        rtc_i2c_backup.addr    = rtc_i2c_ADDR_REG;
+        rtc_i2c_backup.clkDiv1 = rtc_i2c_CLKDIV1_REG;
+        rtc_i2c_backup.clkDiv2 = rtc_i2c_CLKDIV2_REG;
 
+        /* Calculate number of cycles to reset block */
+        blockResetCycles = ((uint16) ((uint16) rtc_i2c_CLKDIV2_REG << 8u) | rtc_i2c_CLKDIV1_REG) + 1u;
 
-            /* Reset FF block */
-            rtc_i2c_CFG_REG &= ((uint8) ~rtc_i2c_ENABLE_MS);
-            CyDelayUs(rtc_i2c_FF_RESET_DELAY);
-            rtc_i2c_CFG_REG |= ((uint8)  rtc_i2c_ENABLE_MS);
+        /* Disable block */
+        rtc_i2c_CFG_REG &= (uint8) ~rtc_i2c_CFG_EN_SLAVE;
+        /* Wait for block reset before disable power */
+        CyDelayCycles((uint32) blockResetCycles);
 
+        /* Disable power to block */
+        intState = CyEnterCriticalSection();
+        rtc_i2c_ACT_PWRMGR_REG  &= (uint8) ~rtc_i2c_ACT_PWR_EN;
+        rtc_i2c_STBY_PWRMGR_REG &= (uint8) ~rtc_i2c_STBY_PWR_EN;
+        CyExitCriticalSection(intState);
 
-            /* Restore registers */
-            #if(rtc_i2c_MODE_SLAVE_ENABLED)
-                rtc_i2c_ADDR_REG = rtc_i2c_backup.addr;
-            #endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
+        /* Enable block */
+        rtc_i2c_CFG_REG |= (uint8) rtc_i2c_ENABLE_MS;
 
-            rtc_i2c_CLKDIV1_REG = rtc_i2c_backup.clkDiv1;
-            rtc_i2c_CLKDIV2_REG = rtc_i2c_backup.clkDiv2;
+        /* Restore registers effected by block disable. Ticket ID#198004 */
+        rtc_i2c_ADDR_REG    = rtc_i2c_backup.addr;
+        rtc_i2c_ADDR_REG    = rtc_i2c_backup.addr;
+        rtc_i2c_CLKDIV1_REG = rtc_i2c_backup.clkDiv1;
+        rtc_i2c_CLKDIV2_REG = rtc_i2c_backup.clkDiv2;
+    }
+#else
 
-        #endif /* (CY_PSOC3 || CY_PSOC5LP) */
+    /* Disable slave or master bits */
+    rtc_i2c_CFG_REG &= (uint8) ~rtc_i2c_ENABLE_MS;
 
-        /* Disable power to I2C block */
-        enableInterrupts = CyEnterCriticalSection();
-        rtc_i2c_ACT_PWRMGR_REG  &= ((uint8) ~rtc_i2c_ACT_PWR_EN);
-        rtc_i2c_STBY_PWRMGR_REG &= ((uint8) ~rtc_i2c_STBY_PWR_EN);
-        CyExitCriticalSection(enableInterrupts);
+#if (rtc_i2c_MODE_SLAVE_ENABLED)
+    {
+        /* Disable bit counter */
+        uint8 intState = CyEnterCriticalSection();
+        rtc_i2c_COUNTER_AUX_CTL_REG &= (uint8) ~rtc_i2c_CNT7_ENABLE;
+        CyExitCriticalSection(intState);
+    }
+#endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
 
-    #else
+    /* Clear interrupt source register */
+    (void) rtc_i2c_CSR_REG;
+#endif /* (rtc_i2c_FF_IMPLEMENTED) */
 
-        #if(rtc_i2c_MODE_SLAVE_ENABLED)
-            /* Disable slave bit counter */
-            enableInterrupts = CyEnterCriticalSection();
-            rtc_i2c_COUNTER_AUX_CTL_REG &= ((uint8) ~rtc_i2c_CNT7_ENABLE);
-            CyExitCriticalSection(enableInterrupts);
-        #endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
+    /* Disable interrupt on stop (enabled by write transaction) */
+    rtc_i2c_DISABLE_INT_ON_STOP;
+    rtc_i2c_ClearPendingInt();
 
-        rtc_i2c_CFG_REG &= ((uint8) ~rtc_i2c_ENABLE_MS);
+    /* Reset FSM to default state */
+    rtc_i2c_state = rtc_i2c_SM_IDLE;
 
-    #endif /* (rtc_i2c_FF_IMPLEMENTED) */
-
-    rtc_i2c_ClearPendingInt();  /* Clear interrupt triggers on reset */
-
-    rtc_i2c_state = rtc_i2c_SM_IDLE;  /* Reset software FSM */
+    /* Clear busy statuses */
+#if (rtc_i2c_MODE_SLAVE_ENABLED)
+    rtc_i2c_slStatus &= (uint8) ~(rtc_i2c_SSTAT_RD_BUSY | rtc_i2c_SSTAT_WR_BUSY);
+#endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
 }
 
 

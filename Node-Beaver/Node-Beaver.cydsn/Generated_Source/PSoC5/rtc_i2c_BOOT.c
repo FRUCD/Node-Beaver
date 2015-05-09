@@ -1,15 +1,13 @@
 /*******************************************************************************
 * File Name: rtc_i2c_BOOT.c
-* Version 3.30
+* Version 3.40
 *
 * Description:
-*  This file provides the source code of bootloader communication APIs for the
+*  This file provides the source code of the bootloader communication APIs for the
 *  I2C component.
 *
-* Note:
-*
 ********************************************************************************
-* Copyright 2008-2012, Cypress Semiconductor Corporation.  All rights reserved.
+* Copyright 2008-2015, Cypress Semiconductor Corporation. All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
@@ -24,10 +22,10 @@
 *    Bootloader Internal Variables
 ***************************************/
 
-/* I2C write buffer: Host writes command here */
+/* I2C write buffer - The host writes commands here */
 static uint8 XDATA rtc_i2c_slReadBuf[rtc_i2c_BTLDR_SIZEOF_READ_BUFFER];
 
-/* I2C read buffer: Host reads responses from it */
+/* I2C read buffer - The host reads responses from it */
 static uint8 XDATA rtc_i2c_slWriteBuf[rtc_i2c_BTLDR_SIZEOF_WRITE_BUFFER];
 
 
@@ -41,31 +39,29 @@ static uint8 XDATA rtc_i2c_slWriteBuf[rtc_i2c_BTLDR_SIZEOF_WRITE_BUFFER];
 *  The write buffer is clear and ready to receive a commmand.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
 *
 * Side Effects:
-*  This fucntion enables component interrupt. If I2C is enabled
-*  without the interrupt enabled, it could lock up the I2C bus.
+*  This function enables the component interrupt. If I2C is enabled
+*  without the interrupt enabled, it can lock up the I2C bus.
 *
 * Global variables:
-*  rtc_i2c_slWriteBuf - used to store received command.
-*  rtc_i2c_slReadBuf - used to store response.
-*  rtc_i2c_slRdBufIndex - used to store current index within slave
-*  read buffer.
+*  rtc_i2c_slWriteBuf - The global variable used to store a received
+*                                command.
+*  rtc_i2c_slReadBuf -  The global variable used to store a response.
+*  rtc_i2c_slRdBufIndex - The global variable used to store a current
+*                                  index within the slave read buffer.
 *
 *******************************************************************************/
 void rtc_i2c_CyBtldrCommStart(void) CYSMALL 
 {
-    /* Set Write buffer */
+    /* Read returns 0xFF when buffer is zero. Write transaction is expected. */
     rtc_i2c_SlaveInitWriteBuf(rtc_i2c_slWriteBuf, rtc_i2c_BTLDR_SIZEOF_WRITE_BUFFER);
+    rtc_i2c_SlaveInitReadBuf (rtc_i2c_slReadBuf, 0u);
 
-    /* Set Read buffer which has zero elements */
-    rtc_i2c_SlaveInitReadBuf(rtc_i2c_slReadBuf, 0u);
-
-    /* Enable power to I2C Module */
     rtc_i2c_Start();
 }
 
@@ -78,15 +74,14 @@ void rtc_i2c_CyBtldrCommStart(void) CYSMALL
 *  Disables the communication component and disables the interrupt.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
 *
 *******************************************************************************/
 void rtc_i2c_CyBtldrCommStop(void) CYSMALL 
 {
-    /* Stop I2C component */
     rtc_i2c_Stop();
 }
 
@@ -98,22 +93,22 @@ void rtc_i2c_CyBtldrCommStop(void) CYSMALL
 * Summary:
 *  Set buffers to the initial state and reset the statuses.
 *  The read buffer initial state is full and the read always is 0xFFu.
-*  The write buffer is clear and ready to receive a commmand.
+*  The write buffer is clear and ready to receive a command.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
 *
 * Global variables:
-*  rtc_i2c_slRdBufIndex - used to store current index within slave
-*  read buffer.
+*  rtc_i2c_slRdBufIndex - The global variable used to store a current
+*                                  index within the slave read buffer.
 *
 *******************************************************************************/
 void rtc_i2c_CyBtldrCommReset(void) CYSMALL 
 {
-    /* Make the Read buffer full */
+    /* Make Read buffer full */
     rtc_i2c_slRdBufSize = 0u;
 
     /* Reset Write buffer and Read buffer */
@@ -144,12 +139,12 @@ void rtc_i2c_CyBtldrCommReset(void) CYSMALL
 *  timeOut:  timeout value in tries of 10uS.
 *
 * Return:
-*  Status of transmit operation.
+*  The status of transmit operation.
 *
 * Global variables:
-*  rtc_i2c_slReadBuf - used to store response.
-*  rtc_i2c_slRdBufIndex - used to store current index within slave
-*  read buffer.
+*  rtc_i2c_slReadBuf - The global variable used to store a response.
+*  rtc_i2c_slRdBufIndex - The global variable used to store a current
+*                                  index within the slave read buffer.
 *
 *******************************************************************************/
 cystatus rtc_i2c_CyBtldrCommWrite(const uint8 pData[], uint16 size, uint16 * count, uint8 timeOut) CYSMALL
@@ -169,10 +164,10 @@ cystatus rtc_i2c_CyBtldrCommWrite(const uint8 pData[], uint16 size, uint16 * cou
         (void) memcpy((void *) rtc_i2c_slReadBuf, (void *) pData, size);
         *count = size;  /* Buffer was copied to I2C buffer */
 
-        /* The buffer is free to be read */
+        /* Buffer is free to be read */
         rtc_i2c_slRdBufSize = ((uint8) size);
 
-        while(0u != timeoutMs)  /* Wait till response will be read */
+        while(0u != timeoutMs)  /* Wait till response is read */
         {
             /* Check if host complete read */
             if(rtc_i2c_slRdBufIndex == ((uint8) size))
@@ -211,10 +206,11 @@ cystatus rtc_i2c_CyBtldrCommWrite(const uint8 pData[], uint16 size, uint16 * cou
 *  timeOut:  timeout value in tries of 10uS.
 *
 * Return:
-*  Status of receive operation.
+*  The status of receive operation.
 *
 * Global variables:
-*  rtc_i2c_slWriteBuf - used to store received command.
+*  rtc_i2c_slWriteBuf - The global variable used to store a
+*                                received command.
 *
 *******************************************************************************/
 cystatus rtc_i2c_CyBtldrCommRead(uint8 pData[], uint16 size, uint16 * count, uint8 timeOut) CYSMALL
@@ -231,12 +227,12 @@ cystatus rtc_i2c_CyBtldrCommRead(uint8 pData[], uint16 size, uint16 * count, uin
         status = CYRET_TIMEOUT;
         timeoutMs = ((uint16) 10u * timeOut);  /* Convert from 10mS checks to 1mS checks */
 
-        while(0u != timeoutMs)  /* Wait for command from the host */
+        while(0u != timeoutMs)  /* Wait for command from host */
         {
-            /* Check if the host complete write */
+            /* Check if host completes write */
             if(0u != (rtc_i2c_slStatus & rtc_i2c_SSTAT_WR_CMPLT))
             {
-                /* How many bytes the host has been written */
+                /* Define how many bytes host has been written */
                 byteCount = rtc_i2c_slWrBufIndex;
                 *count = (uint16) byteCount;
 

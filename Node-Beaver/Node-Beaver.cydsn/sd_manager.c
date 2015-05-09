@@ -9,9 +9,9 @@ uint8_t sd_ok = 0;
 
 CY_ISR(power_interrupt)
 {
-	test_Write(1);
+	//test_Write(1);
 	sd_stop();
-	test_Write(0);
+	//test_Write(0);
 } // CY_ISR(power_interrupt)
 
 
@@ -89,7 +89,8 @@ void sd_init(Time time)
 		FS_FileTimeToTimeStamp(&file_time, &file_time_string);
 		FS_SetFileTime(run_str, file_time_string);
 	} // if a single file volume exists
-
+  
+  FS_Sync("");
 /*
 	FS_Write(pfile, "Type,Time,Value,ID\n", 19);
 
