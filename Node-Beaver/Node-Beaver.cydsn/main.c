@@ -17,29 +17,31 @@ int main()
 {
 	CYGlobalIntEnable;
 
-	//LCD_Char_1_Start(); // Debug LCD Initialization
-	//LED_Write(0);
-	//LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
+    
+	LCD_Char_1_Start(); // Debug LCD Initialization
+	LED_Write(0);
+	LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
 
 	DataPacket data_queue[DATA_QUEUE_LENGTH];
 	uint16_t data_head, data_tail;
 	data_head = data_tail = 0;
-
+    
 	time_init();
 	can_init();
-	//usb_init();
+	usb_init();
 	sd_init(time_get());
-	//radio_init();
+	radio_init();
 
 	for(;;)
 	{
 		//can_test_send();
 		can_get(data_queue, &data_head, &data_tail);
+		//usb_get();
 		time_announce(data_queue, &data_head, &data_tail);
 		
-		/*
 		//inject message to test usb
 		data_queue[data_head].millicounter = millis_timer_ReadCounter();
+        
 		data_queue[data_head].id = 0x111;
 		data_queue[data_head].length = 8;
 		data_queue[data_head].data[0]= 0;
@@ -51,14 +53,14 @@ int main()
 		data_queue[data_head].data[6]= 6;
 		data_queue[data_head].data[7]= 0x7E;
 		data_tail++;
-*/
-		//usb_put(data_queue, data_head, data_tail);
+        
+		usb_put(data_queue, data_head, data_tail);
 		sd_push(data_queue, data_head, data_tail);
-		//radio_put(data_queue, data_head, data_tail);
-
+        
+		radio_put(data_queue, data_head, data_tail);
 		data_head = data_tail = 0; // clear buffer
 
-		CyDelay(100);
+		CyDelay(1000);
 	} // main loop
 
 	return 0;
