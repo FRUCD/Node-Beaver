@@ -1,6 +1,6 @@
 /*******************************************************************************
 * File Name: xbee_spi.c
-* Version 2.40
+* Version 2.50
 *
 * Description:
 *  This file provides all API functionality of the SPI Master component.
@@ -9,7 +9,7 @@
 *  None.
 *
 ********************************************************************************
-* Copyright 2008-2012, Cypress Semiconductor Corporation.  All rights reserved.
+* Copyright 2008-2015, Cypress Semiconductor Corporation.  All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
@@ -18,14 +18,14 @@
 #include "xbee_spi_PVT.h"
 
 #if(xbee_spi_TX_SOFTWARE_BUF_ENABLED)
-    volatile uint8 xbee_spi_txBuffer[xbee_spi_TX_BUFFER_SIZE] = {0u};
+    volatile uint8 xbee_spi_txBuffer[xbee_spi_TX_BUFFER_SIZE];
     volatile uint8 xbee_spi_txBufferFull;
     volatile uint8 xbee_spi_txBufferRead;
     volatile uint8 xbee_spi_txBufferWrite;
 #endif /* (xbee_spi_TX_SOFTWARE_BUF_ENABLED) */
 
 #if(xbee_spi_RX_SOFTWARE_BUF_ENABLED)
-    volatile uint8 xbee_spi_rxBuffer[xbee_spi_RX_BUFFER_SIZE] = {0u};
+    volatile uint8 xbee_spi_rxBuffer[xbee_spi_RX_BUFFER_SIZE];
     volatile uint8 xbee_spi_rxBufferFull;
     volatile uint8 xbee_spi_rxBufferRead;
     volatile uint8 xbee_spi_rxBufferWrite;
@@ -523,7 +523,7 @@ void xbee_spi_WriteTxData(uint8 txData)
         if((xbee_spi_txBufferRead == xbee_spi_txBufferWrite) &&
            (0u != (xbee_spi_swStatusTx & xbee_spi_STS_TX_FIFO_NOT_FULL)))
         {
-            /* Add directly to the TX FIFO */
+            /* Put data element into the TX FIFO */
             CY_SET_REG8(xbee_spi_TXDATA_PTR, txData);
         }
         else
@@ -553,13 +553,12 @@ void xbee_spi_WriteTxData(uint8 txData)
         xbee_spi_EnableTxInt();
 
     #else
-
+        /* Wait until TX FIFO has a place */
         while(0u == (xbee_spi_TX_STATUS_REG & xbee_spi_STS_TX_FIFO_NOT_FULL))
         {
-            ; /* Wait for room in FIFO */
         }
 
-        /* Put byte in TX FIFO */
+        /* Put data element into the TX FIFO */
         CY_SET_REG8(xbee_spi_TXDATA_PTR, txData);
 
     #endif /* (xbee_spi_TX_SOFTWARE_BUF_ENABLED) */
