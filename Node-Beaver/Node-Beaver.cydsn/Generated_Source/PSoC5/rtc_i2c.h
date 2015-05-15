@@ -1,6 +1,6 @@
 /*******************************************************************************
 * File Name: rtc_i2c.h
-* Version 3.40
+* Version 3.50
 *
 * Description:
 *  This file provides constants and parameter values for the I2C component.
@@ -22,7 +22,7 @@
 
 /* Check if required defines such as CY_PSOC5LP are available in cy_boot */
 #if !defined (CY_PSOC5LP)
-    #error Component I2C_v3_40 requires cy_boot v3.10 or later
+    #error Component I2C_v3_50 requires cy_boot v3.10 or later
 #endif /* (CY_PSOC5LP) */
 
 
@@ -422,6 +422,9 @@ extern uint8 rtc_i2c_initVar;
     #define rtc_i2c_GO_REG         (*(reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__F1_REG)
     #define rtc_i2c_GO_PTR         ( (reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__F1_REG)
 
+    #define rtc_i2c_GO_DONE_REG    (*(reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__A1_REG)
+    #define rtc_i2c_GO_DONE_PTR    ( (reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__A1_REG)
+
     #define rtc_i2c_MCLK_PRD_REG   (*(reg8 *) rtc_i2c_bI2C_UDB_Master_ClkGen_u0__D0_REG)
     #define rtc_i2c_MCLK_PRD_PTR   ( (reg8 *) rtc_i2c_bI2C_UDB_Master_ClkGen_u0__D0_REG)
 
@@ -585,7 +588,8 @@ extern uint8 rtc_i2c_initVar;
 
 /* CSR conditions check */
 #define rtc_i2c_WAIT_BYTE_COMPLETE(csr)    (0u == ((csr) & rtc_i2c_CSR_BYTE_COMPLETE))
-#define rtc_i2c_WAIT_STOP_COMPLETE(csr)    (0u == ((csr) & rtc_i2c_CSR_STOP_STATUS))
+#define rtc_i2c_WAIT_STOP_COMPLETE(csr)    (0u == ((csr) & (rtc_i2c_CSR_BYTE_COMPLETE | \
+                                                                     rtc_i2c_CSR_STOP_STATUS)))
 #define rtc_i2c_CHECK_BYTE_COMPLETE(csr)   (0u != ((csr) & rtc_i2c_CSR_BYTE_COMPLETE))
 #define rtc_i2c_CHECK_STOP_STS(csr)        (0u != ((csr) & rtc_i2c_CSR_STOP_STATUS))
 #define rtc_i2c_CHECK_LOST_ARB(csr)        (0u != ((csr) & rtc_i2c_CSR_LOST_ARB))
@@ -663,6 +667,9 @@ extern uint8 rtc_i2c_initVar;
                                                         rtc_i2c_CSR_REG = rtc_i2c_CSR_RDY_TO_RD; \
                                                     }while(0)
 
+    /* Release bus after lost arbitration */
+    #define rtc_i2c_BUS_RELEASE    rtc_i2c_READY_TO_READ
+
     /* Master Start/ReStart/Stop conditions generation */
     #define rtc_i2c_GENERATE_START         do{ \
                                                         rtc_i2c_MCSR_REG = rtc_i2c_MCSR_START_GEN; \
@@ -682,11 +689,13 @@ extern uint8 rtc_i2c_initVar;
                     }while(0)
 
     /* Master manual APIs compatible defines */
+    #define rtc_i2c_GENERATE_START_MANUAL      rtc_i2c_GENERATE_START
     #define rtc_i2c_GENERATE_RESTART_MANUAL    rtc_i2c_GENERATE_RESTART
     #define rtc_i2c_GENERATE_STOP_MANUAL       rtc_i2c_GENERATE_STOP
     #define rtc_i2c_TRANSMIT_DATA_MANUAL       rtc_i2c_TRANSMIT_DATA
     #define rtc_i2c_READY_TO_READ_MANUAL       rtc_i2c_READY_TO_READ
     #define rtc_i2c_ACK_AND_RECEIVE_MANUAL     rtc_i2c_ACK_AND_RECEIVE
+    #define rtc_i2c_BUS_RELEASE_MANUAL         rtc_i2c_BUS_RELEASE
 
 #else
 
@@ -713,7 +722,11 @@ extern uint8 rtc_i2c_initVar;
     #define rtc_i2c_MCSR_MSTR_MODE     (rtc_i2c_STS_MASTER_MODE_MASK)/* Define if active Master     */
 
     /* Data to write into TX FIFO to release FSM */
-    #define rtc_i2c_RELEASE_FSM         (0x00u)
+    #define rtc_i2c_PREPARE_TO_RELEASE (0xFFu)
+    #define rtc_i2c_RELEASE_FSM        (0x00u)
+
+    /* Define release command done: history of byte complete status is cleared */
+    #define rtc_i2c_WAIT_RELEASE_CMD_DONE  (rtc_i2c_RELEASE_FSM != rtc_i2c_GO_DONE_REG)
 
     /* Check enable of module */
     #define rtc_i2c_I2C_ENABLE_REG     (rtc_i2c_CFG_REG)
@@ -733,7 +746,6 @@ extern uint8 rtc_i2c_initVar;
                                                         ((uint8) ~rtc_i2c_MCSR_START_GEN); \
                                                     }while(0)
 
-
     /* Stop interrupt */
     #define rtc_i2c_ENABLE_INT_ON_STOP     do{ \
                                                        rtc_i2c_INT_MASK_REG |= rtc_i2c_STOP_IE_MASK; \
@@ -744,107 +756,133 @@ extern uint8 rtc_i2c_initVar;
                                                                              ((uint8) ~rtc_i2c_STOP_IE_MASK); \
                                                     }while(0)
 
-
     /* Transmit data */
-    #define rtc_i2c_TRANSMIT_DATA      do{ \
-                                                    rtc_i2c_CFG_REG = (rtc_i2c_CTRL_TRANSMIT_MASK | \
-                                                                                rtc_i2c_CTRL_DEFAULT);       \
-                                                    rtc_i2c_GO_REG  = rtc_i2c_RELEASE_FSM;          \
-                                                }while(0)
+    #define rtc_i2c_TRANSMIT_DATA \
+                                    do{    \
+                                        rtc_i2c_CFG_REG     = (rtc_i2c_CTRL_TRANSMIT_MASK | \
+                                                                       rtc_i2c_CTRL_DEFAULT);        \
+                                        rtc_i2c_GO_DONE_REG = rtc_i2c_PREPARE_TO_RELEASE;   \
+                                        rtc_i2c_GO_REG      = rtc_i2c_RELEASE_FSM;          \
+                                    }while(0)
 
     #define rtc_i2c_ACK_AND_TRANSMIT   rtc_i2c_TRANSMIT_DATA
 
-
-    #define rtc_i2c_NAK_AND_TRANSMIT   do{ \
-                                                    rtc_i2c_CFG_REG = (rtc_i2c_CTRL_NACK_MASK     | \
-                                                                                rtc_i2c_CTRL_TRANSMIT_MASK | \
-                                                                                rtc_i2c_CTRL_DEFAULT);       \
-                                                    rtc_i2c_GO_REG  =  rtc_i2c_RELEASE_FSM;         \
-                                                }while(0)
+    #define rtc_i2c_NAK_AND_TRANSMIT \
+                                        do{   \
+                                            rtc_i2c_CFG_REG     = (rtc_i2c_CTRL_NACK_MASK     | \
+                                                                            rtc_i2c_CTRL_TRANSMIT_MASK | \
+                                                                            rtc_i2c_CTRL_DEFAULT);       \
+                                            rtc_i2c_GO_DONE_REG = rtc_i2c_PREPARE_TO_RELEASE;   \
+                                            rtc_i2c_GO_REG      = rtc_i2c_RELEASE_FSM;          \
+                                        }while(0)
 
     /* Receive data */
-    #define rtc_i2c_READY_TO_READ      do{ \
-                                                    rtc_i2c_CFG_REG = rtc_i2c_CTRL_DEFAULT; \
-                                                    rtc_i2c_GO_REG  =  rtc_i2c_RELEASE_FSM; \
-                                                }while(0)
+    #define rtc_i2c_READY_TO_READ  \
+                                        do{ \
+                                            rtc_i2c_CFG_REG     = rtc_i2c_CTRL_DEFAULT;       \
+                                            rtc_i2c_GO_DONE_REG = rtc_i2c_PREPARE_TO_RELEASE; \
+                                            rtc_i2c_GO_REG      = rtc_i2c_RELEASE_FSM;       \
+                                        }while(0)
 
     #define rtc_i2c_ACK_AND_RECEIVE    rtc_i2c_READY_TO_READ
 
-    #define rtc_i2c_NAK_AND_RECEIVE    do{ \
-                                                    rtc_i2c_CFG_REG = (rtc_i2c_CTRL_NACK_MASK | \
-                                                                                rtc_i2c_CTRL_DEFAULT);   \
-                                                    rtc_i2c_GO_REG  =  rtc_i2c_RELEASE_FSM;     \
-                                                }while(0)
+    /* Release bus after arbitration is lost */
+    #define rtc_i2c_BUS_RELEASE    rtc_i2c_READY_TO_READ
+
+    #define rtc_i2c_NAK_AND_RECEIVE \
+                                        do{  \
+                                            rtc_i2c_CFG_REG     = (rtc_i2c_CTRL_NACK_MASK |   \
+                                                                            rtc_i2c_CTRL_DEFAULT);     \
+                                            rtc_i2c_GO_DONE_REG = rtc_i2c_PREPARE_TO_RELEASE; \
+                                            rtc_i2c_GO_REG      = rtc_i2c_RELEASE_FSM;       \
+                                        }while(0)
 
     /* Master condition generation */
-    #define rtc_i2c_GENERATE_START     do{ \
-                                                    rtc_i2c_CFG_REG = (rtc_i2c_CTRL_START_MASK | \
-                                                                                 rtc_i2c_CTRL_DEFAULT);   \
-                                                    rtc_i2c_GO_REG  =  rtc_i2c_RELEASE_FSM;      \
-                                                }while(0)
-
-    #define rtc_i2c_GENERATE_RESTART   do{ \
-                                                    rtc_i2c_CFG_REG = (rtc_i2c_CTRL_RESTART_MASK | \
-                                                                                rtc_i2c_CTRL_NACK_MASK    | \
-                                                                                rtc_i2c_CTRL_DEFAULT);      \
-                                                    rtc_i2c_GO_REG  =  rtc_i2c_RELEASE_FSM;        \
-                                                }while(0)
-
-
-    #define rtc_i2c_GENERATE_STOP      do{ \
-                                                    rtc_i2c_CFG_REG = (rtc_i2c_CTRL_NACK_MASK | \
-                                                                                rtc_i2c_CTRL_STOP_MASK | \
-                                                                                rtc_i2c_CTRL_DEFAULT);   \
-                                                    rtc_i2c_GO_REG  =  rtc_i2c_RELEASE_FSM;     \
-                                                }while(0)
-
-    /* Master manual APIs compatible defines */
-    /* These defines wait while byte complete is cleared after command issued */
-    #define rtc_i2c_GENERATE_RESTART_MANUAL    \
-                                        do{             \
-                                            rtc_i2c_GENERATE_RESTART;                                    \
-                                            /* Wait when byte complete is cleared */                              \
-                                            while(rtc_i2c_CHECK_BYTE_COMPLETE(rtc_i2c_CSR_REG)) \
-                                            {                                                                     \
-                                            }                                                                     \
+    #define rtc_i2c_GENERATE_START \
+                                        do{ \
+                                            rtc_i2c_CFG_REG     = (rtc_i2c_CTRL_START_MASK |  \
+                                                                            rtc_i2c_CTRL_DEFAULT);     \
+                                            rtc_i2c_GO_DONE_REG = rtc_i2c_PREPARE_TO_RELEASE; \
+                                            rtc_i2c_GO_REG      = rtc_i2c_RELEASE_FSM;       \
                                         }while(0)
 
-    /* The byte complete status is cleared after a GO command is set and the 1st component clock passed.The Stop condition
-    * generation, for which the code is waiting for in rtc_i2c_MasterSendStop(), occurs much later.
-    * Therefore there is no reason for waiting until the byte complete status is cleared in the macro below.
-    */
-    #define rtc_i2c_GENERATE_STOP_MANUAL   rtc_i2c_GENERATE_STOP
-
-    #define rtc_i2c_TRANSMIT_DATA_MANUAL   \
-                                        do{         \
-                                            rtc_i2c_TRANSMIT_DATA;                                       \
-                                            /* Wait when byte complete is cleared */                              \
-                                            while(rtc_i2c_CHECK_BYTE_COMPLETE(rtc_i2c_CSR_REG)) \
-                                            {                                                                     \
-                                            }                                                                     \
+    #define rtc_i2c_GENERATE_RESTART \
+                                        do{   \
+                                            rtc_i2c_CFG_REG     = (rtc_i2c_CTRL_RESTART_MASK | \
+                                                                            rtc_i2c_CTRL_NACK_MASK    | \
+                                                                            rtc_i2c_CTRL_DEFAULT);      \
+                                            rtc_i2c_GO_DONE_REG = rtc_i2c_PREPARE_TO_RELEASE;  \
+                                            rtc_i2c_GO_REG  =     rtc_i2c_RELEASE_FSM;         \
                                         }while(0)
 
-    #define rtc_i2c_READY_TO_READ_MANUAL   \
-                                        do{         \
-                                            rtc_i2c_READY_TO_READ;                                       \
-                                            /* Wait when byte complete is cleared */                              \
-                                            while(rtc_i2c_CHECK_BYTE_COMPLETE(rtc_i2c_CSR_REG)) \
-                                            {                                                                     \
-                                            }                                                                     \
+    #define rtc_i2c_GENERATE_STOP  \
+                                        do{ \
+                                            rtc_i2c_CFG_REG    = (rtc_i2c_CTRL_NACK_MASK |    \
+                                                                           rtc_i2c_CTRL_STOP_MASK |    \
+                                                                           rtc_i2c_CTRL_DEFAULT);      \
+                                            rtc_i2c_GO_DONE_REG = rtc_i2c_PREPARE_TO_RELEASE; \
+                                            rtc_i2c_GO_REG      = rtc_i2c_RELEASE_FSM;        \
+                                        }while(0)
+
+    /* Master manual APIs compatible macros */
+    /* These macros wait until byte complete history is cleared after command issued */
+    #define rtc_i2c_GENERATE_START_MANUAL \
+                                        do{ \
+                                            rtc_i2c_GENERATE_START;                  \
+                                            /* Wait until byte complete history is cleared */ \
+                                            while(rtc_i2c_WAIT_RELEASE_CMD_DONE)     \
+                                            {                                                 \
+                                            }                                                 \
+                                        }while(0)
+                                        
+    #define rtc_i2c_GENERATE_RESTART_MANUAL \
+                                        do{          \
+                                            rtc_i2c_GENERATE_RESTART;                \
+                                            /* Wait until byte complete history is cleared */ \
+                                            while(rtc_i2c_WAIT_RELEASE_CMD_DONE)     \
+                                            {                                                 \
+                                            }                                                 \
+                                        }while(0)
+
+    #define rtc_i2c_GENERATE_STOP_MANUAL \
+                                        do{       \
+                                            rtc_i2c_GENERATE_STOP;                   \
+                                            /* Wait until byte complete history is cleared */ \
+                                            while(rtc_i2c_WAIT_RELEASE_CMD_DONE)     \
+                                            {                                                 \
+                                            }                                                 \
+                                        }while(0)
+
+    #define rtc_i2c_TRANSMIT_DATA_MANUAL \
+                                        do{       \
+                                            rtc_i2c_TRANSMIT_DATA;                   \
+                                            /* Wait until byte complete history is cleared */ \
+                                            while(rtc_i2c_WAIT_RELEASE_CMD_DONE)     \
+                                            {                                                 \
+                                            }                                                 \
+                                        }while(0)
+
+    #define rtc_i2c_READY_TO_READ_MANUAL \
+                                        do{       \
+                                            rtc_i2c_READY_TO_READ;                   \
+                                            /* Wait until byte complete history is cleared */ \
+                                            while(rtc_i2c_WAIT_RELEASE_CMD_DONE)     \
+                                            {                                                 \
+                                            }                                                 \
                                         }while(0)
 
     #define rtc_i2c_ACK_AND_RECEIVE_MANUAL \
                                         do{         \
-                                            rtc_i2c_ACK_AND_RECEIVE;                                     \
-                                            /* Wait when byte complete is cleared */                              \
-                                            while(rtc_i2c_CHECK_BYTE_COMPLETE(rtc_i2c_CSR_REG)) \
-                                            {                                                                     \
-                                            }                                                                     \
+                                            rtc_i2c_ACK_AND_RECEIVE;                 \
+                                            /* Wait until byte complete history is cleared */ \
+                                            while(rtc_i2c_WAIT_RELEASE_CMD_DONE)     \
+                                            {                                                 \
+                                            }                                                 \
                                         }while(0)
-#endif /* (rtc_i2c_FF_IMPLEMENTED) */
 
-/* Common for FF and UDB: used to release bus after lost arbitration */
-#define rtc_i2c_BUS_RELEASE    rtc_i2c_READY_TO_READ
+    #define rtc_i2c_BUS_RELEASE_MANUAL rtc_i2c_READY_TO_READ_MANUAL
+
+#endif /* (rtc_i2c_FF_IMPLEMENTED) */
 
 
 /***************************************
