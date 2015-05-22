@@ -1,7 +1,9 @@
 #include "usb_manager.h"
+#include "can_manager.h"
 
-//uint8_t test_usb_message[8] = {'P','S','o','C','!','!','\r','\n'};
+uint8_t test_usb_message[8] = {'P','S','o','C','!','!','\r','\n'};
 
+extern uint16_t can_head, can_tail;
 
 
 /* usb_init()
@@ -30,7 +32,6 @@ void usb_init()
 void usb_put(const DataPacket* data_queue, uint16_t data_head,
 	uint16_t data_tail)
 {
-  /*
 	uint16_t pos;
 	uint32_t num_char;
 	char buffer[128];
@@ -43,6 +44,7 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 
 		for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
 		{
+			/*
 			switch(data_queue[pos].type)
 			{
 				case TYPE_THROTTLE_1:
@@ -68,8 +70,21 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 				default:
 					num_char = sprintf(buffer, "ERROR: Invalid data in queue!\r\n");
 			}; // switch data ID
+			*/
 
-			
+			num_char = sprintf(buffer,
+				"%ums\t0x%03X\t"
+				"Value %02X %02X %02X %02X  %02X %02X %02X %02X \r\n",
+				(unsigned)data_queue[pos].millicounter, data_queue[pos].id,
+				data_queue[pos].data[0],
+				data_queue[pos].data[1],
+				data_queue[pos].data[2],
+				data_queue[pos].data[3],
+				data_queue[pos].data[4],
+				data_queue[pos].data[5],
+				data_queue[pos].data[6],
+				data_queue[pos].data[7]);
+
 			while(USBUART_1_CDCIsReady() == 0);
 			USBUART_1_PutData((uint8_t*)buffer, num_char);
 		} // for all messages in data queue
@@ -94,7 +109,6 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 		while(USBUART_1_CDCIsReady() == 0);
 		USBUART_1_PutData(test_usb_message, 8); // Test message "PSoC!!!"
 	}	// if configuration successful
-*/
   
   
 	/*
