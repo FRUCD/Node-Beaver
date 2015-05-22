@@ -26,18 +26,18 @@ int main()
 	uint16_t data_head, data_tail;
 	data_head = data_tail = 0;
     
-	time_init();
-	can_init();
+//	time_init();
+//	can_init();
 	usb_init();
-	sd_init(time_get());
-	radio_init();
+//	sd_init(time_get());
+//	radio_init();
 
 	for(;;)
 	{
 		//can_test_send();
-		can_get(data_queue, &data_head, &data_tail);
+//		can_get(data_queue, &data_head, &data_tail);
 		//usb_get();
-		time_announce(data_queue, &data_head, &data_tail);
+//		time_announce(data_queue, &data_head, &data_tail);
 		
 		//inject message to test usb
 		data_queue[data_head].millicounter = millis_timer_ReadCounter();
@@ -55,9 +55,9 @@ int main()
 		data_tail++;
         
 		usb_put(data_queue, data_head, data_tail);
-		sd_push(data_queue, data_head, data_tail);
+//		sd_push(data_queue, data_head, data_tail);
         
-		radio_put(data_queue, data_head, data_tail);
+//		radio_put(data_queue, data_head, data_tail);
 		data_head = data_tail = 0; // clear buffer
 
 		CyDelay(1000);
