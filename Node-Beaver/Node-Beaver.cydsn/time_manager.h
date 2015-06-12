@@ -19,7 +19,7 @@
 typedef struct
 {
 	uint8_t month, day, hour, minute, second;
-	uint16_t millicounter;
+	uint32_t millicounter;
 	uint16_t year;
 } Time;
 

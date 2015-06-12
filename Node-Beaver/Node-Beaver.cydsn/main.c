@@ -26,7 +26,7 @@ int main(void)
 	uint16_t data_head, data_tail;
 	data_head = data_tail = 0;
     
-//	time_init();
+	time_init();
 	can_init();
 	usb_init();
 	sd_init(time_get());
@@ -40,18 +40,18 @@ int main(void)
 		time_announce(data_queue, &data_head, &data_tail);
 		
 		//inject message to test usb
-		data_queue[data_head].millicounter = millis_timer_ReadCounter();
+		data_queue[data_tail].millicounter = millis_timer_ReadCounter();
         
-		data_queue[data_head].id = 0x111;
-		data_queue[data_head].length = 8;
-		data_queue[data_head].data[0]= 0;
-		data_queue[data_head].data[1]= 1;
-		data_queue[data_head].data[2]= 2;
-		data_queue[data_head].data[3]= 3;
-		data_queue[data_head].data[4]= 4;
-		data_queue[data_head].data[5]= 5;
-		data_queue[data_head].data[6]= 6;
-		data_queue[data_head].data[7]= 0x7E;
+		data_queue[data_tail].id = 0x111;
+		data_queue[data_tail].length = 8;
+		data_queue[data_tail].data[0]= 0;
+		data_queue[data_tail].data[1]= 1;
+		data_queue[data_tail].data[2]= 2;
+		data_queue[data_tail].data[3]= 3;
+		data_queue[data_tail].data[4]= 4;
+		data_queue[data_tail].data[5]= 5;
+		data_queue[data_tail].data[6]= 6;
+		data_queue[data_tail].data[7]= 0x7E;
 		data_tail++;
         
 		usb_put(data_queue, data_head, data_tail);
