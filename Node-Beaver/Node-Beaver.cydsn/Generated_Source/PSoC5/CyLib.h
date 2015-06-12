@@ -1,6 +1,6 @@
 /*******************************************************************************
 * File Name: CyLib.h
-* Version 4.20
+* Version 5.0
 *
 * Description:
 *  Provides the function definitions for the system, clocking, interrupts and
@@ -11,7 +11,7 @@
 *  Guide provided with PSoC Creator.
 *
 ********************************************************************************
-* Copyright 2008-2014, Cypress Semiconductor Corporation.  All rights reserved.
+* Copyright 2008-2015, Cypress Semiconductor Corporation.  All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
@@ -188,6 +188,9 @@ void CySetScPumps(uint8 enable) ;
     void CySysTickClear(void);
 #endif  /* (CY_PSOC5) */
 
+void CyGetUniqueId(uint32* uniqueId);
+
+
 /***************************************
 * API Constants
 ***************************************/
@@ -290,6 +293,7 @@ void CySetScPumps(uint8 enable) ;
 #define CY_VD_HVIA                   (0x04u)
 
 #define CY_VD_LVI_TRIP_LVID_MASK     (0x0Fu)
+#define CY_VD_INT_MASK               ((uint32) (0x01u))
 
 
 /*******************************************************************************
@@ -907,6 +911,7 @@ void CySetScPumps(uint8 enable) ;
     #define CY_SYS_SYST_CSR_CLK_SRC_SYSCLK      ((uint32) (1u))
     #define CY_SYS_SYST_CSR_CLK_SRC_LFCLK       ((uint32) (0u))
     #define CY_SYS_SYST_RVR_CNT_MASK            ((uint32) (0x00FFFFFFu))
+	#define CY_SYS_SYST_CVR_CNT_MASK            ((uint32) (0x00FFFFFFu))
     #define CY_SYS_SYST_NUM_OF_CALLBACKS        ((uint32) (5u))
 #endif /* (CY_PSOC5) */
 

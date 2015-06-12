@@ -18,9 +18,9 @@ int main(void)
 	CYGlobalIntEnable;
 
     
-	LCD_Char_1_Start(); // Debug LCD Initialization
+	//LCD_Char_1_Start(); // Debug LCD Initialization
 	LED_Write(0);
-	LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
+	//LCD_Char_1_WriteControl(LCD_Char_1_CLEAR_DISPLAY);
 
 	DataPacket data_queue[DATA_QUEUE_LENGTH];
 	uint16_t data_head, data_tail;

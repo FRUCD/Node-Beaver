@@ -1,6 +1,6 @@
 /*******************************************************************************
 * File Name: cyPm.c
-* Version 4.20
+* Version 5.0
 *
 * Description:
 *  Provides an API for the power management.
@@ -10,13 +10,17 @@
 *  System Reference Guide provided with PSoC Creator.
 *
 ********************************************************************************
-* Copyright 2008-2014, Cypress Semiconductor Corporation.  All rights reserved.
+* Copyright 2008-2015, Cypress Semiconductor Corporation.  All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
 *******************************************************************************/
 
 #include "cyPm.h"
+
+#ifdef CY_USE_CALLBACKS
+    #include "CyAPICallbacks.h"
+#endif  /* CY_USE_CALLBACKS */
 
 
 /*******************************************************************
@@ -340,11 +344,15 @@ void CyPmRestoreClocks(void)
            /* `#START_MHZ_ECO_TIMEOUT` */
 
            /* `#END` */
+
+        #ifdef CY_BOOT_CY_PM_RESTORE_CLOCKS_ECO_TIMEOUT_CALLBACK
+            CyBoot_CyPmRestoreClocks_EcoTimeout_Callback();
+        #endif /* CY_BOOT_CY_PM_RESTORE_CLOCKS_ECO_TIMEOUT_CALLBACK */
         }
     }   /* (CY_PM_ENABLED == cyPmClockBackup.xmhzEnableState) */
 
 
-    /* Temprorary set maximum flash wait cycles */
+    /* Temporary set maximum flash wait cycles */
     CyFlash_SetWaitCycles(CY_PM_MAX_FLASH_WAIT_CYCLES);
 
     /* XTAL and DSI clocks are ready to be source for Master clock. */
@@ -449,6 +457,10 @@ void CyPmRestoreClocks(void)
            /* `#START_PLL_TIMEOUT` */
 
            /* `#END` */
+
+        #ifdef CY_BOOT_CY_PM_RESTORE_CLOCKS_PLL_TIMEOUT_CALLBACK
+            CyBoot_CyPmRestoreClocks_PllTimeout_Callback();
+        #endif /* CY_BOOT_CY_PM_RESTORE_CLOCKS_PLL_TIMEOUT_CALLBACK */
         }
     }   /* (CY_PM_ENABLED == cyPmClockBackup.pllEnableState) */
 
@@ -587,8 +599,8 @@ void CyPmRestoreClocks(void)
             For PSoC 3 silicon the valid range of  values is 1 to 256.
 *
 *  wakeUpSource:    Specifies a bitwise mask of wakeup sources. In addition, if
-*                   a wakeupTime has been specified, the associated timer will be
-*                   included as a wakeup source.
+*                   a wakeupTime has been specified, the associated timer will
+*                   be included as a wakeup source.
 *
 *           Define                      Source
 *  PM_ALT_ACT_SRC_NONE              None
@@ -611,8 +623,8 @@ void CyPmRestoreClocks(void)
 *
 *  When specifying a Comparator as the wakeupSource, an instance specific define
 *  that will track with the specific comparator that the instance
-*  is placed into should be used. As an example, for a Comparator instance named MyComp the
-*  value to OR into the mask is: MyComp_ctComp__CMP_MASK.
+*  is placed into should be used. As an example, for a Comparator instance named
+*  MyComp the value to OR into the mask is: MyComp_ctComp__CMP_MASK.
 *
 *  When CTW, FTW or One PPS is used as a wakeup source, the CyPmReadStatus()
 *  function must be called upon wakeup with a corresponding parameter. Please
@@ -984,6 +996,9 @@ void CyPmSleep(uint8 wakeupTime, uint16 wakeupSource)
 
     /* `#END` */
 
+    #ifdef CY_BOOT_CY_PM_SLEEP_BEFORE_SLEEP_CALLBACK
+        CyBoot_CyPmSleep_BeforeSleep_Callback();
+    #endif /* CY_BOOT_CY_PM_SLEEP_BEFORE_SLEEP_CALLBACK */
 
     /* Last moment IMO frequency change */
     if(0u == (CY_PM_FASTCLK_IMO_CR_REG & CY_PM_FASTCLK_IMO_CR_FREQ_MASK))
@@ -1034,6 +1049,9 @@ void CyPmSleep(uint8 wakeupTime, uint16 wakeupSource)
 
     /* `#END` */
 
+    #ifdef CY_BOOT_CY_PM_SLEEP_AFTER_SLEEP_CALLBACK
+        CyBoot_CyPmSleep_AfterSleep_Callback();
+    #endif /* CY_BOOT_CY_PM_SLEEP_AFTER_SLEEP_CALLBACK */
 
     /* Restore hardware configuration */
     CyPmHibSlpRestore();
@@ -1074,7 +1092,6 @@ void CyPmSleep(uint8 wakeupTime, uint16 wakeupSource)
 * Summary:
 *  Puts the part into the Hibernate state.
 *
-*  PSoC 3 and PSoC 5LP:
 *  Before switching to Hibernate, the current status of the PICU wakeup source
 *  bit is saved and then set. This configures the device to wake up from the
 *  PICU. Make sure you have at least one pin configured to generate PICU
@@ -1100,8 +1117,8 @@ void CyPmSleep(uint8 wakeupTime, uint16 wakeupSource)
 *  requirement begins when the device wakes up. There is no hardware check that
 *  this requirement is met. The specified delay should be done on ISR entry.
 *
-*  After the wakeup PICU interrupt occurs, the Pin_ClearInterrupt() (where Pin is
-*  instance name of the Pins component) function must be called to clear the
+*  After the wakeup PICU interrupt occurs, the Pin_ClearInterrupt() (where Pin
+*  is instance name of the Pins component) function must be called to clear the
 *  latched pin events to allow the proper Hibernate mode entry and to enable
 *  detection of future events.
 *
@@ -1111,6 +1128,72 @@ void CyPmSleep(uint8 wakeupTime, uint16 wakeupSource)
 *
 *******************************************************************************/
 void CyPmHibernate(void) 
+{
+    CyPmHibernateEx(CY_PM_HIB_SRC_PICU);
+}
+
+
+/*******************************************************************************
+* Function Name: CyPmHibernateEx
+********************************************************************************
+*
+* Summary:
+*  Puts the part into the Hibernate state.
+*
+*  The following wake up sources can be configured: PICU interrupt, Comparator0,
+*  Comparator1, Comparator2, and Comparator3 output.
+*
+*  Before switching to Hibernate, the current status of the PICU wakeup source
+*  bit is saved and then set.
+*
+*  If using PICU as the wake up source, make sure you have at least one pin
+*  configured to generate a PICU interrupt. For pin Px.y, the register
+*  "PICU_INTTYPE_PICUx_INTTYPEy" controls  the PICU behavior. In the TRM, this
+*  register is "PICU[0..15]_INTTYPE[0..7]." In the Pins component datasheet,
+*  this register is referred to as the IRQ option. Once the wakeup occurs, the
+*  PICU wakeup source bit is restored and the PSoC returns to the Active state.
+*
+*  If using a comparator as the wake up source, make sure you call this function
+*  with the 'wakeupSource' parameter set to the appropriate comparator. The part
+*  is configured for the requested wakeup source by setting the corresponding
+*  bits in PM_WAKEUP_CFG1 register.
+*
+*  Function call CyPmHibernateEx(CY_PM_HIB_SRC_PICU) will act in the same way as
+*  CyPmHibernate().
+*
+* Parameters:
+*  wakeupSource:
+*           Parameter Value             Description
+*       CY_PM_HIB_SRC_PICU          PICU interrupt is set as the wake up source.
+*       CY_PM_HIB_SRC_COMPARATOR0   Comparator 0 is set as the wake up source.
+*       CY_PM_HIB_SRC_COMPARATOR1   Comparator 1 is set as the wake up source.
+*       CY_PM_HIB_SRC_COMPARATOR2   Comparator 2 is set as the wake up source.
+*       CY_PM_HIB_SRC_COMPARATOR3   Comparator 3 is set as the wake up source.
+*
+* Return:
+*  None
+*
+* Reentrant:
+*  No
+*
+* Side Effects:
+*  Applications must wait 20 us before re-entering hibernate or sleep after
+*  waking up from hibernate. The 20 us allows the sleep regulator time to
+*  stabilize before the next hibernate / sleep event occurs. The 20 us
+*  requirement begins when the device wakes up. There is no hardware check that
+*  this requirement is met. The specified delay should be done on ISR entry.
+*
+*  After the wakeup PICU interrupt occurs, the Pin_ClearInterrupt() (where Pin
+*  is instance name of the Pins component) function must be called to clear the
+*  latched pin events to allow the proper Hibernate mode entry and to enable
+*  detection of future events.
+*
+*  The 1 kHz ILO clock is expected to be enabled for PSoC 3 and PSoC 5LP to
+*  measure Hibernate/Sleep regulator settling time after a reset. The holdoff
+*  delay is measured using the rising edges of the 1 kHz ILO.
+*
+*******************************************************************************/
+void CyPmHibernateEx(uint16 wakeupSource) 
 {
     uint8 interruptState;
 
@@ -1141,12 +1224,15 @@ void CyPmHibernate(void)
     CyPmHibSaveSet();
 
 
+    /* Save and set new wake up configuration */
+
     /* Save and enable only wakeup on PICU */
     cyPmBackup.wakeupCfg0 = CY_PM_WAKEUP_CFG0_REG;
-    CY_PM_WAKEUP_CFG0_REG = CY_PM_WAKEUP_PICU;
+    CY_PM_WAKEUP_CFG0_REG = ((uint8) (wakeupSource >> 4u) & CY_PM_WAKEUP_PICU);
 
+    /* Comparators */
     cyPmBackup.wakeupCfg1 = CY_PM_WAKEUP_CFG1_REG;
-    CY_PM_WAKEUP_CFG1_REG = 0x00u;
+    CY_PM_WAKEUP_CFG1_REG = (((uint8) wakeupSource) & CY_PM_WAKEUP_SRC_CMPS_MASK);
 
     cyPmBackup.wakeupCfg2 = CY_PM_WAKEUP_CFG2_REG;
     CY_PM_WAKEUP_CFG2_REG = 0x00u;
@@ -1249,7 +1335,7 @@ uint8 CyPmReadStatus(uint8 mask)
 
     /* Save value of register, copy it and clear desired bit */
     interruptStatus |= CY_PM_INT_SR_REG;
-    tmpStatus = interruptStatus;
+    tmpStatus = interruptStatus & (CY_PM_FTW_INT | CY_PM_CTW_INT | CY_PM_ONEPPS_INT);
     interruptStatus &= ((uint8)(~mask));
 
     /* Exit critical section */
@@ -1562,8 +1648,8 @@ void CyPmFtwSetInterval(uint8 ftwInterval)
 ********************************************************************************
 *
 * Summary:
-*  This API is used for preparing the device for the Sleep and Hibernate low power
-*  modes entry:
+*  This API is used for preparing the device for the Sleep and Hibernate low
+*  power modes entry:
 *  - Saves the COMP, VIDAC, DSM, and SAR routing connections (PSoC 5)
 *  - Saves the SC/CT routing connections (PSoC 3/5/5LP)
 *  - Disables the Serial Wire Viewer (SWV) (PSoC 3)
@@ -1697,8 +1783,8 @@ static void CyPmHibSlpSaveSet(void)
 ********************************************************************************
 *
 * Summary:
-*  This API is used for restoring the device configurations after wakeup from the Sleep
-*  and Hibernate low power modes:
+*  This API is used for restoring the device configurations after wakeup from
+*  the Sleep and Hibernate low power modes:
 *  - Restores the SC/CT routing connections
 *  - Restores the enable state of the Serial Wire Viewer (SWV) (PSoC 3)
 *  - Restores the  boost reference selection

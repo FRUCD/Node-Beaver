@@ -52,21 +52,14 @@ Note:
 */
 void FS_X_Log(const char *s) {
   FS_USE_PARA(s);
-	UART_PutString((uint8*)s);
 }
 
 void FS_X_Warn(const char *s) {
   FS_USE_PARA(s);
-	UART_PutString((uint8*)"FS warning: ");
-	UART_PutString((uint8*)s);
-	UART_PutString((uint8*)"\n");
 }
 
 void FS_X_ErrorOut(const char *s) {
   FS_USE_PARA(s);
-	UART_PutString((uint8*)"FS error: ");
-	UART_PutString((uint8*)s);
-	UART_PutString((uint8*)"\n");
 }
 
 /*************************** End of file ****************************/
