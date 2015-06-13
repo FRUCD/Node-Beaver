@@ -77,9 +77,9 @@ void sd_init(Time time)
 
 		// Set file time here
 		FS_FILETIME file_time;
-		uint32_t file_time_string;
+		unsigned long file_time_string;
 
-		file_time.Year = time.year;
+		file_time.Year = time.year - 1980;
 		file_time.Month = time.month;
 		file_time.Day = time.day;
 		file_time.Hour = time.hour;

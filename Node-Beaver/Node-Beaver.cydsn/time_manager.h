@@ -10,6 +10,7 @@
 // RTC register addresses
 #define RTC_CONFIG 0x0E
 #define RTC_HOURS 0x02
+#define RTC_DATE 0x04
 
 // This is a "CAN ID" but it is never anounced to the CAN network
 #define ID_TIME 0x123
@@ -30,6 +31,8 @@ CY_ISR_PROTO(time_refresh_vector);
 void time_init(void);
 
 Time time_get(void);
+
+Time time_set(Time now);
 
 void time_announce(DataPacket* data_queue, uint16_t* data_head,
 	uint16_t* data_tail);

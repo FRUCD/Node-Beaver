@@ -124,6 +124,50 @@ Time time_get(void)
 
 
 
+void time_set(Time now)
+{
+	// Set 24 hour
+	uint8_t byte;
+
+	rtc_i2c_MasterSendStart(RTC_ADDR, 0);
+	rtc_i2c_MasterWriteByte(0x00); // move to top of register file
+
+	byte = now_time.second % 10; // seconds
+	byte |= (now_time.second / 10) << 4; // 10 seconds
+	rtc_i2c_MasterWriteByte(byte);
+
+	byte = now_time.minutes % 10; // minutes
+	byte |= (now_time.minutes/ 10) << 4; // 10 minutes
+	rtc_i2c_MasterWriteByte(byte);
+
+	byte = now_time.hours % 10; // hours
+	byte |= (now_time.hours / 10) << 4; // 10 hours
+	rtc_i2c_MasterWriteByte(byte);
+
+	rtc_i2c_MasterSendStop(); // End Receiving
+
+	// skip day
+
+	rtc_i2c_MasterSendStart(RTC_ADDR, 0);
+	rtc_i2c_MasterWriteByte(DATE); // move to Date
+
+	byte = now_time.date % 10; // date
+	byte |= (now_time.date / 10) << 4; // 10 date
+	rtc_i2c_MasterWriteByte(byte);
+
+	byte = now_time.month % 10; // month
+	byte |= (now_time.month / 10) << 4; // 10 month
+	rtc_i2c_MasterWriteByte(byte);
+
+	byte = now_time.year % 10; // year
+	byte |= (now_time.year / 10) << 4; // 10 year
+	rtc_i2c_MasterWriteByte(byte);
+
+	rtc_i2c_MasterSendStop(); // End Receiving
+} // time_set()
+
+
+
 /* time_retreive()
 	Takes nothing. Returns the current time.
 
