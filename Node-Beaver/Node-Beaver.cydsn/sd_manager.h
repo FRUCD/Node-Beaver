@@ -26,7 +26,7 @@ enum Types
 };
 */
 
-//CY_ISR_PROTO(power_interrupt);
+CY_ISR_PROTO(power_interrupt);
 
 void sd_init(Time time);
 
