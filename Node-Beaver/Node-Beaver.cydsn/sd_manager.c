@@ -5,6 +5,8 @@
 FS_FILE* pfile;
 uint8_t sd_ok = 0;
 
+const char set_time_file[] = "\\logs\\set_time.txt";
+
 
 
 CY_ISR(power_interrupt)
@@ -53,6 +55,60 @@ void sd_init(Time time)
 			} // if logs folder can't be created
 
 		// insert time getting
+
+		
+		if((pfile = FS_FOpen(set_time_file, "r")))
+		{
+			char buffer[64];
+			char *ptr;
+			uint16_t num;
+			Time tmp_time;
+
+
+			/* Time Setting File (set_time.txt) Format
+				Enter the following two lines of text in a file called "set_time.txt" in
+				the /LOGS folder to set the time. The line breaks can consist of \r or
+				\n characters.
+				
+				[month]/[day]/[year]
+				[24-hour]:[minute]:[second]
+			*/
+			FS_Read(pfile, buffer, 64); // read entire file
+
+			ptr = strtok(buffer, "/: \r\n"); // month
+			num = atoi(ptr);
+			if(num <= 12) tmp_time.month = num;
+			
+			ptr = strtok(NULL, "/: \r\n"); // day
+			num = atoi(ptr);
+			if(num <= 31) tmp_time.day = num;
+			
+			ptr = strtok(NULL, "/: \r\n"); // year
+			num = atoi(ptr);
+			if(num <= 99) tmp_time.year = num;  // 2 digit year
+			else if(num >= 1900) tmp_time.year = num % 100; // 4 digit year
+				
+			ptr = strtok(NULL, "/: \r\n"); // 24-hour
+			num = atoi(ptr);
+			if(num <= 23) tmp_time.hour = num;
+
+			ptr = strtok(NULL, "/: \r\n"); // minute
+			num = atoi(ptr);
+			if(num <= 59) tmp_time.minute = num;
+
+			ptr = strtok(NULL, "/: \r\n"); // second 
+			num = atoi(ptr);
+			if(num <= 59) tmp_time.second = num;
+
+			FS_FClose(pfile);
+
+			time_set(tmp_time); // set the new time
+			time = tmp_time; // use new time for file names
+			
+			FS_Remove(set_time_file); // delete file
+		} // try to find file and set time
+
+
 
 		// get time and date for naming day folder
 		sprintf(date_str, "\\logs\\%u-%u-%u", time.month, time.day, time.year);

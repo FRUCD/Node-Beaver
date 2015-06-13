@@ -27,16 +27,6 @@ int main(void)
 	data_head = data_tail = 0;
     
 	time_init();
-
-	Time test_time;
-	test_time.year = 89;
-	test_time.month = 6;
-	test_time.day = 4;
-	test_time.hour = 1;
-	test_time.minute = 2;
-	test_time.second = 3;
-	time_set(test_time);
-
 	can_init();
 	usb_init();
 	sd_init(time_get());
