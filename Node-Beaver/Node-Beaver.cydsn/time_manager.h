@@ -32,7 +32,7 @@ void time_init(void);
 
 Time time_get(void);
 
-Time time_set(Time now);
+void time_set(Time now);
 
 void time_announce(DataPacket* data_queue, uint16_t* data_head,
 	uint16_t* data_tail);
