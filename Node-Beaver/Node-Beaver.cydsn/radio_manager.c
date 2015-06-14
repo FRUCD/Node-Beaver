@@ -1,6 +1,6 @@
 #include "radio_manager.h"
 
-static uint64_t addr[8];
+static uint8_t addr[8];
 void _XBee_tx_req_(const DataPacket* msg);
 uint8_t checksum(uint8_t* msg,int len);
 void _set_des_addr(uint64_t newAddr);
@@ -73,7 +73,6 @@ void _XBee_tx_req_(const DataPacket* msg){
     send_msg[29]=msg->data[6];  
     send_msg[30]=msg->data[7];  
     send_msg[31]=checksum(send_msg,31);
-    
 
     xbee_spi_WriteTxData(STARTER_DELIM);
     for (i = 1; i < 32; i++) {
@@ -82,6 +81,7 @@ void _XBee_tx_req_(const DataPacket* msg){
             case ESCAPE_CTRL:
             case SOFT_FLOW_CTRL1:
             case SOFT_FLOW_CTRL2:
+                
                 xbee_spi_WriteTxData(ESCAPE_CTRL);
                 xbee_spi_WriteTxData(ESCAPER ^ send_msg[i]);
                 break;
@@ -90,6 +90,8 @@ void _XBee_tx_req_(const DataPacket* msg){
                 break;
         }
     }
+    while (!(xbee_spi_ReadTxStatus() & xbee_spi_STS_TX_FIFO_EMPTY)) {}
+    CyDelayUs(2);
     return;
 }
 
@@ -118,10 +120,6 @@ void dummy_put(){
 void radio_put(const DataPacket* data_queue, uint16_t data_head,
 	uint16_t data_tail)
 {
-    
-    _set_des_addr(_RECEIVER_ADDR);        //set default receiver addr
-    
-    
     
     uint16_t data_ptr;
     //_XBee_tx_req_(&(data_queue[0])); // test

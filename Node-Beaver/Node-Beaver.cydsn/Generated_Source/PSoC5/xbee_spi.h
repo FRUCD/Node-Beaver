@@ -46,9 +46,9 @@
 #define xbee_spi_BIDIRECTIONAL_MODE         (0u)
 
 /* Internal interrupt handling */
-#define xbee_spi_TX_BUFFER_SIZE             (4u)
+#define xbee_spi_TX_BUFFER_SIZE             (64u)
 #define xbee_spi_RX_BUFFER_SIZE             (4u)
-#define xbee_spi_INTERNAL_TX_INT_ENABLED    (0u)
+#define xbee_spi_INTERNAL_TX_INT_ENABLED    (1u)
 #define xbee_spi_INTERNAL_RX_INT_ENABLED    (0u)
 
 #define xbee_spi_SINGLE_REG_SIZE            (8u)
@@ -142,7 +142,7 @@ extern uint8 xbee_spi_initVar;
 
 #define xbee_spi_INT_ON_SPI_DONE    ((uint8) (0u   << xbee_spi_STS_SPI_DONE_SHIFT))
 #define xbee_spi_INT_ON_TX_EMPTY    ((uint8) (0u   << xbee_spi_STS_TX_FIFO_EMPTY_SHIFT))
-#define xbee_spi_INT_ON_TX_NOT_FULL ((uint8) (0u << \
+#define xbee_spi_INT_ON_TX_NOT_FULL ((uint8) (1u << \
                                                                            xbee_spi_STS_TX_FIFO_NOT_FULL_SHIFT))
 #define xbee_spi_INT_ON_BYTE_COMP   ((uint8) (0u  << xbee_spi_STS_BYTE_COMPLETE_SHIFT))
 #define xbee_spi_INT_ON_SPI_IDLE    ((uint8) (0u   << xbee_spi_STS_SPI_IDLE_SHIFT))
