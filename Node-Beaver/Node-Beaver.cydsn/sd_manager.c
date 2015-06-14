@@ -12,7 +12,9 @@ const char set_time_file[] = "\\logs\\set_time.txt";
 CY_ISR(power_interrupt)
 {
 	//test_Write(1);
+    //probe_Write(1);
 	sd_stop();
+    power_isr_Disable();
 	//test_Write(0);
 } // CY_ISR(power_interrupt)
 
@@ -38,7 +40,8 @@ void sd_init(Time time)
 		Triggers unexpectedly due to floating pin/environmental voltages and
 		capacitance. power isr is disabled for prototyping only.
 	*/
-	//power_isr_StartEx(power_interrupt);
+    //probe_Write(0);
+	power_isr_StartEx(power_interrupt);
 	FS_Init();
 	sd_ok = 1;
 	char date_str[32], run_str[64];

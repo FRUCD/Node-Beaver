@@ -93,9 +93,9 @@ void power_comp_Wakeup(void)                    ;
 *           Parameter Defaults        
 **************************************/
 
-#define power_comp_DEFAULT_SPEED       (0u) 
-#define power_comp_DEFAULT_HYSTERESIS  (1u)
-#define power_comp_DEFAULT_POLARITY    (1u)
+#define power_comp_DEFAULT_SPEED       (1u) 
+#define power_comp_DEFAULT_HYSTERESIS  (0u)
+#define power_comp_DEFAULT_POLARITY    (0u)
 #define power_comp_DEFAULT_BYPASS_SYNC (1u)
 #define power_comp_DEFAULT_PWRDWN_OVRD (0u)
 

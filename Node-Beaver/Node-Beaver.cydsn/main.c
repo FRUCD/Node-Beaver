@@ -60,7 +60,7 @@ int main(void)
         
 //		radio_put(data_queue, data_head, data_tail);
 		data_head = data_tail = 0; // clear buffer
-
+        
 		CyDelay(1000);
 	} // main loop
 
