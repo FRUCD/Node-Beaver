@@ -1,51 +1,31 @@
 #include "radio_manager.h"
-/*
-typedef struct
-{
-	uint32_t millicounter;
-	uint16_t id; // id is for tracking CAN ID
-	uint8_t length;
-	uint8_t data[8];
-} DataPacket;
-*/
+
+static uint64_t addr[8];
+void _XBee_tx_req_(const DataPacket* msg);
+uint8_t checksum(uint8_t* msg,int len);
+void _set_des_addr(uint64_t newAddr);
 
 
 void radio_init(void)
 {
     xbee_spi_Start();
-    /*
-    if (XBEE_SPI){
-        xbee_spi_Start();
-    }else{
-	    myUART_Start(0);
-    }
-    */
+    _set_des_addr(BROADCAST_ADDR);
 }
-
-
-
-uint64_t addr[8];
-
 
 uint8_t translator(uint8_t data){
     uint8_t Lside=data&0xf;
     uint8_t Hside=(data>>4)&0xf;
-    //UART_1_PutChar(Hside<0xa ? Hside+'0':Hside+'A'-0xa);
-    //UART_1_PutChar(Lside<0xa ? Lside+'0':Lside+'A'-0xa);
-    //UART_1_PutChar(' ');
     return 0;
 }
 
 
-void _set_des_addr(uint64_t newAddr){
+void _set_des_addr(uint64_t newAddr) {
     int i=0;
     for (i=0;i<8;i++){
         addr[7-i]=(newAddr>>(8*i))&0xff;
     }
     return;
 }
-
-
 
 void _XBee_tx_req_(const DataPacket* msg){
     
@@ -73,12 +53,9 @@ void _XBee_tx_req_(const DataPacket* msg){
     send_msg[15]=0x00;          //Broadcast
     send_msg[16]=0x00;          //opions
     
-    send_msg[19]=(msg->millicounter)&0xff;      //time
-    send_msg[18]=(msg->millicounter)>>8&0xff;
-    send_msg[17]=(msg->millicounter)>>16&0xff;
-    //send_msg[19]=0x00;      //time
-    //send_msg[18]=0x00;
-    //send_msg[17]=0x00;
+    send_msg[19] = (msg -> millicounter) & 0xff;      //time
+    send_msg[18] = ((msg -> millicounter) >> 8) & 0xff;
+    send_msg[17] = ((msg -> millicounter) >> 16) & 0xff;
 
     
     send_msg[21]=msg->id&0xff;      //id
@@ -95,50 +72,26 @@ void _XBee_tx_req_(const DataPacket* msg){
     send_msg[28]=msg->data[5];  
     send_msg[29]=msg->data[6];  
     send_msg[30]=msg->data[7];  
-   
-    
-
-    
     send_msg[31]=checksum(send_msg,31);
     
-    
-    if(XBEE_SPI){
-        for (i=0;i<32;i++){
-            xbee_spi_WriteTxData(send_msg[i]);
+
+    xbee_spi_WriteTxData(STARTER_DELIM);
+    for (i = 1; i < 32; i++) {
+        switch (send_msg[i]) {
+            case STARTER_DELIM:
+            case ESCAPE_CTRL:
+            case SOFT_FLOW_CTRL1:
+            case SOFT_FLOW_CTRL2:
+                xbee_spi_WriteTxData(ESCAPE_CTRL);
+                xbee_spi_WriteTxData(ESCAPER ^ send_msg[i]);
+                break;
+            default:
+                xbee_spi_WriteTxData(send_msg[i]);
+                break;
         }
-    }else{
-    //for (i=0;i<32;i++){
-        //UART_1_PutChar(send_msg[i]);
-        //UART_1_PutChar(' ');
-    //    translator(send_msg[i]);
-        
-   // }
-   // UART_1_PutChar('\r');
-   // UART_1_PutChar('\n');
     }
     return;
-    
-    
-    
 }
-
-
-
-
-void _putByte_escape(uint8_t* msg){
-    uint8_t i=0;
-    for(i=0;i<(DATA_LEN+1);i++){
-        if (msg[i]==0x7E){
-            //UART_1_PutChar(ESCAPE);
-            //UART_1_PutChar(msg[i]);
-    }else{
-        //UART_1_PutChar(msg[i]);
-    }
-    }
-    return;
-
-}
-
 
 uint8_t checksum(uint8_t* msg,int len){
     uint8_t cksum=0x00;
@@ -149,21 +102,6 @@ uint8_t checksum(uint8_t* msg,int len){
     cksum=0xff-cksum;
     return cksum;
 }
-
-
-
-void myUART_Start(uint8_t option){
-    switch (option){
-        case 0:
-            //UART_1_Start();
-        
-            break;
-        default:
-            return;
-    }
-    return;
-}
-
 
 void dummy_put(){
     int i=0;
