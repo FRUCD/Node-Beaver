@@ -30,14 +30,13 @@ int main(void)
 	can_init();
 	usb_init();
 	sd_init(time_get());
-
-//	radio_init();
+    radio_init();
 
 	for(;;)
 	{
 //	can_test_send();
-//	can_get(data_queue, &data_head, &data_tail);
 //	usb_get();
+		can_get(data_queue, &data_head, &data_tail);
 		time_announce(data_queue, &data_head, &data_tail);
 		
 		//inject message to test usb
@@ -58,7 +57,7 @@ int main(void)
 		usb_put(data_queue, data_head, data_tail);
 		sd_push(data_queue, data_head, data_tail);
         
-//		radio_put(data_queue, data_head, data_tail);
+		radio_put(data_queue, data_head, data_tail);
 		data_head = data_tail = 0; // clear buffer
 /*
 		if(power_comp_GetCompare()) // if pos is higher
