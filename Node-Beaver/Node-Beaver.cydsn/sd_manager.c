@@ -11,11 +11,13 @@ const char set_time_file[] = "\\logs\\set_time.txt";
 
 CY_ISR(power_interrupt)
 {
-	//test_Write(1);
-    //probe_Write(1);
+    LED_Write(1);
 	sd_stop();
-    power_isr_Disable();
-	//test_Write(0);
+	power_isr_ClearPending();
+    CyDelay(10);
+    LED_Write(0);
+    CySoftwareReset();
+    for(;;); // halt program
 } // CY_ISR(power_interrupt)
 
 
@@ -41,6 +43,10 @@ void sd_init(Time time)
 		capacitance. power isr is disabled for prototyping only.
 	*/
     //probe_Write(0);
+
+
+	power_comp_Start();
+	power_isr_ClearPending();
 	power_isr_StartEx(power_interrupt);
 	FS_Init();
 	sd_ok = 1;

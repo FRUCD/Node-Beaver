@@ -60,6 +60,12 @@ int main(void)
         
 //		radio_put(data_queue, data_head, data_tail);
 		data_head = data_tail = 0; // clear buffer
+/*
+		if(power_comp_GetCompare()) // if pos is higher
+			LED_Write(1);
+		else
+			LED_Write(0);
+*/
         
 		CyDelay(1000);
 	} // main loop
