@@ -1,17 +1,17 @@
 /*******************************************************************************
 * File Name: CAN_1.c
-* Version 2.30
+* Version 3.0
 *
 * Description:
-*  The CAN Component provide functionality of Control Area Network.
-*  Two types of mailbox configurations available "Full" and "Basic".
+*  The CAN Component provides functionality of Control Area Network.
+*  The two types of mailbox configuration available are "Full" and "Basic".
 *
 * Note:
-*  CAN configuration puts as constant to ROM and could change only directly
-*  registers write by user.
+*  The CAN configuration is put as constant to ROM and can be changed
+*  only directly by the registers written by the user.
 *
 ********************************************************************************
-* Copyright 2008-2012, Cypress Semiconductor Corporation.  All rights reserved.
+* Copyright 2008-2015, Cypress Semiconductor Corporation.  All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
@@ -23,31 +23,30 @@ uint8 CAN_1_initVar = 0u;
 
 
 /*******************************************************************************
-* FUNCTION NAME:   CAN_1_Init
+* FUNCTION NAME:   CAN_1_RxTxBuffersConfig
 ********************************************************************************
 *
 * Summary:
-*  Inits/Restores default CAN configuration provided with customizer.
+*  Inits/Restores default CAN Rx and Tx Buffers control registers configuration
+*  provided by the customizer.
 *
 * Parameters:
 *  None.
 *
 * Return:
-*  Indication whether the configuration has been accepted or rejected.
+*  The indication whether the configuration has been accepted or rejected.
 *   Define                             Description
-*    CYRET_SUCCESS                      Function passed successfully
-*    CAN_1_FAIL              Function failed
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
 *
 * Side Effects:
-*  All registers will be reset to their initial values. This will re-initialize 
-*  the component with the following exceptions - it will not clear data from 
-*  the mailboxes.
-*  Enable power to the CAN Core.
+*  All the Rx and Tx Buffers control registers will be reset to their initial
+*  values.
 *
 *******************************************************************************/
-uint8 CAN_1_Init(void) 
+uint8 CAN_1_RxTxBuffersConfig(void) 
 {
-    /* Iniital values of CAN RX and TX registers */
+    /* Initial values of CAN RX and TX registers */
     static const CAN_1_RX_CFG CYCODE CAN_1_RXConfigStruct[] =
     {
         { 0u, 0x8000A8u, 0xFFFFFFFFu, 0x0u },
@@ -79,98 +78,157 @@ uint8 CAN_1_Init(void)
         { 6u, 0x880008u, 0x0u },
         { 7u, 0x880008u, 0x0u }
     };
-    
+
+    uint8 result = CYRET_SUCCESS;
     uint8 i;
+
+    /* Initialize TX mailboxes */
+    for (i = 0u; i < CAN_1_NUMBER_OF_TX_MAILBOXES; i++)
+    {
+        if (CAN_1_TxBufConfig((const CAN_1_TX_CFG *)
+            (&CAN_1_TXConfigStruct[i])) != CYRET_SUCCESS)
+        {
+            result = CAN_1_FAIL;
+            break;
+        }
+    }
+
+    if (result == CYRET_SUCCESS)
+    {
+        /* Initialize RX mailboxes */
+        for (i = 0u; i < CAN_1_NUMBER_OF_RX_MAILBOXES; i++)
+        {
+            if (CAN_1_RxBufConfig((const CAN_1_RX_CFG *)
+                (&CAN_1_RXConfigStruct[i])) != CYRET_SUCCESS)
+            {
+                result = CAN_1_FAIL;
+                break;
+            }
+        }
+    }
+
+    return (result);
+}
+
+
+/*******************************************************************************
+* FUNCTION NAME:   CAN_1_Init
+********************************************************************************
+*
+* Summary:
+*  Inits/Restores default CAN configuration provided by the customizer.
+*
+* Parameters:
+*  None.
+*
+* Return:
+*  The indication whether the configuration has been accepted or rejected.
+*   Define                             Description
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
+*
+* Side Effects:
+*  All the registers will be reset to their initial values. This will
+*  re-initialize the component with the following exceptions - it will not clear
+*  data from the mailboxes.
+*  Enable power to the CAN Core.
+*
+*******************************************************************************/
+uint8 CAN_1_Init(void) 
+{
+    uint32 timeout = CAN_1_MODE_STATE_STOP_TIMEOUT;
     uint8 result = CAN_1_FAIL;
     uint8 localResult = CAN_1_FAIL;
-    uint8 enableInterrupts;
-    
-    enableInterrupts = CyEnterCriticalSection();
-    
-    /* Enable CAN block in Active mode */
-    CAN_1_PM_ACT_CFG_REG |= CAN_1_ACT_PWR_EN;
-        
-    /* Enable CAN block in Alternate Active (Standby) mode */
-    CAN_1_PM_STBY_CFG_REG |= CAN_1_STBY_PWR_EN; 
-    
-    CyExitCriticalSection(enableInterrupts);
-    
-    /* Sets the CAN controller to stop mode */
-    CAN_1_CMD_REG.byte[0u] &= (uint8) (~CAN_1_MODE_MASK);
 
-    /* Verify that bit is cleared */
-    if ((CAN_1_CMD_REG.byte[0u] & CAN_1_MODE_MASK) == 0u)
-    {                
-        /* Disable Interrupt. */
+    #if (CY_PSOC3 || CY_PSOC5)
+        uint8 enableInterrupts;
+
+        enableInterrupts = CyEnterCriticalSection();
+        /* Enable CAN block in Active mode */
+        CAN_1_PM_ACT_CFG_REG |= CAN_1_ACT_PWR_EN;
+        /* Enable CAN block in Alternate Active (Standby) mode */
+        CAN_1_PM_STBY_CFG_REG |= CAN_1_STBY_PWR_EN;
+        CyExitCriticalSection(enableInterrupts);
+
+        /* Sets CAN controller to stop mode */
+        CAN_1_CMD_REG.byte[0u] &= (uint8) (~CAN_1_MODE_MASK);
+
+        /* Timeout for CAN state machine to switch mode to Stop */
+        while ((timeout != 0u) && ((CAN_1_CMD_REG.byte[0u] & CAN_1_MODE_MASK) != 0u))
+        {
+            timeout--;
+        }
+    #else  /* CY_PSOC4 */
+        /* Enable CAN IP Block */
+        CAN_1_CNTL_REG = CAN_1_IP_ENABLE;
+
+        /* Sets CAN controller to stop mode */
+        CAN_1_CMD_REG &= (uint32) (~((uint32) CAN_1_MODE_MASK));
+
+        /* Timeout for CAN state machine to switch mode to Stop */
+        while ((timeout != 0u) && ((CAN_1_CMD_REG & CAN_1_MODE_MASK) != 0u))
+        {
+            timeout--;
+        }
+    #endif /* CY_PSOC3 || CY_PSOC5 */
+        if (timeout != 0u)
+        {
+            /* Disable Interrupt. */
         CyIntDisable(CAN_1_ISR_NUMBER);
-        
+
         /* Set the ISR to point to the CAN_1_ISR Interrupt. */
         (void) CyIntSetVector(CAN_1_ISR_NUMBER, & CAN_1_ISR);
-        
+
         /* Set the priority. */
         CyIntSetPriority(CAN_1_ISR_NUMBER, CAN_1_ISR_PRIORITY);
 
-        if (CAN_1_SetPreScaler(CAN_1_BITRATE) == CYRET_SUCCESS)
-        {
-            if (CAN_1_SetArbiter(CAN_1_ARBITER) == CYRET_SUCCESS)
+            if (CAN_1_SetPreScaler(CAN_1_BITRATE) == CYRET_SUCCESS)
             {
-                if (CAN_1_SetTsegSample(CAN_1_CFG_REG_TSEG1, CAN_1_CFG_REG_TSEG2,
-                    CAN_1_CFG_REG_SJW, CAN_1_SAMPLING_MODE) == CYRET_SUCCESS)
+                if (CAN_1_SetArbiter(CAN_1_ARBITER) == CYRET_SUCCESS)
                 {
-                    if (CAN_1_SetRestartType(CAN_1_RESET_TYPE) == CYRET_SUCCESS)
-                    {
-                        if (CAN_1_SetEdgeMode(CAN_1_SYNC_EDGE) == CYRET_SUCCESS)
+                    #if (!(CY_PSOC3 || CY_PSOC5))
+                        if (CAN_1_SetSwapDataEndianness(CAN_1_SWAP_DATA_END) == CYRET_SUCCESS)
+                    #endif /* (!(CY_PSOC3 || CY_PSOC5)) */
                         {
-                            localResult = CYRET_SUCCESS;
+                            if (CAN_1_SetTsegSample(CAN_1_CFG_REG_TSEG1,
+                                CAN_1_CFG_REG_TSEG2, CAN_1_CFG_REG_SJW,
+                                CAN_1_SAMPLING_MODE) == CYRET_SUCCESS)
+                            {
+                                if (CAN_1_SetRestartType(CAN_1_RESET_TYPE) == CYRET_SUCCESS)
+                                {
+                                    if (CAN_1_SetEdgeMode(CAN_1_SYNC_EDGE) == CYRET_SUCCESS)
+                                    {
+                                        localResult = CYRET_SUCCESS;
+                                    }
+                                }
+                            }
                         }
-                    }
-                }
-            }
-        }
-        
-        if (localResult == CYRET_SUCCESS)
-        {
-            /* Initialize TX maiboxes */
-            for (i = 0u; i < CAN_1_NUMBER_OF_TX_MAILBOXES; i++)
-            {
-                if (CAN_1_TxBufConfig((const CAN_1_TX_CFG *)
-                    (&CAN_1_TXConfigStruct[i])) != CYRET_SUCCESS)
-                {
-                    localResult = CAN_1_FAIL;
-                    break;
                 }
             }
 
             if (localResult == CYRET_SUCCESS)
             {
-                /* Initialize RX mailboxes */
-                for (i = 0u; i < CAN_1_NUMBER_OF_RX_MAILBOXES; i++)
-                {
-                    if (CAN_1_RxBufConfig((const CAN_1_RX_CFG *)
-                        (&CAN_1_RXConfigStruct[i])) != CYRET_SUCCESS)
-                    {
-                        localResult = CAN_1_FAIL;
-                        break;
-                    }
-                }
-
-                if (localResult == CYRET_SUCCESS)
+                if (CAN_1_RxTxBuffersConfig() == CYRET_SUCCESS)
                 {
                     /* Write IRQ Mask */
                     if (CAN_1_SetIrqMask(CAN_1_INIT_INTERRUPT_MASK) ==
                         CYRET_SUCCESS)
                     {
-                        /* Active mode always */
-                        if (CAN_1_SetOpMode(CAN_1_ACTIVE_MODE) == CYRET_SUCCESS)
-                        {
-                            result = CYRET_SUCCESS;
-                        }
+                        /* Set CAN Operation Mode to Active mode always */
+                        #if (CY_PSOC3 || CY_PSOC5)
+                            CAN_1_CMD_REG.byte[0u] = CAN_1_INITIAL_MODE;
+                            if ((CAN_1_CMD_REG.byte[0u] & CAN_1_MODE_MASK) == 0u)
+                        #else  /* CY_PSOC4 */
+                            CAN_1_CMD_REG &= (uint32) (~((uint32) CAN_1_OPMODE_FIELD_MASK));
+                            if ((CAN_1_CMD_REG & CAN_1_OPMODE_FIELD_MASK) == 0u)
+                        #endif /* CY_PSOC3 || CY_PSOC5 */
+                            {
+                                result = CYRET_SUCCESS;
+                            }
                     }
                 }
             }
         }
-                            
-    }
 
     return (result);
 }
@@ -180,47 +238,59 @@ uint8 CAN_1_Init(void)
 * Function Name: CAN_1_Enable
 ********************************************************************************
 *
-* Summary:   
-*  This function enable CAN Component and ISR of CAN Component. 
+* Summary:
+*  This function enables the CAN Component and ISR of CAN Component.
 *
-* Parameters:  
+* Parameters:
 *  None.
 *
-* Return: 
-*  Indication whether register is written and verified.
+* Return:
+*  The indication whether the register is written and verified.
 *   Define                             Description
-*    CYRET_SUCCESS                      Function passed successfully
-*    CAN_1_FAIL              Function failed
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
 *
 *******************************************************************************/
 uint8 CAN_1_Enable(void) 
 {
+    uint32 timeout = CAN_1_MODE_STATE_RUN_TIMEOUT;
     uint8 result = CAN_1_FAIL;
-    uint8 enableInterrupts;
-    
-    enableInterrupts = CyEnterCriticalSection();
-    
-    /* Enable CAN block in Active mode */
-    CAN_1_PM_ACT_CFG_REG |= CAN_1_ACT_PWR_EN;
 
-    /* Enable CAN block in Alternate Active (Standby) mode */
-    CAN_1_PM_STBY_CFG_REG |= CAN_1_STBY_PWR_EN;
-    
-    CyExitCriticalSection(enableInterrupts);
-    
+    #if (CY_PSOC3 || CY_PSOC5)
+        uint8 enableInterrupts;
+
+        enableInterrupts = CyEnterCriticalSection();
+
+        /* Enable CAN block in Active mode */
+        CAN_1_PM_ACT_CFG_REG |= CAN_1_ACT_PWR_EN;
+
+        /* Enable CAN block in Alternate Active (Standby) mode */
+        CAN_1_PM_STBY_CFG_REG |= CAN_1_STBY_PWR_EN;
+
+        CyExitCriticalSection(enableInterrupts);
+    #endif /* CY_PSOC3 || CY_PSOC5 */
+
+    /* Clear interrupts status */
+    CY_SET_REG32(CAN_1_INT_SR_PTR, CAN_1_INIT_INTERRUPT_MASK);
+    (void) CAN_1_GlobalIntEnable();
+
     /* Enable isr */
     CyIntEnable(CAN_1_ISR_NUMBER);
 
+    /* Sets CAN controller to run mode */
+    CY_SET_REG32(CAN_1_CMD_PTR, CY_GET_REG32(CAN_1_CMD_PTR) | CAN_1_MODE_MASK);
 
-    /* Sets the CAN controller to run mode */
-    CY_SET_REG32(CAN_1_CMD_PTR, (CY_GET_REG32(CAN_1_CMD_PTR) | CAN_1_MODE_MASK));
-    
-    /* Verify that bit is set */
-    if (0u != (CY_GET_REG32(CAN_1_CMD_PTR) & CAN_1_MODE_MASK))
+    /* Timeout for CAN state machine to switch mode to Run */
+    while ((timeout != 0u) && ((CY_GET_REG32(CAN_1_CMD_PTR) & CAN_1_MODE_MASK) == 0u))
+    {
+        timeout--;
+    }
+
+    if (timeout != 0u)
     {
         result = CYRET_SUCCESS;
     }
-    
+
     return (result);
 }
 
@@ -230,21 +300,21 @@ uint8 CAN_1_Enable(void)
 ********************************************************************************
 *
 * Summary:
-*  This function sets CAN Component into Run mode. Starts the Rate Counter if
-*  polling mailboxes available.
+*  This function sets CAN Component into the Run mode. Starts Rate Counter if
+*  polling mailboxes are available.
 *
 * Parameters:
-*  None. 
+*  None.
 *
 * Return:
-*  Indication whether register is written and verified.
+*  The indication whether the register is written and verified.
 *   Define                             Description
-*    CYRET_SUCCESS                      Function passed successfully
-*    CAN_1_FAIL              Function failed
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
 *
 * Global variables:
-*  CAN_1_initVar - used to check initial configuration, modified on
-*  first function call.
+*  CAN_1_initVar - used to check the initial configuration, modified
+*  on the first function call.
 *
 * Reentrant:
 *  No.
@@ -253,15 +323,15 @@ uint8 CAN_1_Enable(void)
 uint8 CAN_1_Start(void) 
 {
     uint8 result = CYRET_SUCCESS;
-    
+
     if (CAN_1_initVar == 0u)
     {
         result = CAN_1_Init();
-        CAN_1_initVar = 1u;        
     }
-    
+
     if (result == CYRET_SUCCESS)
     {
+        CAN_1_initVar = 1u;
         result = CAN_1_Enable();
     }
 
@@ -274,48 +344,64 @@ uint8 CAN_1_Start(void)
 ********************************************************************************
 *
 * Summary:
-*  This function sets CAN Component into Stop mode.
+*  This function sets CAN Component into the Stop mode.
 *
 * Parameters:
 *  None.
 *
 * Return:
-*  Indication whether register is written and verified.
+*  The indication whether the register is written and verified.
 *   Define                             Description
-*    CYRET_SUCCESS                      Function passed successfully
-*    CAN_1_FAIL              Function failed
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
 *
 * Side Effects:
-*  Disable power to the CAN Core.
+*  Disable power to CAN Core in case of PSoC 3/5.
+*  Pending message in the Tx buffer of PSoC 3/5 will not be aborted on calling
+*  the CAN_1_Stop() API. User has to abort all pending messages
+*  before calling the CAN_1_Stop() function to make sure that the
+*  block stops all the message transmission immediately.
 *
 *******************************************************************************/
 uint8 CAN_1_Stop(void) 
 {
+    uint32 timeout = CAN_1_MODE_STATE_STOP_TIMEOUT;
     uint8 result = CAN_1_FAIL;
-    uint8 enableInterrupts;        
-    
-    /* Sets the CAN controller to stop mode */
-    CY_SET_REG32(CAN_1_CMD_PTR, (CY_GET_REG32(CAN_1_CMD_PTR) & 
-                                            ((uint8) (~CAN_1_MODE_MASK))));
+
+    #if (CY_PSOC3 || CY_PSOC5)
+        uint8 enableInterrupts;
+    #endif /* CY_PSOC3 || CY_PSOC5 */
+
+    /* Set CAN controller to stop mode */
+    CY_SET_REG32(CAN_1_CMD_PTR, (CY_GET_REG32(CAN_1_CMD_PTR) &
+                                            ((uint32) (~((uint32)CAN_1_MODE_MASK)))));
+
+    /* Timeout for CAN state machine to switch mode to Stop */
+    while ((timeout != 0u) && ((CY_GET_REG32(CAN_1_CMD_PTR) & CAN_1_MODE_MASK) != 0u))
+    {
+        timeout--;
+    }
 
     /* Verify that bit is cleared */
-    if (0u == (CY_GET_REG32(CAN_1_CMD_PTR) & CAN_1_MODE_MASK))
+    if (timeout != 0u)
     {
         result = CYRET_SUCCESS;
-    }
-    
-    /* Disable isr */
+
+        /* Disable isr */
     CyIntDisable(CAN_1_ISR_NUMBER);
 
-    enableInterrupts = CyEnterCriticalSection(); 
+        #if (CY_PSOC3 || CY_PSOC5)
+            enableInterrupts = CyEnterCriticalSection();
 
-    /* Disable CAN block in Active mode */
-    CAN_1_PM_ACT_CFG_REG &= (uint8) (~CAN_1_ACT_PWR_EN);
+            /* Disable CAN block in Active mode */
+            CAN_1_PM_ACT_CFG_REG &= (uint8) (~CAN_1_ACT_PWR_EN);
 
-    /* Disable CAN block in Alternate Active (Standby) mode template */
-    CAN_1_PM_STBY_CFG_REG &= (uint8) (~CAN_1_STBY_PWR_EN);
-    
-    CyExitCriticalSection(enableInterrupts);
+            /* Disable CAN block in Alternate Active (Standby) mode template */
+            CAN_1_PM_STBY_CFG_REG &= (uint8) (~CAN_1_STBY_PWR_EN);
+
+            CyExitCriticalSection(enableInterrupts);
+        #endif /* CY_PSOC3 || CY_PSOC5 */
+    }
 
     return (result);
 }
@@ -332,23 +418,32 @@ uint8 CAN_1_Stop(void)
 *  None.
 *
 * Return:
-*  Indication whether register is written and verified.
+*  The indication whether the register is written and verified.
 *   Define                             Description
-*    CYRET_SUCCESS                      Function passed successfully
-*    CAN_1_FAIL              Function failed
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
 *
 *******************************************************************************/
 uint8 CAN_1_GlobalIntEnable(void) 
 {
     uint8 result = CAN_1_FAIL;
 
-    CAN_1_INT_EN_REG.byte[0u] |= CAN_1_GLOBAL_INT_MASK;
+    #if (CY_PSOC3 || CY_PSOC5)
+        CAN_1_INT_EN_REG.byte[0u] |= CAN_1_GLOBAL_INT_MASK;
 
-    /* Verify that bit is set */
-    if ((CAN_1_INT_EN_REG.byte[0u] & CAN_1_GLOBAL_INT_MASK) == CAN_1_GLOBAL_INT_MASK)
-    {
-        result = CYRET_SUCCESS;
-    }
+        /* Verify that bit is set */
+        if ((CAN_1_INT_EN_REG.byte[0u] & CAN_1_GLOBAL_INT_MASK) != 0u)
+        {
+            result = CYRET_SUCCESS;
+        }
+    #else  /* CY_PSOC4 */
+        CAN_1_INT_EN_REG |= CAN_1_GLOBAL_INT_MASK;
+        /* Verify that bit is set */
+        if ((CAN_1_INT_EN_REG & CAN_1_GLOBAL_INT_MASK) != 0u)
+        {
+            result = CYRET_SUCCESS;
+        }
+    #endif /* CY_PSOC3 || CY_PSOC5 */
 
     return (result);
 }
@@ -365,23 +460,33 @@ uint8 CAN_1_GlobalIntEnable(void)
 *  None.
 *
 * Return:
-*  Indication whether register is written and verified.
+*  The indication whether the register is written and verified.
 *   Define                             Description
-*    CYRET_SUCCESS                      Function passed successfully
-*    CAN_1_FAIL              Function failed
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
 *
 *******************************************************************************/
 uint8 CAN_1_GlobalIntDisable(void) 
 {
     uint8 result = CAN_1_FAIL;
 
-    CAN_1_INT_EN_REG.byte[0u] &= (uint8) (~CAN_1_GLOBAL_INT_MASK);
+    #if (CY_PSOC3 || CY_PSOC5)
+        CAN_1_INT_EN_REG.byte[0u] &= (uint8) (~CAN_1_GLOBAL_INT_MASK);
 
-    /* Verify that bit is cleared */
-    if ((CAN_1_INT_EN_REG.byte[0u] & CAN_1_GLOBAL_INT_MASK) == 0u)
-    {
-        result = CYRET_SUCCESS;
-    }
+        /* Verify that bit is cleared */
+        if ((CAN_1_INT_EN_REG.byte[0u] & CAN_1_GLOBAL_INT_MASK) == 0u)
+        {
+            result = CYRET_SUCCESS;
+        }
+    #else  /* CY_PSOC4 */
+        CAN_1_INT_EN_REG &= (uint32) (~((uint32) CAN_1_GLOBAL_INT_MASK));
+
+        /* Verify that bit is cleared */
+        if ((CAN_1_INT_EN_REG & CAN_1_GLOBAL_INT_MASK) == 0u)
+        {
+            result = CYRET_SUCCESS;
+        }
+    #endif /* CY_PSOC3 || CY_PSOC5 */
 
     return (result);
 }
@@ -392,8 +497,8 @@ uint8 CAN_1_GlobalIntDisable(void)
 ********************************************************************************
 *
 * Summary:
-*  This function sets PreScaler for generation the time quantum which defines
-*  the time quanta. Value between 0x0 and 0x7FFF are valid.
+*  This function sets PreScaler for generating the time quantum which defines
+*  the time quanta. The values between 0x0 and 0x7FFF are valid.
 *
 * Parameters:
 *  bitrate: PreScaler value.
@@ -404,11 +509,11 @@ uint8 CAN_1_GlobalIntDisable(void)
 *    32767           One time quantum equals 32768 clock cycles
 *
 * Return:
-*  Indication whether register is written and verified.
+*  The indication whether the register is written and verified.
 *   Define                             Description
-*    CYRET_SUCCESS                      Function passed successfully
-*    CAN_1_FAIL              Function failed
-*    CAN_1_OUT_OF_RANGE      Function parameter is out of range
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
+*    CAN_1_OUT_OF_RANGE      The function parameter is out of range
 *
 *******************************************************************************/
 uint8 CAN_1_SetPreScaler(uint16 bitrate) 
@@ -419,14 +524,27 @@ uint8 CAN_1_SetPreScaler(uint16 bitrate)
     {
         result = CAN_1_FAIL;
 
-        /* Set prescaler */
-        CY_SET_REG16((reg16 *) &CAN_1_CFG_REG.byte[2u], bitrate);
+        #if (CY_PSOC3 || CY_PSOC5)
+            /* Set prescaler */
+            CY_SET_REG16((reg16 *) (&CAN_1_CFG_REG.byte[2u]), bitrate);
 
-        /* Verify that prescaler is set */
-        if (CY_GET_REG16((reg16 *) &CAN_1_CFG_REG.byte[2u]) == bitrate)
-        {
-            result = CYRET_SUCCESS;
-        }
+            /* Verify that prescaler is set */
+            if (CY_GET_REG16((reg16 *) (&CAN_1_CFG_REG.byte[2u])) == bitrate)
+            {
+                result = CYRET_SUCCESS;
+            }
+        #else  /* CY_PSOC4 */
+            /* Set prescaler */
+            CAN_1_CFG_REG = (CAN_1_CFG_REG & (uint32) (~CAN_1_BITRATE_MASK_SHIFTED)) |
+            (uint32) ((uint32) bitrate << CAN_1_BITRATE_SHIFT);
+
+            /* Verify that prescaler is set */
+            if ((CAN_1_CFG_REG & CAN_1_BITRATE_MASK_SHIFTED) ==
+               ((uint32) ((uint32) bitrate << CAN_1_BITRATE_SHIFT)))
+            {
+                result = CYRET_SUCCESS;
+            }
+        #endif /* CY_PSOC3 || CY_PSOC5 */
     }
 
     return (result);
@@ -438,47 +556,69 @@ uint8 CAN_1_SetPreScaler(uint16 bitrate)
 ********************************************************************************
 *
 * Summary:
-*  This function sets arbitration type for transmit mailboxes. Types of
-*  arbiters are Round Robin and Fixed priority. Value 0 and 1 are valid.
+*  This function sets the arbitration type for transmit mailboxes. The types of
+*  the arbiters are Round Robin and Fixed Priority. Values 0 and 1 are valid.
 *
 * Parameters:
-*  arbiter: Arbitaration type for transmit mailboxes.
+*  arbiter: The arbitration type for transmit mailboxes.
 *   Value                              Description
-*    CAN_1_ROUND_ROBIN       Round robin arbitration
-*    CAN_1_FIXED_PRIORITY    Fixed priority arbitration.
+*    CAN_1_ROUND_ROBIN       The Round Robin arbitration
+*    CAN_1_FIXED_PRIORITY    The Fixed Priority arbitration.
 *
 * Return:
-*  Indication whether register is written and verified.
+*  The indication whether the register is written and verified.
 *   Define                             Description
-*    CYRET_SUCCESS                      Function passed successfully
-*    CAN_1_FAIL              Function failed
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
 *
 *******************************************************************************/
 uint8 CAN_1_SetArbiter(uint8 arbiter) 
 {
     uint8 result = CAN_1_FAIL;
 
-    if (arbiter == CAN_1_ROUND_ROBIN)
-    {
-        CAN_1_CFG_REG.byte[1u] &= (uint8) (~CAN_1_ARBITRATION_MASK);    /* Round Robin */
-
-        /* Verify that bit is cleared */
-        if ((CAN_1_CFG_REG.byte[1u] & CAN_1_ARBITRATION_MASK) == 0u)
+    #if (CY_PSOC3 || CY_PSOC5)
+        if (arbiter == CAN_1_ROUND_ROBIN)
         {
-            result = CYRET_SUCCESS;
-        }        
-    }
-    else
-    {
-        CAN_1_CFG_REG.byte[1u] |= CAN_1_ARBITRATION_MASK;    /* Fixed priority */
+            CAN_1_CFG_REG.byte[1u] &= (uint8) (~CAN_1_ARBITRATION_MASK);
 
-        /* Verify that bit is set */
-        if ((CAN_1_CFG_REG.byte[1u] & CAN_1_ARBITRATION_MASK) ==
-            CAN_1_ARBITRATION_MASK)
-        {
-            result = CYRET_SUCCESS;
+            /* Verify that bit is cleared */
+            if ((CAN_1_CFG_REG.byte[1u] & CAN_1_ARBITRATION_MASK) == 0u)
+            {
+                result = CYRET_SUCCESS;
+            }
         }
-    }
+        else    /* Fixed Priority */
+        {
+            CAN_1_CFG_REG.byte[1u] |= CAN_1_ARBITRATION_MASK;
+
+            /* Verify that bit is set */
+            if ((CAN_1_CFG_REG.byte[1u] & CAN_1_ARBITRATION_MASK) != 0u)
+            {
+                result = CYRET_SUCCESS;
+            }
+        }
+    #else  /* CY_PSOC4 */
+        if (arbiter == CAN_1_ROUND_ROBIN)
+        {
+            CAN_1_CFG_REG &= (uint32) (~CAN_1_ARBITRATION_MASK);
+
+            /* Verify that bit is cleared */
+            if ((CAN_1_CFG_REG & CAN_1_ARBITRATION_MASK) == 0u)
+            {
+                result = CYRET_SUCCESS;
+            }
+        }
+        else    /* Fixed priority */
+        {
+            CAN_1_CFG_REG |= CAN_1_ARBITRATION_MASK;
+
+            /* Verify that bit is set */
+            if ((CAN_1_CFG_REG & CAN_1_ARBITRATION_MASK) != 0u)
+            {
+                result = CYRET_SUCCESS;
+            }
+        }
+    #endif /* CY_PSOC3 || CY_PSOC5 */
 
     return (result);
 }
@@ -493,20 +633,20 @@ uint8 CAN_1_SetArbiter(uint8 arbiter)
 *  and Synchronization Jump Width.
 *
 * Parameters:
-*  cfgTseg1: Length of time segment 1, value between 0x2 and 0xF are valid;
-*  cfgTseg2: Length of time segment 2, value between 0x1 and 0x7 are valid;
+*  cfgTseg1: The length of time segment 1, values between 0x2 and 0xF are valid;
+*  cfgTseg2: The length of time segment 2, values between 0x1 and 0x7 are valid;
 *  sjw: Synchronization Jump Width, value between 0x0 and 0x3 are valid;
 *  sm: Sampling Mode.
 *   Define                               Description
-*   CAN_1_ONE_SAMPLE_POINT     one sampling points is used
-*   CAN_1_THREE_SAMPLE_POINTS  three sampling points are used
+*   CAN_1_ONE_SAMPLE_POINT     One sampling point is used
+*   CAN_1_THREE_SAMPLE_POINTS  Three sampling points are used
 *
 * Return:
-*  Indication whether register is written and verified.
+*  The indication whether the register is written and verified.
 *   Define                             Description
-*    CYRET_SUCCESS                      Function passed successfully
-*    CAN_1_FAIL              Function failed
-*    CAN_1_OUT_OF_RANGE      Function parameter is out of range
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
+*    CAN_1_OUT_OF_RANGE      The function parameter is out of range
 *
 *******************************************************************************/
 uint8 CAN_1_SetTsegSample(uint8 cfgTseg1, uint8 cfgTseg2, uint8 sjw, uint8 sm)
@@ -526,34 +666,73 @@ uint8 CAN_1_SetTsegSample(uint8 cfgTseg1, uint8 cfgTseg2, uint8 sjw, uint8 sm)
             {
                 result = CAN_1_FAIL;
 
-                cfgTemp = CAN_1_CFG_REG.byte[1];
-                cfgTemp &= (uint8) (~CAN_1_CFG_REG_TSEG1_MASK);
-                cfgTemp |= cfgTseg1;
+                #if (CY_PSOC3 || CY_PSOC5)
+                    cfgTemp = CAN_1_CFG_REG.byte[1];
+                    cfgTemp &= (uint8) (~CAN_1_CFG_REG_TSEG1_MASK);
+                    cfgTemp |= cfgTseg1;
 
-                /* write register byte 1 */
-                CAN_1_CFG_REG.byte[1u] = cfgTemp;
-
-                /* Verify 2nd byte of CAN_1_CFG_REG register */
-                if (CAN_1_CFG_REG.byte[1u] == cfgTemp)
-                {
-                    cfgTemp = 0u;
-                    /* Set appropriate bits */
-                    if (sm != CAN_1_ONE_SAMPLE_POINT)
-                    {
-                        cfgTemp = CAN_1_SAMPLE_MODE_MASK;
-                    }
-                    cfgTemp |= ((uint8) (cfgTseg2 << CAN_1_CFG_REG_TSEG2_SHIFT)) |
-                               ((uint8) (sjw << CAN_1_CFG_REG_SJW_SHIFT));
-
-                    /* write register byte 0 */
-                    CAN_1_CFG_REG.byte[0u] = cfgTemp;
+                    /* Write register byte 1 */
+                    CAN_1_CFG_REG.byte[1u] = cfgTemp;
 
                     /* Verify 1st byte of CAN_1_CFG_REG register */
-                    if (CAN_1_CFG_REG.byte[0u] == cfgTemp)
+                    if (CAN_1_CFG_REG.byte[1u] == cfgTemp)
                     {
-                        result = CYRET_SUCCESS;
+                        cfgTemp = 0u;
+                        /* Set appropriate bits */
+                        if (sm != CAN_1_ONE_SAMPLE_POINT)
+                        {
+                            cfgTemp = CAN_1_SAMPLE_MODE_MASK;
+                        }
+                        cfgTemp |= ((uint8) (cfgTseg2 << CAN_1_CFG_REG_TSEG2_SHIFT)) |
+                                   ((uint8) (sjw << CAN_1_CFG_REG_SJW_SHIFT));
+
+                        /* Write register byte 0 */
+                        CAN_1_CFG_REG.byte[0u] = cfgTemp;
+
+                        /* Verify 1st byte of CAN_1_CFG_REG register */
+                        if (CAN_1_CFG_REG.byte[0u] == cfgTemp)
+                        {
+                            result = CYRET_SUCCESS;
+                        }
                     }
-                }
+                #else  /* CY_PSOC4 */
+                    cfgTemp = (uint8) (CAN_1_CFG_REG >> CAN_1_CFG_REG_TSEG1_SHIFT);
+                    cfgTemp &= (uint8) (~CAN_1_CFG_REG_TSEG1_MASK);
+                    cfgTemp |= cfgTseg1;
+
+                    /* Write register byte 1 */
+                    CAN_1_CFG_REG =
+                    (CAN_1_CFG_REG & (uint32) (~((uint32) ((uint32) CAN_1_CFG_REG_TSEG1_MASK <<
+                    CAN_1_CFG_REG_TSEG1_SHIFT)))) |
+                    (uint32) ((uint32) cfgTemp << CAN_1_CFG_REG_TSEG1_SHIFT);
+
+                    /* Verify 1st byte of CAN_1_CFG_REG register */
+                    if ((CAN_1_CFG_REG & (uint32) ((uint32) CAN_1_CFG_REG_TSEG1_MASK <<
+                       CAN_1_CFG_REG_TSEG1_SHIFT)) == (uint32) ((uint32) ((uint32) cfgTemp &
+                       CAN_1_CFG_REG_TSEG1_MASK) << CAN_1_CFG_REG_TSEG1_SHIFT))
+                    {
+                        cfgTemp = 0u;
+                        /* Set appropriate bits */
+                        if (sm != CAN_1_ONE_SAMPLE_POINT)
+                        {
+                            cfgTemp = CAN_1_SAMPLE_MODE_MASK;
+                        }
+                        cfgTemp |= ((uint8) (cfgTseg2 << CAN_1_CFG_REG_TSEG2_SHIFT)) |
+                                   ((uint8) (sjw << CAN_1_CFG_REG_SJW_SHIFT));
+
+                        /* Write register byte 0 */
+                        CAN_1_CFG_REG = (CAN_1_CFG_REG &
+                        (uint32) (~((uint32) (CAN_1_CFG_REG_TSEG2_MASK | CAN_1_CFG_REG_SJW_MASK |
+                        CAN_1_SAMPLE_MODE_MASK)))) | cfgTemp;
+
+                        /* Verify 1st byte of CAN_1_CFG_REG register */
+                        if ((CAN_1_CFG_REG & (CAN_1_CFG_REG_TSEG2_MASK |
+                           CAN_1_CFG_REG_SJW_MASK | CAN_1_SAMPLE_MODE_MASK)) == cfgTemp)
+                        {
+                            result = CYRET_SUCCESS;
+                        }
+                    }
+                #endif /* CY_PSOC3 || CY_PSOC5 */
             }
         }
     }
@@ -567,50 +746,73 @@ uint8 CAN_1_SetTsegSample(uint8 cfgTseg1, uint8 cfgTseg2, uint8 sjw, uint8 sm)
 ********************************************************************************
 *
 * Summary:
-*  This function sets Reset type. Types of Reset are Automatic and Manual.
-*  Manual Reset is recommended setting.
+*  This function sets the Reset type. The types of Reset are Automatic and
+*  Manual. Manual Reset is the recommended setting.
 *
 * Parameters:
 *  reset: Reset Type.
 *   Define                             Description
-*    CAN_1_MANUAL_RESTART    After bus-off, the CAN must be restarted
-*                                       by hand. This is the recommended 
+*    CAN_1_MANUAL_RESTART    After Bus-Off, CAN must be restarted
+*                                       manually. This is the recommended
 *                                       setting.
-*    CAN_1_AUTO_RESTART      After bus-off, the CAN is restarting 
-*                                       automatically after 128 groups of 11 
+*    CAN_1_AUTO_RESTART      After Bus-Off, CAN restarts
+*                                       automatically after 128 groups of 11
 *                                       recessive bits.
 *
 * Return:
-*  Indication whether register is written and verified.
+*  The indication whether the register is written and verified.
 *   Define                             Description
-*    CYRET_SUCCESS                      Function passed successfully
-*    CAN_1_FAIL              Function failed
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
 *
 *******************************************************************************/
 uint8 CAN_1_SetRestartType(uint8 reset) 
 {
     uint8 result = CAN_1_FAIL;
 
-    if (reset == CAN_1_RESTART_BY_HAND)
-    {
-        CAN_1_CFG_REG.byte[0u] &= (uint8) (~CAN_1_RESET_MASK);   /* Manual reset */
-
-        /* Verify that bit is cleared */
-        if ((CAN_1_CFG_REG.byte[0u] & CAN_1_RESET_MASK) == 0u)
+    #if (CY_PSOC3 || CY_PSOC5)
+        if (reset == CAN_1_MANUAL_RESTART)
         {
-            result = CYRET_SUCCESS;
-        }
-    }
-    else
-    {
-        CAN_1_CFG_REG.byte[0u] |= CAN_1_RESET_MASK;    /* Automatic restart */
+            CAN_1_CFG_REG.byte[0u] &= (uint8) (~CAN_1_RESET_MASK);
 
-        /* Verify that bit is set */
-        if ((CAN_1_CFG_REG.byte[0u] & CAN_1_RESET_MASK) == CAN_1_RESET_MASK)
-        {
-            result = CYRET_SUCCESS;
+            /* Verify that bit is cleared */
+            if ((CAN_1_CFG_REG.byte[0u] & CAN_1_RESET_MASK) == 0u)
+            {
+                result = CYRET_SUCCESS;
+            }
         }
-    }
+        else    /* Automatic restart */
+        {
+            CAN_1_CFG_REG.byte[0u] |= CAN_1_RESET_MASK;
+
+            /* Verify that bit is set */
+            if ((CAN_1_CFG_REG.byte[0u] & CAN_1_RESET_MASK) != 0u)
+            {
+                result = CYRET_SUCCESS;
+            }
+        }
+    #else  /* CY_PSOC4 */
+        if (reset == CAN_1_MANUAL_RESTART)
+        {
+            CAN_1_CFG_REG &= (uint32) (~((uint32) CAN_1_RESET_MASK));
+
+            /* Verify that bit is cleared */
+            if ((CAN_1_CFG_REG & CAN_1_RESET_MASK) == 0u)
+            {
+                result = CYRET_SUCCESS;
+            }
+        }
+        else    /* Automatic restart */
+        {
+            CAN_1_CFG_REG |= CAN_1_RESET_MASK;
+
+            /* Verify that bit is set */
+            if ((CAN_1_CFG_REG & CAN_1_RESET_MASK) != 0u)
+            {
+                result = CYRET_SUCCESS;
+            }
+        }
+    #endif /* CY_PSOC3 || CY_PSOC5 */
 
     return (result);
 }
@@ -621,49 +823,74 @@ uint8 CAN_1_SetRestartType(uint8 reset)
 ********************************************************************************
 *
 * Summary:
-*  This function sets Edge Mode. Modes are 'R' to 'D'(Reccessive to Dominant)
+*  This function sets Edge Mode. The modes are 'R' to 'D'(Recessive to Dominant)
 *  and Both edges are used.
 *
 * Parameters:
 *  edge: Edge Mode.
 *   Define                             Description
-*    CAN_1_EDGE_R_TO_D       Edge from R to D is used for 
+*    CAN_1_EDGE_R_TO_D       The edge from R to D is used for
 *                                       synchronization
 *    CAN_1_BOTH_EDGES        Both edges are used
 *
 * Return:
-*  Indication whether register is written and verified.
+*  The indication whether the register is written and verified.
 *   Define                             Description
-*    CYRET_SUCCESS                      Function passed successfully
-*    CAN_1_FAIL              Function failed
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
 *
 *******************************************************************************/
 uint8 CAN_1_SetEdgeMode(uint8 edge) 
 {
     uint8 result = CAN_1_FAIL;
 
-    if (edge == CAN_1_EDGE_R_TO_D)
-    {
-        /* Recessive to Dominant is used for synchronization */
-        CAN_1_CFG_REG.byte[0u] &= (uint8) (~CAN_1_EDGE_MODE_MASK);
-
-        /* Verify that bit is cleared */
-        if ((CAN_1_CFG_REG.byte[0u] & CAN_1_EDGE_MODE_MASK) == 0u)
+    #if (CY_PSOC3 || CY_PSOC5)
+        if (edge == CAN_1_EDGE_R_TO_D)
         {
-            result = CYRET_SUCCESS;
-        }                      
-    }
-    else
-    {
-        /* Both edges are to be used */
-        CAN_1_CFG_REG.byte[0u] |= CAN_1_EDGE_MODE_MASK;
+            /* Recessive to Dominant is used for synchronization */
+            CAN_1_CFG_REG.byte[0u] &= (uint8) (~CAN_1_EDGE_MODE_MASK);
 
-        /* Verify that bit is set */
-        if ((CAN_1_CFG_REG.byte[0u] & CAN_1_EDGE_MODE_MASK) == CAN_1_EDGE_MODE_MASK)
-        {
-            result = CYRET_SUCCESS;
+            /* Verify that bit is cleared */
+            if ((CAN_1_CFG_REG.byte[0u] & CAN_1_EDGE_MODE_MASK) == 0u)
+            {
+                result = CYRET_SUCCESS;
+            }
         }
-    }
+        else
+        {
+            /* Both edges to be used */
+            CAN_1_CFG_REG.byte[0u] |= CAN_1_EDGE_MODE_MASK;
+
+            /* Verify that bit is set */
+            if ((CAN_1_CFG_REG.byte[0u] & CAN_1_EDGE_MODE_MASK) != 0u)
+            {
+                result = CYRET_SUCCESS;
+            }
+        }
+    #else  /* CY_PSOC4 */
+        if (edge == CAN_1_EDGE_R_TO_D)
+        {
+            /* Recessive to Dominant is used for synchronization */
+            CAN_1_CFG_REG &= (uint32) (~((uint32) CAN_1_EDGE_MODE_MASK));
+
+            /* Verify that bit is cleared */
+            if ((CAN_1_CFG_REG & CAN_1_EDGE_MODE_MASK) == 0u)
+            {
+                result = CYRET_SUCCESS;
+            }
+        }
+        else
+        {
+            /* Both edges to be used */
+            CAN_1_CFG_REG |= CAN_1_EDGE_MODE_MASK;
+
+            /* Verify that bit is set */
+            if ((CAN_1_CFG_REG & CAN_1_EDGE_MODE_MASK) != 0u)
+            {
+                result = CYRET_SUCCESS;
+            }
+        }
+    #endif /* CY_PSOC3 || CY_PSOC5 */
 
     return (result);
 }
@@ -674,48 +901,128 @@ uint8 CAN_1_SetEdgeMode(uint8 edge)
 ********************************************************************************
 *
 * Summary:
-*  This function sets Operation Mode. Operations Modes are Active of Listen
-*  Only.
+*  This function sets Operation Mode.
 *
 * Parameters:
 *  opMode: Operation Mode value.
-*   Define                             Description
-*    CAN_1_ACTIVE_MODE       Active mode
-*    CAN_1_LISTEN_ONLY       CAN listen only
-*
+*   Define                              Description
+*    CAN_1_STOP_MODE          The CAN controller is in the Stop mode
+*    CAN_1_ACTIVE_RUN_MODE    The CAN controller is in the Active
+*                                        mode
+*    CAN_1_LISTEN_ONLY_MODE   The CAN controller is in the Listen
+*                                        Only mode: The output is held at the
+*                                        'R' level.
+*    CAN_1_INTERNAL_LOOP_BACK The CAN controller is in the Internal
+*                                        Loopback mode. This mode is used for
+*                                        the testing purpose and the transmitted
+*                                        transactions are internally routed
+*                                        back to the receiver logic and
+*                                        processed by the controller in this
+*                                        mode. Not available for PSoC3/5.
+*    CAN_1_EXTERNAL_LOOP_BACK This mode is used for the testing
+*                                        purpose by connecting Tx and Rx lines
+*                                        externally. The transmitted messages
+*                                        are received back and processed by the
+*                                        CAN controller in this mode.
+*                                        Not available for PSoC3/5.
 * Return:
-*  Indication whether register is written and verified.
+*  The indication whether the register is written and verified.
 *   Define                             Description
-*    CYRET_SUCCESS                      Function passed successfully
-*    CAN_1_FAIL              Function failed
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
+*
+* Side Effects:
+*  For PSoC 4 device family the function re-initializes the CAN registers.
 *
 *******************************************************************************/
 uint8 CAN_1_SetOpMode(uint8 opMode) 
 {
+    #if (CY_PSOC3 || CY_PSOC5)
+        uint32 timeout;
+    #endif /* CY_PSOC3 || CY_PSOC5 */
     uint8 result = CAN_1_FAIL;
+    uint8 runState = CAN_1_STOP_MODE;
 
-    if (opMode == CAN_1_ACTIVE_MODE)
-    {
-        /* CAN in Active mode */
-        CAN_1_CMD_REG.byte[0u] &= (uint8) (~CAN_1_OPMODE_MASK);
-
-        /* Verify that bit is cleared */
-        if ((CAN_1_CMD_REG.byte[0u] & CAN_1_OPMODE_MASK) == 0u)
+    #if (CY_PSOC3 || CY_PSOC5)
+        if (((CAN_1_CMD_REG.byte[0u] & CAN_1_ACTIVE_RUN_MODE) != 0u) ||
+            (opMode == CAN_1_ACTIVE_RUN_MODE))
         {
-            result = CYRET_SUCCESS;
-        }                
-    }
-    else
-    {
-        /* CAN listen only */
-        CAN_1_CMD_REG.byte[0u] |= CAN_1_OPMODE_MASK;
+            runState = CAN_1_ACTIVE_RUN_MODE;
+        }
 
-        /* Verify that bit is set */
-        if ((CAN_1_CMD_REG.byte[0u] & CAN_1_OPMODE_MASK) == CAN_1_OPMODE_MASK)
+        /* Set CAN to the Stop Mode */
+        CAN_1_CMD_REG.byte[0u] = CAN_1_STOP_MODE;
+
+        /* Timeout for CAN state machine to switch mode to Stop */
+        for (timeout = CAN_1_MODE_STATE_STOP_TIMEOUT;
+            (timeout != 0u) && ((CAN_1_CMD_REG.byte[0u] & CAN_1_ACTIVE_RUN_MODE) != 0u);
+             timeout--)
+        {
+        }
+
+        if (timeout != 0u)
         {
             result = CYRET_SUCCESS;
         }
-    }
+
+        if ((result == CYRET_SUCCESS) && (opMode != CAN_1_STOP_MODE))
+        {
+            if (opMode == CAN_1_LISTEN_ONLY_MODE)
+            {
+                CAN_1_CMD_REG.byte[0u] = CAN_1_LISTEN_ONLY_MODE;
+            }
+
+            if (runState == CAN_1_ACTIVE_RUN_MODE)
+            {
+                CAN_1_CMD_REG.byte[0u] |= CAN_1_ACTIVE_RUN_MODE;
+
+                /* Timeout for CAN state machine to switch mode to Run */
+                for (timeout = CAN_1_MODE_STATE_RUN_TIMEOUT;
+                    (timeout != 0u) && ((CAN_1_CMD_REG.byte[0u] & CAN_1_MODE_MASK) == 0u);
+                     timeout--)
+                {
+                }
+
+                if (timeout == 0u)
+                {
+                    result = CAN_1_FAIL;
+                }
+            }
+        }
+    #else  /* CY_PSOC4 */
+        if (((CAN_1_CMD_REG & CAN_1_MODE_MASK) != 0u) ||
+            (opMode == CAN_1_ACTIVE_RUN_MODE))
+        {
+            runState = CAN_1_ACTIVE_RUN_MODE;
+        }
+
+        /* Sets CAN Component into the Stop mode */
+        if (CAN_1_Stop() == CYRET_SUCCESS)
+        {
+            /* Disable CAN IP Block to reset configuration before sets Operation Mode */
+            CAN_1_CNTL_REG = (uint32) (~CAN_1_IP_ENABLE);
+
+            /* Enable CAN IP Block */
+            CAN_1_CNTL_REG = CAN_1_IP_ENABLE;
+
+            result = CAN_1_Init();
+
+            if ((result == CYRET_SUCCESS) && (opMode != CAN_1_STOP_MODE))
+            {
+                if (opMode != CAN_1_ACTIVE_RUN_MODE)
+                {
+                    /* Set CAN Operation Mode */
+                    CAN_1_CMD_REG |= opMode;
+                }
+
+                if (runState == CAN_1_ACTIVE_RUN_MODE)
+                {
+                    /* Enable component's operation */
+                    result = CAN_1_Enable();
+                }
+            }
+        }
+    #endif /* CY_PSOC3 || CY_PSOC5 */
 
     return (result);
 }
@@ -729,37 +1036,39 @@ uint8 CAN_1_SetOpMode(uint8 opMode)
 *  This function writes only receive CAN registers.
 *
 * Parameters:
-*  regAddr: Pointer to CAN receive register;
-*  config:  Value that will be written in register.
+*  regAddr: The pointer to a CAN receive register;
+*  config:  The value that will be written in the register.
 *
 * Return:
-*  Indication whether register is written and verified.
+*  The indication whether the register is written and verified.
 *   Define                             Description
-*    CYRET_SUCCESS                      Function passed successfully
-*    CAN_1_FAIL              Function failed
-*    CAN_1_OUT_OF_RANGE      Function parameter is out of range
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
+*    CAN_1_OUT_OF_RANGE      The function parameter is out of range
 *
 *******************************************************************************/
 uint8 CAN_1_RXRegisterInit(reg32 *regAddr, uint32 config)
                                       
 {
-    uint8 result = CAN_1_OUT_OF_RANGE;    
-    
-    if ((((uint32) regAddr & 0x0000FFFFu) >= ((uint32) CAN_1_RX_FIRST_REGISTER_PTR & 0x0000FFFFu)) &&
-         ((((uint32) regAddr & 0x0000FFFFu)) <= ((uint32) CAN_1_RX_LAST_REGISTER_PTR & 0x0000FFFFu)))
+    uint8 result = CAN_1_OUT_OF_RANGE;
+
+    if ((((uint32) regAddr & CAN_1_REG_ADDR_MASK) >=
+        ((uint32) CAN_1_RX_FIRST_REGISTER_PTR & CAN_1_REG_ADDR_MASK)) &&
+        ((((uint32) regAddr & CAN_1_REG_ADDR_MASK)) <=
+        ((uint32) CAN_1_RX_LAST_REGISTER_PTR & CAN_1_REG_ADDR_MASK)))
     {
         result = CAN_1_FAIL;
-        
-        if ((((uint32) regAddr & 0x0000FFFFu) % CAN_1_RX_CMD_REG_WIDTH) == 0u)
+
+        if ((((uint32) regAddr & CAN_1_REG_ADDR_MASK) % CAN_1_RX_CMD_REG_WIDTH) == 0u)
         {
             config |= CAN_1_RX_WPN_SET;
-            
+
     /* Disable isr */
     CyIntDisable(CAN_1_ISR_NUMBER);
 
             /* Write defined RX CMD registers */
             CY_SET_REG32(regAddr, config);
-            
+
     /* Enable isr */
     CyIntEnable(CAN_1_ISR_NUMBER);
 
@@ -772,13 +1081,13 @@ uint8 CAN_1_RXRegisterInit(reg32 *regAddr, uint32 config)
         }
         /* All registers except RX CMD*/
         else
-        {            
+        {
     /* Disable isr */
     CyIntDisable(CAN_1_ISR_NUMBER);
 
             /* Write defined CAN receive register */
             CY_SET_REG32(regAddr, config);
-            
+
     /* Enable isr */
     CyIntEnable(CAN_1_ISR_NUMBER);
 
@@ -789,7 +1098,7 @@ uint8 CAN_1_RXRegisterInit(reg32 *regAddr, uint32 config)
             }
         }
     }
-    
+
     return (result);
 }
 
@@ -800,8 +1109,8 @@ uint8 CAN_1_RXRegisterInit(reg32 *regAddr, uint32 config)
 *
 * Summary:
 *  This function sets to enable/disable particular interrupt sources. Interrupt
-*  Mask directly write to CAN Interrupt Enable register. A particular interrupt
-*  source is enabled by setting its respective flag to 1.
+*  Mask directly write to the CAN Interrupt Enable register. A particular
+*  interrupt source is enabled by setting its respective flag to 1.
 *
 * Parameters:
 *  mask: Interrupt enable/disable request. 1 bit per interrupt source.
@@ -814,37 +1123,52 @@ uint8 CAN_1_RXRegisterInit(reg32 *regAddr, uint32 config)
 *    CAN_1_ACK_ERROR_ENABLE         Ack Error Interrupt Enable
 *    CAN_1_FORM_ERROR_ENABLE        Form Error Interrupt Enable
 *    CAN_1_CRC_ERROR_ENABLE         CRC Error Interrupt Enable
-*    CAN_1_BUS_OFF_ENABLE           Busoff State Interrupt Enable
+*    CAN_1_BUS_OFF_ENABLE           Bus-Off State Interrupt Enable
 *    CAN_1_RX_MSG_LOST_ENABLE       Rx Msg Loss Interrupt Enable
 *    CAN_1_TX_MESSAGE_ENABLE        Tx Msg Sent Interrupt Enable
-*    CAN_1_RX_MESSAGE_ENABLE        Msg Recived Interrupt Enable
+*    CAN_1_RX_MESSAGE_ENABLE        Msg Received Interrupt Enable
+*    CAN_1_RTR_MESSAGE_ENABLE       RTR Auto-reply Interrupt Enable
+*    CAN_1_STUCK_AT_ZERO_ENABLE     Stuck at dominant error Interrupt
+*                                              Enable
+*    CAN_1_SST_FAILURE_ENABLE       SST failure Interrupt Enable
 *
 * Return:
-*  Indication whether register is written and verified.
+*  The indication whether the register is written and verified.
 *   Define                             Description
-*    CYRET_SUCCESS                      Function passed successfully
-*    CAN_1_FAIL              Function failed
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
 *
 *******************************************************************************/
 uint8 CAN_1_SetIrqMask(uint16 mask) 
 {
     uint8 result = CAN_1_FAIL;
 
-    /* Write byte 0 and 1 of CAN_1_INT_EN_REG register */
-    CY_SET_REG16((reg16 *) &CAN_1_INT_EN_REG, mask);
+    #if (CY_PSOC3 || CY_PSOC5)
+        /* Write byte 0 and 1 of CAN_1_INT_EN_REG register */
+        CY_SET_REG16((reg16 *) (&CAN_1_INT_EN_REG), mask);
 
-    /* Verify CAN_1_INT_EN_REG register */
-    if (CY_GET_REG16((reg16 *) &CAN_1_INT_EN_REG) == mask)
-    {
-        result = CYRET_SUCCESS;
-    }
+        /* Verify CAN_1_INT_EN_REG register */
+        if (CY_GET_REG16((reg16 *) (&CAN_1_INT_EN_REG)) == mask)
+        {
+            result = CYRET_SUCCESS;
+        }
+    #else  /* CY_PSOC4 */
+        /* Write byte 0 and 1 of CAN_1_INT_EN_REG register */
+        CAN_1_INT_EN_REG = mask;
+
+        /* Verify CAN_1_INT_EN_REG register */
+        if ((CAN_1_INT_EN_REG & CAN_1_REG_ADDR_MASK) == mask)
+        {
+            result = CYRET_SUCCESS;
+        }
+    #endif /* CY_PSOC3 || CY_PSOC5 */
 
     return (result);
 }
 
 
 /*******************************************************************************
-* FUNCTION NAME:   CAN_1_GetTXErrorflag
+* FUNCTION NAME:   CAN_1_GetTXErrorFlag
 ********************************************************************************
 *
 * Summary:
@@ -855,14 +1179,21 @@ uint8 CAN_1_SetIrqMask(uint16 mask)
 *  None.
 *
 * Return:
-*  Indication whether the number of TX errors exceeds 0x60.
+*  The indication whether the number of TX errors exceeds 0x60.
 *
 *******************************************************************************/
 uint8 CAN_1_GetTXErrorFlag(void) 
 {
-    /* Get the state of the transmit error flag */
-    return (((CAN_1_ERR_SR_REG.byte[2u] & CAN_1_TX_ERROR_FLAG_MASK) ==
-              CAN_1_TX_ERROR_FLAG_MASK) ? 1u : 0u);
+    #if (CY_PSOC3 || CY_PSOC5)
+        /* Get state of transmit error flag */
+        return (((CAN_1_ERR_SR_REG.byte[2u] & CAN_1_TX_ERROR_FLAG_MASK) ==
+                  CAN_1_TX_ERROR_FLAG_MASK) ? 1u : 0u);
+    #else  /* CY_PSOC4 */
+        /* Get state of transmit error flag */
+        return (((CAN_1_ERR_SR_REG & CAN_1_TX_ERROR_FLAG_MASK) ==
+                  CAN_1_TX_ERROR_FLAG_MASK) ? 1u : 0u);
+    #endif /* CY_PSOC3 || CY_PSOC5 */
+
 }
 
 
@@ -878,19 +1209,26 @@ uint8 CAN_1_GetTXErrorFlag(void)
 *  None.
 *
 * Return:
-*  Indication whether the number of TX errors exceeds 0x60.
+*  The indication whether the number of TX errors exceeds 0x60.
 *
 *******************************************************************************/
 uint8 CAN_1_GetRXErrorFlag(void) 
 {
-    /* Get the state of the receive error flag */
-    return (((CAN_1_ERR_SR_REG.byte[2u] & CAN_1_RX_ERROR_FLAG_MASK) ==
-              CAN_1_RX_ERROR_FLAG_MASK) ? 1u : 0u);
+    #if (CY_PSOC3 || CY_PSOC5)
+        /* Get state of receive error flag */
+        return (((CAN_1_ERR_SR_REG.byte[2u] & CAN_1_RX_ERROR_FLAG_MASK) ==
+                  CAN_1_RX_ERROR_FLAG_MASK) ? 1u : 0u);
+    #else  /* CY_PSOC4 */
+        /* Get state of receive error flag */
+        return (((CAN_1_ERR_SR_REG & CAN_1_RX_ERROR_FLAG_MASK) ==
+                  CAN_1_RX_ERROR_FLAG_MASK) ? 1u : 0u);
+    #endif /* CY_PSOC3 || CY_PSOC5 */
+
 }
 
 
 /*******************************************************************************
-* FUNCTION NAME:   CAN_1_TXErrorCount
+* FUNCTION NAME:   CAN_1_GetTXErrorCount
 ********************************************************************************
 *
 * Summary:
@@ -900,18 +1238,23 @@ uint8 CAN_1_GetRXErrorFlag(void)
 *  None.
 *
 * Return:
-*  Number of Transmit Errors.
+*  The number of Transmit Errors.
 *
 *******************************************************************************/
 uint8 CAN_1_GetTXErrorCount(void) 
 {
-    /* Get the state of the transmit error count */
-    return (CAN_1_ERR_SR_REG.byte[0u]);    /* bits 7-0 */
+    #if (CY_PSOC3 || CY_PSOC5)
+        /* Get state of transmit error count */
+        return (CAN_1_ERR_SR_REG.byte[0u]);    /* bits 7-0 */
+    #else  /* CY_PSOC4 */
+        /* Get state of transmit error count */
+        return ((uint8) CAN_1_ERR_SR_REG);    /* bits 7-0 */
+    #endif /* CY_PSOC3 || CY_PSOC5 */
 }
 
 
 /*******************************************************************************
-* FUNCTION NAME:   CAN_1_RXErrorCount
+* FUNCTION NAME:   CAN_1_GetRXErrorCount
 ********************************************************************************
 *
 * Summary:
@@ -921,13 +1264,19 @@ uint8 CAN_1_GetTXErrorCount(void)
 *  None.
 *
 * Return:
-*  Number of Receive Errors.
+*  The number of Receive Errors.
 *
 *******************************************************************************/
 uint8 CAN_1_GetRXErrorCount(void) 
 {
-    /* Get the state of the receive error count */
-    return (CAN_1_ERR_SR_REG.byte[1u]);    /* bits 15-8 */
+    #if (CY_PSOC3 || CY_PSOC5)
+        /* Get state of receive error count */
+        return (CAN_1_ERR_SR_REG.byte[1u]);    /* bits 15-8 */
+    #else  /* CY_PSOC4 */
+        /* Get state of receive error count (bits 15-8) */
+        return ((uint8) (CAN_1_ERR_SR_REG >> CAN_1_ONE_BYTE_OFFSET));
+    #endif /* CY_PSOC3 || CY_PSOC5 */
+
 }
 
 
@@ -936,19 +1285,25 @@ uint8 CAN_1_GetRXErrorCount(void)
 ********************************************************************************
 *
 * Summary:
-*  This function returns error status of CAN Component.
+*  This function returns the error status of CAN Component.
 *
 * Parameters:
 *  None.
 *
 * Return:
-*  Error status.
+*  The error status.
 *
 *******************************************************************************/
 uint8 CAN_1_GetErrorState(void) 
 {
-    /* Get the error state of the receiver */
-    return (CAN_1_ERR_SR_REG.byte[2u] & CAN_1_ERROR_STATE_MASK);
+    #if (CY_PSOC3 || CY_PSOC5)
+        /* Get error state of receiver */
+        return (CAN_1_ERR_SR_REG.byte[2u] & CAN_1_ERROR_STATE_MASK);
+    #else  /* CY_PSOC4 */
+        /* Get error state of receiver */
+        return ((uint8) ((CAN_1_ERR_SR_REG >> CAN_1_TWO_BYTE_OFFSET) &
+                CAN_1_ERROR_STATE_MASK));
+    #endif /* CY_PSOC3 || CY_PSOC5 */
 }
 
 
@@ -957,17 +1312,17 @@ uint8 CAN_1_GetErrorState(void)
 ********************************************************************************
 *
 * Summary:
-*  This function configures all receive registers for particular mailbox.
+*  This function configures all receive registers for a particular mailbox.
 *
 * Parameters:
-*  rxConfig: Pointer to structure that contain all required values to configure
-*  all receive registers for particular mailbox.
+*  rxConfig: The pointer to a structure that contain all required values to
+*  configure all receive registers for a particular mailbox.
 *
 * Return:
-*  Indication if particular configuration has been accepted or rejected.
+*  The indication if particular configuration has been accepted or rejected.
 *   Define                             Description
-*    CYRET_SUCCESS                      Function passed successfully
-*    CAN_1_FAIL              Function failed
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
 *
 *******************************************************************************/
 uint8 CAN_1_RxBufConfig(const CAN_1_RX_CFG *rxConfig)
@@ -976,28 +1331,28 @@ uint8 CAN_1_RxBufConfig(const CAN_1_RX_CFG *rxConfig)
     uint8 result = CAN_1_FAIL;
 
     /* Write RX CMD Register */
-    CY_SET_REG32((reg32 *) &CAN_1_RX[rxConfig->rxmailbox].rxcmd, (rxConfig->rxcmd |
+    CY_SET_REG32((reg32 *) (&CAN_1_RX[rxConfig->rxmailbox].rxcmd), (rxConfig->rxcmd |
                  CAN_1_RX_WPN_SET));
-    if ((CY_GET_REG32((reg32 *) &CAN_1_RX[rxConfig->rxmailbox].rxcmd) &
+    if ((CY_GET_REG32((reg32 *) (&CAN_1_RX[rxConfig->rxmailbox].rxcmd)) &
          CAN_1_RX_READ_BACK_MASK) == (rxConfig->rxcmd & CAN_1_RX_WPN_CLEAR))
     {
         /* Write RX AMR Register */
-        CY_SET_REG32((reg32 *) &CAN_1_RX[rxConfig->rxmailbox].rxamr, rxConfig->rxamr);
-        if (CY_GET_REG32((reg32 *) &CAN_1_RX[rxConfig->rxmailbox].rxamr) == rxConfig->rxamr)
+        CY_SET_REG32((reg32 *) (&CAN_1_RX[rxConfig->rxmailbox].rxamr), rxConfig->rxamr);
+        if (CY_GET_REG32((reg32 *) (&CAN_1_RX[rxConfig->rxmailbox].rxamr)) == rxConfig->rxamr)
         {
             /* Write RX ACR Register */
-            CY_SET_REG32((reg32 *) &CAN_1_RX[rxConfig->rxmailbox].rxacr, rxConfig->rxacr);
-            if (CY_GET_REG32((reg32 *) &CAN_1_RX[rxConfig->rxmailbox].rxacr) == rxConfig->rxacr)
+            CY_SET_REG32((reg32 *) (&CAN_1_RX[rxConfig->rxmailbox].rxacr), rxConfig->rxacr);
+            if (CY_GET_REG32((reg32 *) (&CAN_1_RX[rxConfig->rxmailbox].rxacr)) == rxConfig->rxacr)
             {
                 /* Write RX AMRD Register */
-                CY_SET_REG32((reg32 *) &CAN_1_RX[rxConfig->rxmailbox].rxamrd, 0xFFFFFFFFu);
-                if (CY_GET_REG32((reg32 *) &CAN_1_RX[rxConfig->rxmailbox].rxamrd) == 0xFFFFFFFFu)
+                CY_SET_REG32((reg32 *) (&CAN_1_RX[rxConfig->rxmailbox].rxamrd), 0xFFFFFFFFu);
+                if (CY_GET_REG32((reg32 *) (&CAN_1_RX[rxConfig->rxmailbox].rxamrd)) == 0xFFFFFFFFu)
                 {
                     /* Write RX ACRD Register */
-                    CY_SET_REG32((reg32 *) &CAN_1_RX[rxConfig->rxmailbox].rxacrd, 0x00000000u);
-                    if (CY_GET_REG32((reg32 *) &CAN_1_RX[rxConfig->rxmailbox].rxacrd) == 0x00000000u)
+                    CY_SET_REG32((reg32 *) (&CAN_1_RX[rxConfig->rxmailbox].rxacrd), 0x00000000u);
+                    if (CY_GET_REG32((reg32 *) (&CAN_1_RX[rxConfig->rxmailbox].rxacrd)) == 0x00000000u)
                     {
-                            result = CYRET_SUCCESS;
+                        result = CYRET_SUCCESS;
                     }
                 }
             }
@@ -1013,34 +1368,33 @@ uint8 CAN_1_RxBufConfig(const CAN_1_RX_CFG *rxConfig)
 ********************************************************************************
 *
 * Summary:
-*  This function configures all transmit registers for particular mailbox.
+*  This function configures all transmit registers for a particular mailbox.
 *  Mailbox number contains CAN_1_TX_CFG structure.
 *
 * Parameters:
-*  txConfig: Pointer to structure that contain all required values to configure
-*  all transmit registers for particular mailbox.
+*  txConfig: The pointer to structure that contain all required values to
+*  configure all transmit registers for a particular mailbox.
 *
 * Return:
-*  Indication if particular configuration has been accepted or rejected.
+*  The indication if particular configuration has been accepted or rejected.
 *   Define                             Description
-*    CYRET_SUCCESS                      Function passed successfully
-*    CAN_1_FAIL              Function failed
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
 *
 *******************************************************************************/
-uint8 CAN_1_TxBufConfig(const CAN_1_TX_CFG *txConfig) 
+uint8 CAN_1_TxBufConfig(const CAN_1_TX_CFG *txConfig)
                                    
 {
     uint8 result = CAN_1_FAIL;
 
     /* Write TX CMD Register */
-    CY_SET_REG32((reg32 *) &CAN_1_TX[txConfig->txmailbox].txcmd, (txConfig->txcmd |
-                 CAN_1_TX_WPN_SET));
-    if ((CY_GET_REG32((reg32 *) & CAN_1_TX[txConfig->txmailbox].txcmd) &
+    CY_SET_REG32(CAN_1_TX_CMD_PTR(txConfig->txmailbox), (txConfig->txcmd | CAN_1_TX_WPN_SET));
+    if ((CY_GET_REG32(CAN_1_TX_CMD_PTR(txConfig->txmailbox)) &
         CAN_1_TX_READ_BACK_MASK) == (txConfig->txcmd & CAN_1_TX_WPN_CLEAR))
     {
         /* Write TX ID Register */
-        CY_SET_REG32( (reg32 *) &CAN_1_TX[txConfig->txmailbox].txid, txConfig->txid);
-        if (CY_GET_REG32( (reg32 *) &CAN_1_TX[txConfig->txmailbox].txid) == txConfig->txid)
+        CY_SET_REG32(CAN_1_TX_ID_PTR(txConfig->txmailbox), txConfig->txid);
+        if (CY_GET_REG32(CAN_1_TX_ID_PTR(txConfig->txmailbox)) == txConfig->txid)
         {
             result = CYRET_SUCCESS;
         }
@@ -1048,6 +1402,211 @@ uint8 CAN_1_TxBufConfig(const CAN_1_TX_CFG *txConfig)
 
     return (result);
 }
+
+
+#if (!(CY_PSOC3 || CY_PSOC5))
+
+/*******************************************************************************
+* FUNCTION NAME:   CAN_1_SetSwapDataEndianness
+********************************************************************************
+*
+* Summary:
+*  This function selects whether the data byte endianness of the CAN receive and
+*  transmit data fields has to be swapped or not swapped. This is useful to
+*  match the data byte endianness to the endian setting of the processor or the
+*  used CAN protocol.
+*
+* Parameters:
+*  swap: Swap Enable/Disable setting.
+*   Define                                   Description
+*   CAN_1_SWAP_ENDIANNESS_ENABLE   The endianness of transmitted/
+*                                             received data byte fields (Big
+*                                             endian) is not swapped during
+*                                             multibyte data transmission.
+*   CAN_1_SWAP_ENDIANNESS_DISABLE  The endianness of transmitted/
+*                                             received data byte fields is
+*                                             swapped (Little endian) during
+*                                             multi byte data transmission.
+*
+* Return:
+*  The indication whether the register is written and verified.
+*   Define                             Description
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
+*
+*******************************************************************************/
+uint8 CAN_1_SetSwapDataEndianness(uint8 swap)
+{
+    uint8 result = CAN_1_FAIL;
+
+    if (swap == CAN_1_SWAP_ENDIANNESS_DISABLE)    /* Big endian */
+    {
+        CAN_1_CFG_REG &= (uint32) (~CAN_1_ENDIANNESS_MASK);
+
+        /* Verify that bit is cleared */
+        if ((CAN_1_CFG_REG & CAN_1_ENDIANNESS_MASK) == 0u)
+        {
+            result = CYRET_SUCCESS;
+        }
+    }
+    else    /* Little endian */
+    {
+        CAN_1_CFG_REG |= CAN_1_ENDIANNESS_MASK;
+
+        /* Verify that bit is set */
+        if ((CAN_1_CFG_REG & CAN_1_ENDIANNESS_MASK) != 0u)
+        {
+            result = CYRET_SUCCESS;
+        }
+    }
+
+    return (result);
+}
+
+
+/*******************************************************************************
+* FUNCTION NAME:   CAN_1_SetErrorCaptureRegisterMode
+********************************************************************************
+*
+* Summary:
+*  This function sets the Error Capture register mode. The two modes are
+*  possible: Free Running and Error Capture.
+*
+* Parameters:
+*  ecrMode: The Error Capture register mode setting.
+*   Define                               Description
+*   CAN_1_ECR_FREE_RUNNING     The ECR captures the field and bit
+*                                         position within the current CAN frame.
+*   CAN_1_ECR_ERROR_CAPTURE    In this mode the ECR register only
+*                                         captures an error event. For
+*                                         successive error captures, the ECR
+*                                         needs to be armed again by writing
+*                                         to the ECR register.
+*
+* Return:
+*  The indication whether the register is written and verified.
+*   Define                             Description
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
+*
+*******************************************************************************/
+uint8 CAN_1_SetErrorCaptureRegisterMode(uint8 ecrMode)
+{
+    uint8 result = CAN_1_FAIL;
+
+    if (ecrMode == CAN_1_ECR_FREE_RUNNING)
+    {
+        CAN_1_CFG_REG &= (uint32) (~CAN_1_ECR_MODE_MASK);
+
+        /* Verify that bit is cleared */
+        if ((CAN_1_CFG_REG & CAN_1_ECR_MODE_MASK) == 0u)
+        {
+            result = CYRET_SUCCESS;
+        }
+    }
+    else    /* Capture mode */
+    {
+        CAN_1_CFG_REG |= CAN_1_ECR_MODE_MASK;
+
+        /* Verify that bit is set */
+        if ((CAN_1_CFG_REG & CAN_1_ECR_MODE_MASK) != 0u)
+        {
+            result = CYRET_SUCCESS;
+        }
+    }
+
+    return (result);
+}
+
+
+/*******************************************************************************
+* FUNCTION NAME:   CAN_1_ReadErrorCaptureRegister
+********************************************************************************
+*
+* Summary:
+*  This function returns the value of the Error Capture register.
+*
+* Parameters:
+*  None.
+*
+* Return:
+*  The value of the Error Capture register.
+*   Bit  Name          Values
+*    0    ECR_STATUS    0: The ECR register captured an error or it is a free
+*                          running mode
+*                       1: The ECR register is armed
+*   3:1   ERROR_TYPE    000 : Arbitration loss
+*                       001 : Bit Error
+*                       010 : Bit Stuffing Error
+*                       011 : Acknowledge Error
+*                       100 : Form Error
+*                       101 : CRC Error
+*                       Others : N/A
+*    4    TX_MODE       0: No status
+*                       1: CAN Controller is the transmitter
+*    5    RX_MODE       0: No status
+*                       1: CAN Controller is the receiver
+*  11:6   BIT           Bit number inside of Field
+*  12:16  Field         0x00 : Stopped
+*                       0x01 : Synchronize
+*                       0x05 : Interframe
+*                       0x06 : Bus Idle
+*                       0x07 : Start of Frame
+*                       0x08 : Arbitration
+*                       0x09 : Control
+*                       0x0A : Data
+*                       0x0B : CRC
+*                       0x0C : ACK
+*                       0x0D : End of frame
+*                       0x10 : Error flag
+*                       0x11 : Error echo
+*                       0x12 : Error delimiter
+*                       0x18 : Overload flag
+*                       0x19 : Overload echo
+*                       0x1A : Overload delimiter
+*                       Others : N/A
+*
+*******************************************************************************/
+uint32 CAN_1_ReadErrorCaptureRegister(void)
+{
+    return (CAN_1_ECR_REG);
+}
+
+
+/*******************************************************************************
+* FUNCTION NAME:   CAN_1_ArmErrorCaptureRegister
+********************************************************************************
+*
+* Summary:
+*  This function arms the Error Capture register when the ECR is in the Error
+*  Capture mode, by setting the ECR_STATUS bit in the ECR register.
+*
+* Parameters:
+*  None.
+*
+* Return:
+*  The indication whether the register is written and verified.
+*   Define                             Description
+*    CYRET_SUCCESS                      The function passed successfully
+*    CAN_1_FAIL              The function failed
+*
+*******************************************************************************/
+uint8 CAN_1_ArmErrorCaptureRegister(void)
+{
+    uint8 result = CAN_1_FAIL;
+
+    CAN_1_ECR_REG |= CAN_1_ECR_STATUS_ARM;
+
+    /* Verify that bit is set */
+    if ((CAN_1_ECR_REG & CAN_1_ECR_STATUS_ARM) != 0u)
+    {
+        result = CYRET_SUCCESS;
+    }
+
+    return (result);
+}
+
+#endif /* (!(CY_PSOC3 || CY_PSOC5)) */
 
 
 /* [] END OF FILE */

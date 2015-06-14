@@ -1,6 +1,6 @@
 /*******************************************************************************
 * File Name: rtc_i2c_SLAVE.c
-* Version 3.30
+* Version 3.50
 *
 * Description:
 *  This file provides the source code of APIs for the I2C component Slave mode.
@@ -8,7 +8,7 @@
 * Note:
 *
 *******************************************************************************
-* Copyright 2012, Cypress Semiconductor Corporation.  All rights reserved.
+* Copyright 2012-2015, Cypress Semiconductor Corporation. All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
@@ -16,7 +16,7 @@
 
 #include "rtc_i2c_PVT.h"
 
-#if(rtc_i2c_MODE_SLAVE_ENABLED)
+#if (rtc_i2c_MODE_SLAVE_ENABLED)
 
 /**********************************
 *      System variables
@@ -34,9 +34,9 @@ volatile uint8 * rtc_i2c_slWrBufPtr;   /* Pointer to Receive buffer  */
 volatile uint8   rtc_i2c_slWrBufSize;  /* Slave Receive buffer size  */
 volatile uint8   rtc_i2c_slWrBufIndex; /* Slave Receive buffer Index */
 
-#if(rtc_i2c_SW_ADRR_DECODE)
+#if (rtc_i2c_SW_ADRR_DECODE)
     volatile uint8 rtc_i2c_slAddress;  /* Software address variable */
-#endif   /* (rtc_i2c_SW_ADRR_DECODE) */
+#endif /* (rtc_i2c_SW_ADRR_DECODE) */
 
 
 /*******************************************************************************
@@ -47,18 +47,19 @@ volatile uint8   rtc_i2c_slWrBufIndex; /* Slave Receive buffer Index */
 *  Returns I2C slave's communication status.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
 *  Current status of I2C slave.
 *
 * Global variables:
-*  rtc_i2c_slStatus  - used to store current status of I2C slave.
+*  rtc_i2c_slStatus - The global variable used to store a current
+*                              status of the I2C slave.
 *
 *******************************************************************************/
 uint8 rtc_i2c_SlaveStatus(void) 
 {
-    return(rtc_i2c_slStatus);
+    return (rtc_i2c_slStatus);
 }
 
 
@@ -71,27 +72,32 @@ uint8 rtc_i2c_SlaveStatus(void)
 *  The rtc_i2c_SSTAT_RD_BUSY flag is not effected by clear.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
 *  Current read status of I2C slave.
 *
 * Global variables:
-*  rtc_i2c_slStatus  - used to store current status of I2C slave.
+*  rtc_i2c_slStatus - The global variable used to store a current
+*                              status of the I2C slave.
 *
 * Reentrant:
-*  No
+*  No.
 *
 *******************************************************************************/
 uint8 rtc_i2c_SlaveClearReadStatus(void) 
 {
     uint8 status;
 
+    rtc_i2c_DisableInt(); /* Lock from interrupt */
+
     /* Mask of transfer complete flag and Error status */
     status = (rtc_i2c_slStatus & rtc_i2c_SSTAT_RD_MASK);
-    rtc_i2c_slStatus &= ((uint8) ~rtc_i2c_SSTAT_RD_CLEAR);
+    rtc_i2c_slStatus &= (uint8) ~rtc_i2c_SSTAT_RD_CLEAR;
 
-    return(status);
+    rtc_i2c_EnableInt(); /* Release lock */
+
+    return (status);
 }
 
 
@@ -104,27 +110,32 @@ uint8 rtc_i2c_SlaveClearReadStatus(void)
 *  The rtc_i2c_SSTAT_WR_BUSY flag is not effected by clear.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
 *  Current write status of I2C slave.
 *
 * Global variables:
-*  rtc_i2c_slStatus  - used to store current status of I2C slave.
+*  rtc_i2c_slStatus - The global variable used to store a current
+*                              status of the I2C slave.
 *
 * Reentrant:
-*  No
+*  No.
 *
 *******************************************************************************/
 uint8 rtc_i2c_SlaveClearWriteStatus(void) 
 {
     uint8 status;
 
+    rtc_i2c_DisableInt(); /* Lock from interrupt */
+
     /* Mask of transfer complete flag and Error status */
     status = (rtc_i2c_slStatus & rtc_i2c_SSTAT_WR_MASK);
-    rtc_i2c_slStatus &= ((uint8) ~rtc_i2c_SSTAT_WR_CLEAR);
+    rtc_i2c_slStatus &= (uint8) ~rtc_i2c_SSTAT_WR_CLEAR;
 
-    return(status);
+    rtc_i2c_EnableInt(); /* Release lock */
+
+    return (status);
 }
 
 
@@ -140,23 +151,24 @@ uint8 rtc_i2c_SlaveClearWriteStatus(void)
 *  address between 0 and 127.
 *
 * Return:
-*  None
+*  None.
 *
 * Global variables:
-*  rtc_i2c_Address  - used to store I2C slave address for the primary
-*  device when software address detect feature is used.
+*  rtc_i2c_Address  - The global variable used to store an I2C slave
+*                              address for the primary device when the software
+*                              address detect feature is used.
 *
 * Reentrant:
-*  No
+*  No.
 *
 *******************************************************************************/
 void rtc_i2c_SlaveSetAddress(uint8 address) 
 {
-    #if(rtc_i2c_SW_ADRR_DECODE)
-        rtc_i2c_slAddress = (address & rtc_i2c_SLAVE_ADDR_MASK);
-    #else
-        rtc_i2c_ADDR_REG  = (address & rtc_i2c_SLAVE_ADDR_MASK);
-    #endif /* (rtc_i2c_SW_ADRR_DECODE) */
+#if (rtc_i2c_SW_ADRR_DECODE)
+    rtc_i2c_slAddress = (address & rtc_i2c_SLAVE_ADDR_MASK);
+#else
+    rtc_i2c_ADDR_REG  = (address & rtc_i2c_SLAVE_ADDR_MASK);
+#endif /* (rtc_i2c_SW_ADRR_DECODE) */
 }
 
 
@@ -173,31 +185,37 @@ void rtc_i2c_SlaveSetAddress(uint8 address)
 *  bufSize:  Size of the read buffer exposed to the I2C master.
 *
 * Return:
-*  None
+*  None.
 *
 * Global variables:
-*  rtc_i2c_slRdBufPtr   - used to store pointer to slave read buffer.
-*  rtc_i2c_slRdBufSize  - used to store salve read buffer size.
-*  rtc_i2c_slRdBufIndex - used to store current index within slave
-*  read buffer.
+*  rtc_i2c_slRdBufPtr   - The global variable used to store a pointer
+*                                  to the slave read buffer.
+*  rtc_i2c_slRdBufSize  - The global variable used to store a slave
+*                                  read buffer size.
+*  rtc_i2c_slRdBufIndex - The global variable used to store a current
+*                                  index within the slave read buffer.
 *
 * Side Effects:
 *  If this function is called during a bus transaction, data from the previous
-*  buffer location and the beginning of current buffer may be transmitted.
+*  buffer location and the beginning of the current buffer may be transmitted.
 *
 * Reentrant:
-*  No
+*  No.
 *
 *******************************************************************************/
 void rtc_i2c_SlaveInitReadBuf(uint8 * rdBuf, uint8 bufSize)
      
 {
-    /* Check for proper buffer */
-    if(NULL != rdBuf)
+    if (NULL != rdBuf)
     {
-        rtc_i2c_slRdBufPtr   = (volatile uint8 *) rdBuf;    /* Set buffer pointer */
-        rtc_i2c_slRdBufSize  = bufSize;    /* Set buffer size */
+        rtc_i2c_DisableInt(); /* Lock from interrupt */
+
+        /* Set buffer pointer */
+        rtc_i2c_slRdBufPtr   = (volatile uint8 *) rdBuf;
+        rtc_i2c_slRdBufSize  = bufSize;    /* Set buffer size     */
         rtc_i2c_slRdBufIndex = 0u;         /* Clears buffer index */
+
+        rtc_i2c_EnableInt(); /* Release lock */
     }
 }
 
@@ -215,31 +233,37 @@ void rtc_i2c_SlaveInitReadBuf(uint8 * rdBuf, uint8 bufSize)
 *  bufSize:  Size of the buffer exposed to the I2C master.
 *
 * Return:
-*  None
+*  None.
 *
 * Global variables:
-*  rtc_i2c_slWrBufPtr   - used to store pointer to slave write buffer.
-*  rtc_i2c_slWrBufSize  - used to store salve write buffer size.
-*  rtc_i2c_slWrBufIndex - used to store current index within slave
-*  write buffer.
+*  rtc_i2c_slWrBufPtr   - The global variable used to store a pointer
+*                                  to the slave write buffer.
+*  rtc_i2c_slWrBufSize  - The global variable used to store a slave
+*                                  write buffer size.
+*  rtc_i2c_slWrBufIndex - The global variable used to store a current
+*                                  index within the slave write buffer.
 *
 * Side Effects:
 *  If this function is called during a bus transaction, data from the previous
-*  buffer location and the beginning of current buffer may be transmitted.
+*  buffer location and the beginning of the current buffer may be transmitted.
 *
 * Reentrant:
-*  No
+*  No.
 *
 *******************************************************************************/
 void rtc_i2c_SlaveInitWriteBuf(uint8 * wrBuf, uint8 bufSize)
      
 {
-    /* Check for proper buffer */
-    if(NULL != wrBuf)
+    if (NULL != wrBuf)
     {
-        rtc_i2c_slWrBufPtr   = (volatile uint8 *) wrBuf;  /* Set buffer pointer */
-        rtc_i2c_slWrBufSize  = bufSize;   /* Set buffer size */
-        rtc_i2c_slWrBufIndex = 0u;        /* Clears buffer index */
+        rtc_i2c_DisableInt(); /* Lock from interrupt */
+
+         /* Set buffer pointer */
+        rtc_i2c_slWrBufPtr   = (volatile uint8 *) wrBuf;
+        rtc_i2c_slWrBufSize  = bufSize;    /* Set buffer size     */
+        rtc_i2c_slWrBufIndex = 0u;         /* Clears buffer index */
+
+        rtc_i2c_EnableInt(); /* Release lock */
     }
 }
 
@@ -254,19 +278,19 @@ void rtc_i2c_SlaveInitWriteBuf(uint8 * wrBuf, uint8 bufSize)
 *  The maximum return value will be the size of the read buffer.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
 *  Bytes read by master.
 *
 * Global variables:
-*  rtc_i2c_slRdBufIndex - used to store current index within slave
-*  read buffer.
+*  rtc_i2c_slRdBufIndex - The global variable used to store a current
+*                                  index within the slave read buffer.
 *
 *******************************************************************************/
 uint8 rtc_i2c_SlaveGetReadBufSize(void) 
 {
-    return(rtc_i2c_slRdBufIndex);
+    return (rtc_i2c_slRdBufIndex);
 }
 
 
@@ -280,19 +304,19 @@ uint8 rtc_i2c_SlaveGetReadBufSize(void)
 *  The maximum return value will be the size of the write buffer.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
 *  Bytes written by master.
 *
 * Global variables:
-*  rtc_i2c_slWrBufIndex - used to store current index within slave
-*  write buffer.
+*  rtc_i2c_slWrBufIndex - The global variable used to store a current
+*                                  index within the slave write buffer.
 *
 *******************************************************************************/
 uint8 rtc_i2c_SlaveGetWriteBufSize(void) 
 {
-    return(rtc_i2c_slWrBufIndex);
+    return (rtc_i2c_slWrBufIndex);
 }
 
 
@@ -305,17 +329,17 @@ uint8 rtc_i2c_SlaveGetWriteBufSize(void)
 *  read by the master will be the first byte in the read buffer.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
 *
 * Global variables:
-*  rtc_i2c_slRdBufIndex - used to store current index within slave
-*  read buffer.
+*  rtc_i2c_slRdBufIndex - The global variable used to store a current
+*                                  index the within slave read buffer.
 *
 * Reentrant:
-*  No
+*  No.
 *
 *******************************************************************************/
 void rtc_i2c_SlaveClearReadBuf(void) 
@@ -333,17 +357,17 @@ void rtc_i2c_SlaveClearReadBuf(void)
 *  written by the master will be the first byte in the write buffer.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
 *
 * Global variables:
-*  rtc_i2c_slWrBufIndex - used to store current index within slave
-*  write buffer.
+*  rtc_i2c_slWrBufIndex - The global variable used to store a current
+*                                  index within the slave write buffer.
 *
 * Reentrant:
-*  No
+*  No.
 *
 *******************************************************************************/
 void rtc_i2c_SlaveClearWriteBuf(void) 

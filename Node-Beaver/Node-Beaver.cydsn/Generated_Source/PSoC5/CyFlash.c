@@ -1,6 +1,6 @@
 /*******************************************************************************
 * File Name: CyFlash.c
-* Version 4.20
+* Version 5.0
 *
 *  Description:
 *   Provides an API for the FLASH/EEPROM.
@@ -13,7 +13,7 @@
 *   System Reference Guide provided with PSoC Creator.
 *
 ********************************************************************************
-* Copyright 2008-2014, Cypress Semiconductor Corporation. All rights reserved.
+* Copyright 2008-2015, Cypress Semiconductor Corporation. All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
@@ -289,13 +289,13 @@ cystatus CySetTemp(void)
 *
 * Summary:
 *  Sets the user supplied temporary buffer to store SPC data while performing
-*  Flash and EEPROM commands. This buffer is only necessary when the Flash ECC is
-*  disabled.
+*  Flash and EEPROM commands. This buffer is only necessary when the Flash ECC
+*  is disabled.
 *
 * Parameters:
 *  buffer:
-*   The address of a block of memory to store temporary memory. The size of the block
-*   of memory is CYDEV_FLS_ROW_SIZE + CYDEV_ECC_ROW_SIZE.
+*   The address of a block of memory to store temporary memory. The size of the
+*   block of memory is CYDEV_FLS_ROW_SIZE + CYDEV_ECC_ROW_SIZE.
 *
 * Return:
 *  status:
@@ -387,8 +387,8 @@ cystatus CyWriteRowData(uint8 arrayId, uint16 rowAddress, const uint8 * rowData)
     ********************************************************************************
     *
     * Summary:
-    *  Sends a command to the SPC to load and program a row of config data in the Flash.
-    *  This function is only valid for Flash array IDs (not for EEPROM).
+    *  Sends a command to the SPC to load and program a row of config data in the
+    *  Flash. This function is only valid for Flash array IDs (not for EEPROM).
     *
     * Parameters:
     *  arrayId:      ID of the array to write
@@ -556,9 +556,9 @@ cystatus CyWriteRowFull(uint8 arrayId, uint16 rowNumber, const uint8* rowData, u
 *
 * Summary:
 *  Sets the number of clock cycles the cache will wait before it samples data
-*  coming back from the Flash. This function must be called before increasing the CPU
-*  clock frequency. It can optionally be called after lowering the CPU clock
-*  frequency in order to improve the CPU performance.
+*  coming back from the Flash. This function must be called before increasing
+*  the CPU clock frequency. It can optionally be called after lowering the CPU
+*  clock frequency in order to improve the CPU performance.
 *
 * Parameters:
 *  uint8 freq:

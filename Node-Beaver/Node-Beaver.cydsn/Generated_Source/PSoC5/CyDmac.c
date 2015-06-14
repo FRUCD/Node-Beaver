@@ -1,6 +1,6 @@
 /*******************************************************************************
 * File Name: CyDmac.c
-* Version 4.20
+* Version 5.0
 *
 * Description:
 *  Provides an API for the DMAC component. The API includes functions for the
@@ -21,7 +21,7 @@
 *  The user can overwrite this once the TD is allocated.
 *
 ********************************************************************************
-* Copyright 2008-2014, Cypress Semiconductor Corporation.  All rights reserved.
+* Copyright 2008-2015, Cypress Semiconductor Corporation.  All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
@@ -102,13 +102,13 @@ void CyDmacConfigure(void)
 *   are determined by the BUS_TIMEOUT field in the PHUBCFG register.
 *
 * Theory:
-*  Once an error occurs the error bits are sticky and are only cleared by 
+*  Once an error occurs the error bits are sticky and are only cleared by
 *  writing 1 to the error register.
 *
 *******************************************************************************/
 uint8 CyDmacError(void) 
 {
-    return((uint8)(((uint32) 0x0Fu) & *CY_DMA_ERR_PTR));
+    return((uint8)(((uint32) 0x0Eu) & *CY_DMA_ERR_PTR));
 }
 
 
@@ -138,7 +138,7 @@ uint8 CyDmacError(void)
 *  None
 *
 * Theory:
-*  Once an error occurs the error bits are sticky and are only cleared by 
+*  Once an error occurs the error bits are sticky and are only cleared by
 *  writing 1 to the error register.
 *
 *******************************************************************************/

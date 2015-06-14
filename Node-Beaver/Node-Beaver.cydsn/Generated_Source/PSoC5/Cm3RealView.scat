@@ -1,10 +1,10 @@
 #! armcc -E
-; The first line specifies a preprocessor command that the linker invokes 
+; The first line specifies a preprocessor command that the linker invokes
 ; to pass a scatter file through a C preprocessor.
 
 ;********************************************************************************
 ;* File Name: Cm3RealView.scat
-;* Version 4.20
+;* Version 5.0
 ;*
 ;*  Description:
 ;*  This Linker Descriptor file describes the memory layout of the PSoC5
@@ -25,7 +25,7 @@
 ;*
 ;*
 ;********************************************************************************
-;* Copyright 2008-2014, Cypress Semiconductor Corporation.  All rights reserved.
+;* Copyright 2008-2015, Cypress Semiconductor Corporation.  All rights reserved.
 ;* You may use this file only in accordance with the license, terms, conditions,
 ;* disclaimers, and limitations in the end user license agreement accompanying
 ;* the software package with which this file was provided.
@@ -41,7 +41,8 @@
 
 
 ; Define application base address
-#if (CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_LOADABLE)
+#if (CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_LOADABLE || \
+     CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_LOADABLEANDBOOTLOADER)
     #define CY_APPL_NUM     1
     #define CY_APPL_MAX     1
     #define CY_EE_IN_BTLDR  
@@ -68,7 +69,8 @@
 
 
 ; Place Bootloader at the beginning of Flash
-#if (CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_LOADABLE)
+#if (CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_LOADABLE || \
+     CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_LOADABLEANDBOOTLOADER)
 
     CYBOOTLOADER 0
     {
@@ -79,7 +81,7 @@
     }
 
     #if CY_APPL_ORIGIN
-        ScatterAssert(APPL_START > LoadLimit(CYBOOTLOADER))
+        ScatterAssert(APPL_START >= LoadLimit(CYBOOTLOADER))
     #endif
 
 #endif
@@ -122,23 +124,24 @@ APPLICATION APPL_START (CY_FLASH_SIZE - APPL_START)
 }
 
 
-#if (CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_BOOTLOADER || CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_MULTIAPPBOOTLOADER)
+#if (CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_BOOTLOADER || \
+     CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_MULTIAPPBOOTLOADER || \
+     CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_LAUNCHER)
 
     CYLOADERMETA (CY_FLASH_SIZE - CY_METADATA_SIZE)
     {
         .cyloadermeta +0 { * (.cyloadermeta) }
     }
 
-#else
+#endif
 
-    #if (CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_LOADABLE)
+#if (CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_LOADABLE || \
+     CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_LOADABLEANDBOOTLOADER)
 
-        CYLOADABLEMETA (CY_FLASH_SIZE - CY_FLASH_ROW_SIZE * (CY_APPL_NUM - 1) - CY_METADATA_SIZE)
-        {
-            .cyloadablemeta +0 { * (.cyloadablemeta) }
-        }
-    
-    #endif
+    CYLOADABLEMETA (CY_FLASH_SIZE - CY_FLASH_ROW_SIZE * (CY_APPL_NUM - 1) - CY_METADATA_SIZE)
+    {
+        .cyloadablemeta +0 { * (.cyloadablemeta) }
+    }
 
 #endif
 
@@ -180,7 +183,8 @@ CYMETA 0x90500000
     .cymeta +0 { * (.cymeta) }
 }
 
-#if (CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_LOADABLE)
+#if (CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_LOADABLE || \
+     CYDEV_PROJ_TYPE == CYDEV_PROJ_TYPE_LOADABLEANDBOOTLOADER)
 
     CYLOADERMETA +0
     {

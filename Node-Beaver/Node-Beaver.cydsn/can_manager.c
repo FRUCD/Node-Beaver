@@ -2,10 +2,8 @@
 
 
 
-const uint8_t test_message[] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
 volatile DataPacket can_queue[CAN_QUEUE_LENGTH];
-volatile uint16_t can_head = 0;
-volatile uint16_t can_tail = 0;
+volatile uint16_t can_head = 0, can_tail = 0;
 
 
 
@@ -18,9 +16,10 @@ void can_init()
 
 
 
-
+/*
 uint8_t can_test_send()
 {
+	const uint8_t test_message[] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
 	uint8_t i, state;
 	CAN_1_TX_MSG message;
 	CAN_1_DATA_BYTES_MSG payload;
@@ -36,20 +35,9 @@ uint8_t can_test_send()
 		payload.byte[i] = test_message[i];
 
 	state = CAN_1_SendMsg(&message);
-
-/*
-	if(state != CYRET_SUCCESS)
-	{
-		LED_Write(1);
-		return CAN_1_FAIL;
-	}
-
-	LED_Write(0);
-	return CYRET_SUCCESS;
-*/
-	
 	return state;
 } // can_test_send()
+*/
 
 
 /* can_get()
@@ -94,45 +82,3 @@ void can_get(DataPacket* data_queue, uint16_t* data_head, uint16_t* data_tail)
 	can_head = can_tail = 0;
 	CyExitCriticalSection(atomic_state); // END ATOMIC
 } // can_receive()
-
-
-/*
-void wrap_data_queue(uint16_t* data_head, uint16_t* data_tail)
-{
-	*data_tail = (*data_tail + 1) % DATA_QUEUE_LENGTH;
-
-	if(*data_tail == *data_head) // if need to roll data queue
-		*data_head = (*data_head + 1) % DATA_QUEUE_LENGTH;
-} // wrap_data_queue()
-
-
-
-inline void process_default(DataPacket* data_queue, uint16_t* data_head,
-	uint16_t* data_tail)
-{
-	uint8_t index;
-	data_queue[*data_tail].type = TYPE_UNKNOWN;
-	data_queue[*data_tail].value = 0; // wipe value
-
-	for(index = 0; index < can_queue[can_head].length; index++)
-	{
-		data_queue[*data_tail].value <<= 8; // Byte 0 is left-most
-		data_queue[*data_tail].value |= can_queue[can_head].data[index];
-	} // for all bytes in message
-
-	wrap_data_queue(data_head, data_tail);
-} // process_default()
-
-
-
-inline void process_throttle(DataPacket* data_queue, uint16_t* data_head,
-	uint16_t* data_tail)
-{
-	data_queue[*data_tail].type = TYPE_THROTTLE_1;
-	data_queue[*data_tail].value = can_queue[can_head].data[1]; // upper
-	data_queue[*data_tail].value <<= 8;
-	data_queue[*data_tail].value |= can_queue[can_head].data[0]; // lower
-
-	wrap_data_queue(data_head, data_tail);
-} // process_throttle()
-*/

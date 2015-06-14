@@ -1,59 +1,43 @@
-#include "time.h"
+#include "time_manager.h"
 
 
 
 volatile Time current_time;
-volatile uint8_t init_status = 0, refresh_status = 0;
-volatile uint32_t next_millis = 0;
-volatile uint8_t blink = 0;
+volatile uint8_t refresh_status = 0;
 
 
 
-CY_ISR(time_one_sec_vector)
-{
-	if(!init_status)
-	{
-		millis_timer_WriteCounter(0); // start ms at 0
-		next_millis = -1000;
-		init_status = 1;	
-	} // if need to init
-	else
-	{
-		//millis_timer_WriteCounter(next_millis); // snap ms counter to next ms
-		//next_millis = (next_millis - 1000) & 0xFFFFFF; // calculate next ms and wrap
-	} // else snap to next millis
-} // CY_ISR(time_one_sec_vector)
-
-
-
+/* CY_ISR(time_refresh_vector)
+	
+	Runs every 10 seconds and retreives the current time from the RTC and the
+	millisecond counter from millis_timer.
+	Sets the refresh_status flag, which will trigger time_announce() to inject a
+	message containing the current time to the data_queue.
+*/
 CY_ISR(time_refresh_vector)
 {
-	// get UNIX Time with milli counter ready for injection into data_queue
 	current_time = time_retreive(); // get time from rtc
-	current_time.millicounter = millis_timer_ReadCounter();
 	refresh_status = 1;
 } // CY_ISR(time_refresh_vector)
 
 
 
-void time_init()
-{
-	// fill struct for debugging
-	current_time.month = 12;
-	current_time.day = 30;
-	current_time.year = 14;
-	current_time.hour = 1;
-	current_time.minute = 2;
-	current_time.second = 3;
-	current_time.millicounter= 4;
+/* time_init()
+	Takes and Returns nothing.
 
-	rtc_i2c_Start();
-	//configure RTC
+	Initializes i2c with RTC and configures the RTC. Starts the timers and
+	time_refresh_vector interrupt.
+
+	RTC PART: MAXIM DS3231
+*/
+void time_init(void)
+{
+	rtc_i2c_Start(); // start i2c to RTC
 
 	// configure RTC
 	rtc_i2c_MasterSendStart(RTC_ADDR, 0);
 	rtc_i2c_MasterWriteByte(RTC_CONFIG);
-	rtc_i2c_MasterWriteByte(0x40);
+	rtc_i2c_MasterWriteByte(0x40); // 1Hz clock
 	rtc_i2c_MasterSendStop();
 
 
@@ -71,36 +55,42 @@ void time_init()
 	rtc_i2c_MasterWriteByte(RTC_HOURS);
 	rtc_i2c_MasterWriteByte(0x40 | byte);
 	rtc_i2c_MasterSendStop();
-/*
-	time_one_sec_isr_StartEx(time_one_sec_vector); // enable rtc isr
-	
-	while(!init_status); // wait for second synchronization
-*/
+
+	//time_one_sec_isr_StartEx(time_one_sec_vector); // enable rtc isr
+	//while(!init_status); // wait for second synchronization
+
 	time_refresh_isr_StartEx(time_refresh_vector); // enable 10 second isr
 
 	// Start timers
 	millis_timer_Start();
 	time_refresh_timer_Start();
-
-	current_time = time_retreive();
 } // time_init()
 
 
 
+/* time_announce()
+	Takes a DataPacket queue with its head and tail indices.
+	Returns nothing.
+
+	If the refresh_status flag is set, the function will insert a message
+	containing a time into the data_queue. The actual time and millisecond counter
+	is set by the time_refresh_vector interrupt.
+*/
 void time_announce(DataPacket* data_queue, uint16_t* data_head,
 	uint16_t* data_tail)
 {
-	/* Time Frame
-		START COUNTER year_upper, year_lower, month, date, hour, minutes, seconds
+	/* Time Frame for serial data
+		START COUNTER zero year_upper, year_lower, month, date, hour, minutes, seconds
 	*/
-
 
 	if(refresh_status)
 	{
 		data_queue[*data_tail].id = ID_TIME;
 		data_queue[*data_tail].length = 8;
-		data_queue[*data_tail].millicounter = current_time.millicounter;
 
+		uint8_t atomic_state = CyEnterCriticalSection(); // BEGIN ATOMIC
+
+		data_queue[*data_tail].millicounter = current_time.millicounter;
 		data_queue[*data_tail].data[0] = 0;
 		data_queue[*data_tail].data[1] = current_time.year >> 8;
 		data_queue[*data_tail].data[2] = current_time.year;
@@ -110,6 +100,8 @@ void time_announce(DataPacket* data_queue, uint16_t* data_head,
 		data_queue[*data_tail].data[6] = current_time.minute;
 		data_queue[*data_tail].data[7] = current_time.second;
 
+		CyExitCriticalSection(atomic_state); // END ATOMIC
+
 		*data_tail = (*data_tail + 1) % DATA_QUEUE_LENGTH; // increment data tail
 
 		if(*data_tail == *data_head) // if need to roll data queue
@@ -117,20 +109,77 @@ void time_announce(DataPacket* data_queue, uint16_t* data_head,
 
 		refresh_status = 0;
 	} // if refresh status set by time_refresh isr
-
-} // time_refresh()
-
+} // time_announce()
 
 
-Time time_get()
+
+/* time_get()
+	Takes nothing. Returns the current time with millicounter.
+*/
+Time time_get(void)
 {
-	current_time.millicounter = millis_timer_ReadCounter();
+	current_time = time_retreive();
 	return current_time;
 } // time_get()
 
 
 
-Time time_retreive()
+void time_set(Time now)
+{
+	// Set 24 hour
+	uint8_t byte;
+
+	rtc_i2c_MasterSendStart(RTC_ADDR, 0);
+	rtc_i2c_MasterWriteByte(0x00); // move to top of register file
+
+	byte = now.second % 10; // seconds
+	byte |= (now.second / 10) << 4; // 10 seconds
+	rtc_i2c_MasterWriteByte(byte);
+
+	byte = now.minute % 10; // minute
+	byte |= (now.minute/ 10) << 4; // 10 minute
+	rtc_i2c_MasterWriteByte(byte);
+
+	byte = now.hour % 10; // hour
+	byte |= (now.hour / 10) << 4; // 10 hour
+	rtc_i2c_MasterWriteByte(byte);
+
+	rtc_i2c_MasterSendStop(); // End Receiving
+
+	// skip day
+
+	rtc_i2c_MasterSendStart(RTC_ADDR, 0);
+	rtc_i2c_MasterWriteByte(RTC_DATE); // move to Date
+
+	byte = now.day % 10; // day
+	byte |= (now.day / 10) << 4; // 10 day
+	rtc_i2c_MasterWriteByte(byte);
+
+	byte = now.month % 10; // month
+	byte |= (now.month / 10) << 4; // 10 month
+	rtc_i2c_MasterWriteByte(byte);
+
+	byte = now.year % 10; // year
+	byte |= (now.year / 10) << 4; // 10 year
+	rtc_i2c_MasterWriteByte(byte);
+
+	rtc_i2c_MasterSendStop(); // End Receiving
+} // time_set()
+
+
+
+/* time_retreive()
+	Takes nothing. Returns the current time.
+
+	Communicates with an external RTC with i2c to obtain the current time.
+	Sets the register pointer in the RTC to 0 and then reads the data sequencially
+	from the register. The RTC auto-increments after reading each byte. Converts
+	the binary encoded decimal to simple binary representation. Reads the
+	millisecond counter into the current time.
+
+	RTC PART: MAXIM DS3231
+*/
+Time time_retreive(void)
 {
 	Time tmp_time;
 	uint8_t byte;
@@ -139,9 +188,8 @@ Time time_retreive()
 	rtc_i2c_MasterSendStart(RTC_ADDR, 0);
 	rtc_i2c_MasterWriteByte(0x00);
 	rtc_i2c_MasterSendStop();
-
 	
-
+	// Read data from registers
 	rtc_i2c_MasterSendStart(RTC_ADDR, 1); // Begin receiving
 
 	byte = rtc_i2c_MasterReadByte(1);

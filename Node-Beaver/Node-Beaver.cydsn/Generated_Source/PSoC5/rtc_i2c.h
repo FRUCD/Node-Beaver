@@ -1,14 +1,13 @@
 /*******************************************************************************
 * File Name: rtc_i2c.h
-* Version 3.30
+* Version 3.50
 *
 * Description:
 *  This file provides constants and parameter values for the I2C component.
-*
-* Note:
+
 *
 ********************************************************************************
-* Copyright 2008-2012, Cypress Semiconductor Corporation. All rights reserved.
+* Copyright 2008-2015, Cypress Semiconductor Corporation. All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
@@ -23,7 +22,7 @@
 
 /* Check if required defines such as CY_PSOC5LP are available in cy_boot */
 #if !defined (CY_PSOC5LP)
-    #error Component I2C_v3_30 requires cy_boot v3.10 or later
+    #error Component I2C_v3_50 requires cy_boot v3.10 or later
 #endif /* (CY_PSOC5LP) */
 
 
@@ -99,8 +98,7 @@
                                                         rtc_i2c_TIMEOUT_IMPLEMENTATION)
 
 #define rtc_i2c_TIMEOUT_FF_ENABLED         (rtc_i2c_TIMEOUT_ENABLED && \
-                                                     rtc_i2c_TIMEOUT_FF_IMPLEMENTED && \
-                                                     CY_PSOC5LP)
+                                                     rtc_i2c_TIMEOUT_FF_IMPLEMENTED)
 
 #define rtc_i2c_TIMEOUT_UDB_ENABLED        (rtc_i2c_TIMEOUT_ENABLED && \
                                                      rtc_i2c_TIMEOUT_UDB_IMPLEMENTED)
@@ -121,43 +119,20 @@ typedef struct
 {
     uint8 enableState;
 
-    #if(rtc_i2c_FF_IMPLEMENTED)
-        uint8 xcfg;
-        uint8 cfg;
+#if (rtc_i2c_FF_IMPLEMENTED)
+    uint8 xcfg;
+    uint8 cfg;
+    uint8 addr;
+    uint8 clkDiv1;
+    uint8 clkDiv2;
+#else
+    uint8 control;
+#endif /* (rtc_i2c_FF_IMPLEMENTED) */
 
-        #if(rtc_i2c_MODE_SLAVE_ENABLED)
-            uint8 addr;
-        #endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
-
-        #if(CY_PSOC5A)
-            uint8 clkDiv;
-        #else
-            uint8 clkDiv1;
-            uint8 clkDiv2;
-        #endif /* (CY_PSOC5A) */
-
-    #else
-        uint8 control;
-
-        #if(CY_UDB_V0)
-            uint8 intMask;
-
-            #if(rtc_i2c_MODE_SLAVE_ENABLED)
-                uint8 addr;
-            #endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
-        #endif     /* (CY_UDB_V0) */
-
-    #endif /* (rtc_i2c_FF_IMPLEMENTED) */
-
-    #if(rtc_i2c_TIMEOUT_ENABLED)
-        uint16 tmoutCfg;
-        uint8  tmoutIntr;
-
-        #if(rtc_i2c_TIMEOUT_PRESCALER_ENABLED && CY_UDB_V0)
-            uint8 tmoutPrd;
-        #endif /* (rtc_i2c_TIMEOUT_PRESCALER_ENABLED && CY_UDB_V0) */
-
-    #endif /* (rtc_i2c_TIMEOUT_ENABLED) */
+#if (rtc_i2c_TIMEOUT_ENABLED)
+    uint16 tmoutCfg;
+    uint8  tmoutIntr;
+#endif /* (rtc_i2c_TIMEOUT_ENABLED) */
 
 } rtc_i2c_BACKUP_STRUCT;
 
@@ -183,7 +158,7 @@ void rtc_i2c_RestoreConfig(void)                   ;
 void rtc_i2c_Wakeup(void)                          ;
 
 /* I2C Master functions prototypes */
-#if(rtc_i2c_MODE_MASTER_ENABLED)
+#if (rtc_i2c_MODE_MASTER_ENABLED)
     /* Read and Clear status functions */
     uint8 rtc_i2c_MasterStatus(void)                ;
     uint8 rtc_i2c_MasterClearStatus(void)           ;
@@ -207,13 +182,10 @@ void rtc_i2c_Wakeup(void)                          ;
     uint8 rtc_i2c_MasterWriteByte(uint8 theByte)   ;
     uint8 rtc_i2c_MasterReadByte(uint8 acknNak)    ;
 
-    /* This fake function use as workaround */
-    void  rtc_i2c_Workaround(void)                 ;
-
 #endif /* (rtc_i2c_MODE_MASTER_ENABLED) */
 
 /* I2C Slave functions prototypes */
-#if(rtc_i2c_MODE_SLAVE_ENABLED)
+#if (rtc_i2c_MODE_SLAVE_ENABLED)
     /* Read and Clear status functions */
     uint8 rtc_i2c_SlaveStatus(void)                ;
     uint8 rtc_i2c_SlaveClearReadStatus(void)       ;
@@ -245,7 +217,7 @@ void rtc_i2c_Wakeup(void)                          ;
         cystatus rtc_i2c_CyBtldrCommRead(uint8 pData[], uint16 size, uint16 * count, uint8 timeOut)  CYSMALL \
                                                             ;
 
-        #if(CYDEV_BOOTLOADER_IO_COMP == CyBtldr_rtc_i2c)
+        #if (CYDEV_BOOTLOADER_IO_COMP == CyBtldr_rtc_i2c)
             #define CyBtldrCommStart    rtc_i2c_CyBtldrCommStart
             #define CyBtldrCommStop     rtc_i2c_CyBtldrCommStop
             #define CyBtldrCommReset    rtc_i2c_CyBtldrCommReset
@@ -263,9 +235,9 @@ void rtc_i2c_Wakeup(void)                          ;
 
 #endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
 
-/* I2C interrupt handler */
+/* Component interrupt handlers */
 CY_ISR_PROTO(rtc_i2c_ISR);
-#if((rtc_i2c_FF_IMPLEMENTED) || (rtc_i2c_WAKEUP_ENABLED))
+#if ((rtc_i2c_FF_IMPLEMENTED) || (rtc_i2c_WAKEUP_ENABLED))
     CY_ISR_PROTO(rtc_i2c_WAKEUP_ISR);
 #endif /* ((rtc_i2c_FF_IMPLEMENTED) || (rtc_i2c_WAKEUP_ENABLED)) */
 
@@ -303,16 +275,16 @@ extern uint8 rtc_i2c_initVar;
 #define rtc_i2c_WRITE_XFER_MODE    (0x00u) /* Write */
 #define rtc_i2c_ACK_DATA           (0x01u) /* Send ACK */
 #define rtc_i2c_NAK_DATA           (0x00u) /* Send NAK */
-#define rtc_i2c_OVERFLOW_RETURN    (0xFFu) /* Senf on bus in case of overflow */
+#define rtc_i2c_OVERFLOW_RETURN    (0xFFu) /* Send on bus in case of overflow */
 
-#if(rtc_i2c_MODE_MASTER_ENABLED)
+#if (rtc_i2c_MODE_MASTER_ENABLED)
     /* "Mode" constants for MasterWriteBuf() or MasterReadBuf() function */
     #define rtc_i2c_MODE_COMPLETE_XFER     (0x00u) /* Full transfer with Start and Stop */
     #define rtc_i2c_MODE_REPEAT_START      (0x01u) /* Begin with a ReStart instead of a Start */
     #define rtc_i2c_MODE_NO_STOP           (0x02u) /* Complete the transfer without a Stop */
 
     /* Master status */
-    #define rtc_i2c_MSTAT_CLEAR            (0x00u) /* Clear (init) status value */
+    #define rtc_i2c_MSTAT_CLEAR            (0x00u) /* Clear (initialize) status value */
 
     #define rtc_i2c_MSTAT_RD_CMPLT         (0x01u) /* Read complete */
     #define rtc_i2c_MSTAT_WR_CMPLT         (0x02u) /* Write complete */
@@ -337,7 +309,7 @@ extern uint8 rtc_i2c_initVar;
 
 #endif /* (rtc_i2c_MODE_MASTER_ENABLED) */
 
-#if(rtc_i2c_MODE_SLAVE_ENABLED)
+#if (rtc_i2c_MODE_SLAVE_ENABLED)
     /* Slave Status Constants */
     #define rtc_i2c_SSTAT_RD_CMPLT     (0x01u) /* Read transfer complete */
     #define rtc_i2c_SSTAT_RD_BUSY      (0x02u) /* Read transfer in progress */
@@ -367,7 +339,7 @@ extern uint8 rtc_i2c_initVar;
 
 /* Slave mode states */
 #define  rtc_i2c_SM_SLAVE          (rtc_i2c_SM_IDLE) /* Any Slave state */
-#define  rtc_i2c_SM_SL_WR_DATA     (0x11u) /* Master writes data to slzve  */
+#define  rtc_i2c_SM_SL_WR_DATA     (0x11u) /* Master writes data to slave  */
 #define  rtc_i2c_SM_SL_RD_DATA     (0x12u) /* Master reads data from slave */
 
 /* Master mode states */
@@ -391,93 +363,88 @@ extern uint8 rtc_i2c_initVar;
 *              Registers
 ***************************************/
 
-#if(rtc_i2c_FF_IMPLEMENTED)
+#if (rtc_i2c_FF_IMPLEMENTED)
     /* Fixed Function registers */
-    #define rtc_i2c_XCFG_REG           (* (reg8 *) rtc_i2c_I2C_FF__XCFG)
-    #define rtc_i2c_XCFG_PTR           (  (reg8 *) rtc_i2c_I2C_FF__XCFG)
+    #define rtc_i2c_XCFG_REG           (*(reg8 *) rtc_i2c_I2C_FF__XCFG)
+    #define rtc_i2c_XCFG_PTR           ( (reg8 *) rtc_i2c_I2C_FF__XCFG)
 
-    #define rtc_i2c_ADDR_REG           (* (reg8 *) rtc_i2c_I2C_FF__ADR)
-    #define rtc_i2c_ADDR_PTR           (  (reg8 *) rtc_i2c_I2C_FF__ADR)
+    #define rtc_i2c_ADDR_REG           (*(reg8 *) rtc_i2c_I2C_FF__ADR)
+    #define rtc_i2c_ADDR_PTR           ( (reg8 *) rtc_i2c_I2C_FF__ADR)
 
-    #define rtc_i2c_CFG_REG            (* (reg8 *) rtc_i2c_I2C_FF__CFG)
-    #define rtc_i2c_CFG_PTR            (  (reg8 *) rtc_i2c_I2C_FF__CFG)
+    #define rtc_i2c_CFG_REG            (*(reg8 *) rtc_i2c_I2C_FF__CFG)
+    #define rtc_i2c_CFG_PTR            ( (reg8 *) rtc_i2c_I2C_FF__CFG)
 
-    #define rtc_i2c_CSR_REG            (* (reg8 *) rtc_i2c_I2C_FF__CSR)
-    #define rtc_i2c_CSR_PTR            (  (reg8 *) rtc_i2c_I2C_FF__CSR)
+    #define rtc_i2c_CSR_REG            (*(reg8 *) rtc_i2c_I2C_FF__CSR)
+    #define rtc_i2c_CSR_PTR            ( (reg8 *) rtc_i2c_I2C_FF__CSR)
 
-    #define rtc_i2c_DATA_REG           (* (reg8 *) rtc_i2c_I2C_FF__D)
-    #define rtc_i2c_DATA_PTR           (  (reg8 *) rtc_i2c_I2C_FF__D)
+    #define rtc_i2c_DATA_REG           (*(reg8 *) rtc_i2c_I2C_FF__D)
+    #define rtc_i2c_DATA_PTR           ( (reg8 *) rtc_i2c_I2C_FF__D)
 
-    #define rtc_i2c_MCSR_REG           (* (reg8 *) rtc_i2c_I2C_FF__MCSR)
-    #define rtc_i2c_MCSR_PTR           (  (reg8 *) rtc_i2c_I2C_FF__MCSR)
+    #define rtc_i2c_MCSR_REG           (*(reg8 *) rtc_i2c_I2C_FF__MCSR)
+    #define rtc_i2c_MCSR_PTR           ( (reg8 *) rtc_i2c_I2C_FF__MCSR)
 
-    #define rtc_i2c_ACT_PWRMGR_REG     (* (reg8 *) rtc_i2c_I2C_FF__PM_ACT_CFG)
-    #define rtc_i2c_ACT_PWRMGR_PTR     (  (reg8 *) rtc_i2c_I2C_FF__PM_ACT_CFG)
-    #define rtc_i2c_ACT_PWR_EN         (  (uint8)  rtc_i2c_I2C_FF__PM_ACT_MSK)
+    #define rtc_i2c_ACT_PWRMGR_REG     (*(reg8 *) rtc_i2c_I2C_FF__PM_ACT_CFG)
+    #define rtc_i2c_ACT_PWRMGR_PTR     ( (reg8 *) rtc_i2c_I2C_FF__PM_ACT_CFG)
+    #define rtc_i2c_ACT_PWR_EN         ( (uint8)  rtc_i2c_I2C_FF__PM_ACT_MSK)
 
-    #define rtc_i2c_STBY_PWRMGR_REG    (* (reg8 *) rtc_i2c_I2C_FF__PM_STBY_CFG)
-    #define rtc_i2c_STBY_PWRMGR_PTR    (  (reg8 *) rtc_i2c_I2C_FF__PM_STBY_CFG)
-    #define rtc_i2c_STBY_PWR_EN        (  (uint8)  rtc_i2c_I2C_FF__PM_STBY_MSK)
+    #define rtc_i2c_STBY_PWRMGR_REG    (*(reg8 *) rtc_i2c_I2C_FF__PM_STBY_CFG)
+    #define rtc_i2c_STBY_PWRMGR_PTR    ( (reg8 *) rtc_i2c_I2C_FF__PM_STBY_CFG)
+    #define rtc_i2c_STBY_PWR_EN        ( (uint8)  rtc_i2c_I2C_FF__PM_STBY_MSK)
 
-    #define rtc_i2c_PWRSYS_CR1_REG     (* (reg8 *) CYREG_PWRSYS_CR1)
-    #define rtc_i2c_PWRSYS_CR1_PTR     (  (reg8 *) CYREG_PWRSYS_CR1)
+    #define rtc_i2c_PWRSYS_CR1_REG     (*(reg8 *) CYREG_PWRSYS_CR1)
+    #define rtc_i2c_PWRSYS_CR1_PTR     ( (reg8 *) CYREG_PWRSYS_CR1)
 
-    /* Clock divider register depends on silicon */
-    #if(CY_PSOC5A)
-        #define rtc_i2c_CLKDIV_REG     (* (reg8 *) rtc_i2c_I2C_FF__CLK_DIV)
-        #define rtc_i2c_CLKDIV_PTR     (  (reg8 *) rtc_i2c_I2C_FF__CLK_DIV)
+    #define rtc_i2c_CLKDIV1_REG    (*(reg8 *) rtc_i2c_I2C_FF__CLK_DIV1)
+    #define rtc_i2c_CLKDIV1_PTR    ( (reg8 *) rtc_i2c_I2C_FF__CLK_DIV1)
 
-    #else
-        #define rtc_i2c_CLKDIV1_REG    (* (reg8 *) rtc_i2c_I2C_FF__CLK_DIV1)
-        #define rtc_i2c_CLKDIV1_PTR    (  (reg8 *) rtc_i2c_I2C_FF__CLK_DIV1)
-
-        #define rtc_i2c_CLKDIV2_REG    (* (reg8 *) rtc_i2c_I2C_FF__CLK_DIV2)
-        #define rtc_i2c_CLKDIV2_PTR    (  (reg8 *) rtc_i2c_I2C_FF__CLK_DIV2)
-
-    #endif /* (CY_PSOC5A) */
+    #define rtc_i2c_CLKDIV2_REG    (*(reg8 *) rtc_i2c_I2C_FF__CLK_DIV2)
+    #define rtc_i2c_CLKDIV2_PTR    ( (reg8 *) rtc_i2c_I2C_FF__CLK_DIV2)
 
 #else
     /* UDB implementation registers */
-    #define rtc_i2c_CFG_REG    (* (reg8 *) \
-                                           rtc_i2c_bI2C_UDB_SyncCtl_CtrlReg__CONTROL_REG)
-    #define rtc_i2c_CFG_PTR    (  (reg8 *) \
-                                           rtc_i2c_bI2C_UDB_SyncCtl_CtrlReg__CONTROL_REG)
+    #define rtc_i2c_CFG_REG \
+            (*(reg8 *) rtc_i2c_bI2C_UDB_SyncCtl_CtrlReg__CONTROL_REG)
+    #define rtc_i2c_CFG_PTR \
+            ( (reg8 *) rtc_i2c_bI2C_UDB_SyncCtl_CtrlReg__CONTROL_REG)
 
-    #define rtc_i2c_CSR_REG        (* (reg8 *) rtc_i2c_bI2C_UDB_StsReg__STATUS_REG)
-    #define rtc_i2c_CSR_PTR        (  (reg8 *) rtc_i2c_bI2C_UDB_StsReg__STATUS_REG)
+    #define rtc_i2c_CSR_REG        (*(reg8 *) rtc_i2c_bI2C_UDB_StsReg__STATUS_REG)
+    #define rtc_i2c_CSR_PTR        ( (reg8 *) rtc_i2c_bI2C_UDB_StsReg__STATUS_REG)
 
-    #define rtc_i2c_INT_MASK_REG   (* (reg8 *) rtc_i2c_bI2C_UDB_StsReg__MASK_REG)
-    #define rtc_i2c_INT_MASK_PTR   (  (reg8 *) rtc_i2c_bI2C_UDB_StsReg__MASK_REG)
+    #define rtc_i2c_INT_MASK_REG   (*(reg8 *) rtc_i2c_bI2C_UDB_StsReg__MASK_REG)
+    #define rtc_i2c_INT_MASK_PTR   ( (reg8 *) rtc_i2c_bI2C_UDB_StsReg__MASK_REG)
 
-    #define rtc_i2c_INT_ENABLE_REG (* (reg8 *) rtc_i2c_bI2C_UDB_StsReg__STATUS_AUX_CTL_REG)
-    #define rtc_i2c_INT_ENABLE_PTR (  (reg8 *) rtc_i2c_bI2C_UDB_StsReg__STATUS_AUX_CTL_REG)
+    #define rtc_i2c_INT_ENABLE_REG (*(reg8 *) rtc_i2c_bI2C_UDB_StsReg__STATUS_AUX_CTL_REG)
+    #define rtc_i2c_INT_ENABLE_PTR ( (reg8 *) rtc_i2c_bI2C_UDB_StsReg__STATUS_AUX_CTL_REG)
 
-    #define rtc_i2c_DATA_REG       (* (reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__A0_REG)
-    #define rtc_i2c_DATA_PTR       (  (reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__A0_REG)
+    #define rtc_i2c_DATA_REG       (*(reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__A0_REG)
+    #define rtc_i2c_DATA_PTR       ( (reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__A0_REG)
 
-    #define rtc_i2c_GO_REG         (* (reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__F1_REG)
-    #define rtc_i2c_GO_PTR         (  (reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__F1_REG)
+    #define rtc_i2c_GO_REG         (*(reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__F1_REG)
+    #define rtc_i2c_GO_PTR         ( (reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__F1_REG)
 
-    #define rtc_i2c_MCLK_PRD_REG   (* (reg8 *) rtc_i2c_bI2C_UDB_Master_ClkGen_u0__D0_REG)
-    #define rtc_i2c_MCLK_PRD_PTR   (  (reg8 *) rtc_i2c_bI2C_UDB_Master_ClkGen_u0__D0_REG)
+    #define rtc_i2c_GO_DONE_REG    (*(reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__A1_REG)
+    #define rtc_i2c_GO_DONE_PTR    ( (reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__A1_REG)
 
-    #define rtc_i2c_MCLK_CMP_REG   (* (reg8 *) rtc_i2c_bI2C_UDB_Master_ClkGen_u0__D1_REG)
-    #define rtc_i2c_MCLK_CMP_PTR   (  (reg8 *) rtc_i2c_bI2C_UDB_Master_ClkGen_u0__D1_REG)
+    #define rtc_i2c_MCLK_PRD_REG   (*(reg8 *) rtc_i2c_bI2C_UDB_Master_ClkGen_u0__D0_REG)
+    #define rtc_i2c_MCLK_PRD_PTR   ( (reg8 *) rtc_i2c_bI2C_UDB_Master_ClkGen_u0__D0_REG)
 
-    #if(rtc_i2c_MODE_SLAVE_ENABLED)
-        #define rtc_i2c_ADDR_REG       (* (reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__D0_REG)
-        #define rtc_i2c_ADDR_PTR       (  (reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__D0_REG)
+    #define rtc_i2c_MCLK_CMP_REG   (*(reg8 *) rtc_i2c_bI2C_UDB_Master_ClkGen_u0__D1_REG)
+    #define rtc_i2c_MCLK_CMP_PTR   ( (reg8 *) rtc_i2c_bI2C_UDB_Master_ClkGen_u0__D1_REG)
 
-        #define rtc_i2c_PERIOD_REG     (* (reg8 *) rtc_i2c_bI2C_UDB_Slave_BitCounter__PERIOD_REG)
-        #define rtc_i2c_PERIOD_PTR     (  (reg8 *) rtc_i2c_bI2C_UDB_Slave_BitCounter__PERIOD_REG)
+    #if (rtc_i2c_MODE_SLAVE_ENABLED)
+        #define rtc_i2c_ADDR_REG       (*(reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__D0_REG)
+        #define rtc_i2c_ADDR_PTR       ( (reg8 *) rtc_i2c_bI2C_UDB_Shifter_u0__D0_REG)
 
-        #define rtc_i2c_COUNTER_REG    (* (reg8 *) rtc_i2c_bI2C_UDB_Slave_BitCounter__COUNT_REG)
-        #define rtc_i2c_COUNTER_PTR    (  (reg8 *) rtc_i2c_bI2C_UDB_Slave_BitCounter__COUNT_REG)
+        #define rtc_i2c_PERIOD_REG     (*(reg8 *) rtc_i2c_bI2C_UDB_Slave_BitCounter__PERIOD_REG)
+        #define rtc_i2c_PERIOD_PTR     ( (reg8 *) rtc_i2c_bI2C_UDB_Slave_BitCounter__PERIOD_REG)
 
-        #define rtc_i2c_COUNTER_AUX_CTL_REG  (* (reg8 *) \
-                                                        rtc_i2c_bI2C_UDB_Slave_BitCounter__CONTROL_AUX_CTL_REG)
-        #define rtc_i2c_COUNTER_AUX_CTL_PTR  (  (reg8 *) \
-                                                        rtc_i2c_bI2C_UDB_Slave_BitCounter__CONTROL_AUX_CTL_REG)
+        #define rtc_i2c_COUNTER_REG    (*(reg8 *) rtc_i2c_bI2C_UDB_Slave_BitCounter__COUNT_REG)
+        #define rtc_i2c_COUNTER_PTR    ( (reg8 *) rtc_i2c_bI2C_UDB_Slave_BitCounter__COUNT_REG)
+
+        #define rtc_i2c_COUNTER_AUX_CTL_REG \
+                                    (*(reg8 *) rtc_i2c_bI2C_UDB_Slave_BitCounter__CONTROL_AUX_CTL_REG)
+        #define rtc_i2c_COUNTER_AUX_CTL_PTR \
+                                    ( (reg8 *) rtc_i2c_bI2C_UDB_Slave_BitCounter__CONTROL_AUX_CTL_REG)
 
     #endif /* (rtc_i2c_MODE_SLAVE_ENABLED) */
 
@@ -498,14 +465,18 @@ extern uint8 rtc_i2c_initVar;
 #define rtc_i2c_DATA_MASK          (0xFFu)
 #define rtc_i2c_READ_FLAG          (0x01u)
 
-#define rtc_i2c_FF_RESET_DELAY     (0x02u)
+/* Block reset constants */
+#define rtc_i2c_CLEAR_REG          (0x00u)
+#define rtc_i2c_BLOCK_RESET_DELAY  (2u)
+#define rtc_i2c_FF_RESET_DELAY     (rtc_i2c_BLOCK_RESET_DELAY)
+#define rtc_i2c_RESTORE_TIMEOUT    (255u)
 
-#if(rtc_i2c_FF_IMPLEMENTED)
+#if (rtc_i2c_FF_IMPLEMENTED)
     /* XCFG I2C Extended Configuration Register */
     #define rtc_i2c_XCFG_CLK_EN        (0x80u) /* Enable gated clock to block */
     #define rtc_i2c_XCFG_I2C_ON        (0x40u) /* Enable I2C as wake up source*/
     #define rtc_i2c_XCFG_RDY_TO_SLEEP  (0x20u) /* I2C ready go to sleep */
-    #define rtc_i2c_XCFG_FORCE_NACK    (0x10u) /* Force NACK all incomming transactions */
+    #define rtc_i2c_XCFG_FORCE_NACK    (0x10u) /* Force NACK all incoming transactions */
     #define rtc_i2c_XCFG_NO_BC_INT     (0x08u) /* No interrupt on byte complete */
     #define rtc_i2c_XCFG_BUF_MODE      (0x02u) /* Enable buffer mode */
     #define rtc_i2c_XCFG_HDWR_ADDR_EN  (0x01u) /* Enable Hardware address match */
@@ -515,7 +486,7 @@ extern uint8 rtc_i2c_initVar;
     #define rtc_i2c_CFG_PSELECT        (0x40u) /* Pin Select */
     #define rtc_i2c_CFG_BUS_ERR_IE     (0x20u) /* Bus Error Interrupt Enable */
     #define rtc_i2c_CFG_STOP_IE        (0x10u) /* Enable Interrupt on STOP condition */
-    #define rtc_i2c_CFG_CLK_RATE_MSK   (0x0Cu) /* Clock rate select  **CHECK**  */
+    #define rtc_i2c_CFG_CLK_RATE_MSK   (0x0Cu) /* Clock rate select */
     #define rtc_i2c_CFG_CLK_RATE_100   (0x00u) /* Clock rate select 100K */
     #define rtc_i2c_CFG_CLK_RATE_400   (0x04u) /* Clock rate select 400K */
     #define rtc_i2c_CFG_CLK_RATE_050   (0x08u) /* Clock rate select 50K  */
@@ -527,7 +498,7 @@ extern uint8 rtc_i2c_initVar;
     #define rtc_i2c_CFG_CLK_RATE_GRATER_50     (0x00u) /* Clock rate select > 50kHz */
 
     /* CSR I2C Control and Status Register */
-    #define rtc_i2c_CSR_BUS_ERROR      (0x80u) /* Active high when bus error has occured */
+    #define rtc_i2c_CSR_BUS_ERROR      (0x80u) /* Active high when bus error has occurred */
     #define rtc_i2c_CSR_LOST_ARB       (0x40u) /* Set to 1 if lost arbitration in host mode */
     #define rtc_i2c_CSR_STOP_STATUS    (0x20u) /* Set if Stop has been detected */
     #define rtc_i2c_CSR_ACK            (0x10u) /* ACK response */
@@ -539,7 +510,7 @@ extern uint8 rtc_i2c_initVar;
     #define rtc_i2c_CSR_LRB_NAK        (0x02u) /* Last received bit was an NAK */
     #define rtc_i2c_CSR_BYTE_COMPLETE  (0x01u) /* Informs that last byte has been sent */
     #define rtc_i2c_CSR_STOP_GEN       (0x00u) /* Generate a stop condition */
-    #define rtc_i2c_CSR_RDY_TO_RD      (0x00u) /* Set to recieve mode */
+    #define rtc_i2c_CSR_RDY_TO_RD      (0x00u) /* Set to receive mode */
 
     /* MCSR I2C Master Control and Status Register */
     #define rtc_i2c_MCSR_STOP_GEN      (0x10u) /* Firmware sets this bit to initiate a Stop condition */
@@ -547,16 +518,6 @@ extern uint8 rtc_i2c_initVar;
     #define rtc_i2c_MCSR_MSTR_MODE     (0x04u) /* Status bit, Set at Start and cleared at Stop condition */
     #define rtc_i2c_MCSR_RESTART_GEN   (0x02u) /* Firmware sets this bit to initiate a ReStart condition */
     #define rtc_i2c_MCSR_START_GEN     (0x01u) /* Firmware sets this bit to initiate a Start condition */
-
-    /* CLK_DIV I2C Clock Divide Factor Register */
-    #define rtc_i2c_CLK_DIV_MSK    (0x07u) /* Status bit, Set at Start and cleared at Stop condition */
-    #define rtc_i2c_CLK_DIV_1      (0x00u) /* Divide input clock by  1 */
-    #define rtc_i2c_CLK_DIV_2      (0x01u) /* Divide input clock by  2 */
-    #define rtc_i2c_CLK_DIV_4      (0x02u) /* Divide input clock by  4 */
-    #define rtc_i2c_CLK_DIV_8      (0x03u) /* Divide input clock by  8 */
-    #define rtc_i2c_CLK_DIV_16     (0x04u) /* Divide input clock by 16 */
-    #define rtc_i2c_CLK_DIV_32     (0x05u) /* Divide input clock by 32 */
-    #define rtc_i2c_CLK_DIV_64     (0x06u) /* Divide input clock by 64 */
 
     /* PWRSYS_CR1 to handle Sleep */
     #define rtc_i2c_PWRSYS_CR1_I2C_REG_BACKUP  (0x04u) /* Enables, power to I2C regs while sleep */
@@ -597,8 +558,8 @@ extern uint8 rtc_i2c_initVar;
     #define rtc_i2c_STS_BYTE_COMPLETE_MASK     ((uint8) (0x01u << rtc_i2c_STS_BYTE_COMPLETE_SHIFT))
 
     /* AUX_CTL bits definition */
-    #define rtc_i2c_COUNTER_ENABLE_MASK        (0x20u) /* Enable 7-bit counter     */
-    #define rtc_i2c_INT_ENABLE_MASK            (0x10u) /* Enable intr from statusi */
+    #define rtc_i2c_COUNTER_ENABLE_MASK        (0x20u) /* Enable 7-bit counter */
+    #define rtc_i2c_INT_ENABLE_MASK            (0x10u) /* Enable interrupt from status register */
     #define rtc_i2c_CNT7_ENABLE                (rtc_i2c_COUNTER_ENABLE_MASK)
     #define rtc_i2c_INTR_ENABLE                (rtc_i2c_INT_ENABLE_MASK)
 
@@ -642,11 +603,11 @@ extern uint8 rtc_i2c_initVar;
 #define rtc_i2c_GET_MSTAT_CMPLT ((0u != (rtc_i2c_state & rtc_i2c_SM_MSTR_RD)) ? \
                                                  (rtc_i2c_MSTAT_RD_CMPLT) : (rtc_i2c_MSTAT_WR_CMPLT))
 
-/* Returns 7-bit slave address and used for software address match */
+/* Returns 7-bit slave address */
 #define rtc_i2c_GET_SLAVE_ADDR(dataReg)   (((dataReg) >> rtc_i2c_SLAVE_ADDR_SHIFT) & \
                                                                   rtc_i2c_SLAVE_ADDR_MASK)
 
-#if(rtc_i2c_FF_IMPLEMENTED)
+#if (rtc_i2c_FF_IMPLEMENTED)
     /* Check enable of module */
     #define rtc_i2c_I2C_ENABLE_REG     (rtc_i2c_ACT_PWRMGR_REG)
     #define rtc_i2c_IS_I2C_ENABLE(reg) (0u != ((reg) & rtc_i2c_ACT_PWR_EN))
@@ -706,51 +667,43 @@ extern uint8 rtc_i2c_initVar;
                                                         rtc_i2c_CSR_REG = rtc_i2c_CSR_RDY_TO_RD; \
                                                     }while(0)
 
-    /* Master condition generation */
+    /* Release bus after lost arbitration */
+    #define rtc_i2c_BUS_RELEASE    rtc_i2c_READY_TO_READ
+
+    /* Master Start/ReStart/Stop conditions generation */
     #define rtc_i2c_GENERATE_START         do{ \
                                                         rtc_i2c_MCSR_REG = rtc_i2c_MCSR_START_GEN; \
                                                     }while(0)
 
-    #if(CY_PSOC5A)
-        #define rtc_i2c_GENERATE_RESTART \
-                        do{ \
-                            rtc_i2c_MCSR_REG = rtc_i2c_MCSR_RESTART_GEN; \
-                            rtc_i2c_CSR_REG  = rtc_i2c_CSR_NAK;          \
-                        }while(0)
+    #define rtc_i2c_GENERATE_RESTART \
+                    do{                       \
+                        rtc_i2c_MCSR_REG = (rtc_i2c_MCSR_RESTART_GEN | \
+                                                     rtc_i2c_MCSR_STOP_GEN);    \
+                        rtc_i2c_CSR_REG  = rtc_i2c_CSR_TRANSMIT;       \
+                    }while(0)
 
-        #define rtc_i2c_GENERATE_STOP      do{ \
-                                                        rtc_i2c_CSR_REG = rtc_i2c_CSR_STOP_GEN; \
-                                                    }while(0)
-
-    #else   /* PSoC3 ES3 handlees zero lenght packets */
-        #define rtc_i2c_GENERATE_RESTART \
-                        do{ \
-                            rtc_i2c_MCSR_REG = (rtc_i2c_MCSR_RESTART_GEN | \
-                                                         rtc_i2c_MCSR_STOP_GEN);    \
-                            rtc_i2c_CSR_REG  = rtc_i2c_CSR_TRANSMIT;       \
-                        }while(0)
-
-        #define rtc_i2c_GENERATE_STOP \
-                        do{ \
-                            rtc_i2c_MCSR_REG = rtc_i2c_MCSR_STOP_GEN; \
-                            rtc_i2c_CSR_REG  = rtc_i2c_CSR_TRANSMIT;  \
-                        }while(0)
-    #endif /* (CY_PSOC5A) */
+    #define rtc_i2c_GENERATE_STOP \
+                    do{                    \
+                        rtc_i2c_MCSR_REG = rtc_i2c_MCSR_STOP_GEN; \
+                        rtc_i2c_CSR_REG  = rtc_i2c_CSR_TRANSMIT;  \
+                    }while(0)
 
     /* Master manual APIs compatible defines */
+    #define rtc_i2c_GENERATE_START_MANUAL      rtc_i2c_GENERATE_START
     #define rtc_i2c_GENERATE_RESTART_MANUAL    rtc_i2c_GENERATE_RESTART
     #define rtc_i2c_GENERATE_STOP_MANUAL       rtc_i2c_GENERATE_STOP
     #define rtc_i2c_TRANSMIT_DATA_MANUAL       rtc_i2c_TRANSMIT_DATA
     #define rtc_i2c_READY_TO_READ_MANUAL       rtc_i2c_READY_TO_READ
     #define rtc_i2c_ACK_AND_RECEIVE_MANUAL     rtc_i2c_ACK_AND_RECEIVE
+    #define rtc_i2c_BUS_RELEASE_MANUAL         rtc_i2c_BUS_RELEASE
 
 #else
 
-    /* Masks to enalbe interrupts from Status register */
+    /* Masks to enable interrupts from Status register */
     #define rtc_i2c_STOP_IE_MASK           (rtc_i2c_STS_STOP_MASK)
     #define rtc_i2c_BYTE_COMPLETE_IE_MASK  (rtc_i2c_STS_BYTE_COMPLETE_MASK)
 
-    /* FF compatibility: CSR gegisters definitions */
+    /* FF compatibility: CSR register bit-fields */
     #define rtc_i2c_CSR_LOST_ARB       (rtc_i2c_STS_LOST_ARB_MASK)
     #define rtc_i2c_CSR_STOP_STATUS    (rtc_i2c_STS_STOP_MASK)
     #define rtc_i2c_CSR_BUS_ERROR      (0x00u)
@@ -761,16 +714,20 @@ extern uint8 rtc_i2c_initVar;
     #define rtc_i2c_CSR_LRB_ACK        (0x00u)
     #define rtc_i2c_CSR_BYTE_COMPLETE  (rtc_i2c_STS_BYTE_COMPLETE_MASK)
 
-    /* FF compatibility: MCSR gegisters definitions */
-    #define rtc_i2c_MCSR_REG           (rtc_i2c_CSR_REG)   /* UDB incoporates master and slave regs */
-    #define rtc_i2c_MCSR_BUS_BUSY      (rtc_i2c_STS_BUSY_MASK)       /* Is bus is busy              */
-    #define rtc_i2c_MCSR_START_GEN     (rtc_i2c_CTRL_START_MASK)     /* Generate Sart condition     */
-    #define rtc_i2c_MCSR_RESTART_GEN   (rtc_i2c_CTRL_RESTART_MASK)   /* Generates RESTART condition */
+    /* FF compatibility: MCSR registers bit-fields */
+    #define rtc_i2c_MCSR_REG           (rtc_i2c_CSR_REG)  /* UDB incorporates master and slave regs */
+    #define rtc_i2c_MCSR_BUS_BUSY      (rtc_i2c_STS_BUSY_MASK)      /* Is bus is busy               */
+    #define rtc_i2c_MCSR_START_GEN     (rtc_i2c_CTRL_START_MASK)    /* Generate Start condition     */
+    #define rtc_i2c_MCSR_RESTART_GEN   (rtc_i2c_CTRL_RESTART_MASK)  /* Generates RESTART condition  */
     #define rtc_i2c_MCSR_MSTR_MODE     (rtc_i2c_STS_MASTER_MODE_MASK)/* Define if active Master     */
 
     /* Data to write into TX FIFO to release FSM */
-    #define rtc_i2c_RELEASE_FSM         (0x00u)
-    
+    #define rtc_i2c_PREPARE_TO_RELEASE (0xFFu)
+    #define rtc_i2c_RELEASE_FSM        (0x00u)
+
+    /* Define release command done: history of byte complete status is cleared */
+    #define rtc_i2c_WAIT_RELEASE_CMD_DONE  (rtc_i2c_RELEASE_FSM != rtc_i2c_GO_DONE_REG)
+
     /* Check enable of module */
     #define rtc_i2c_I2C_ENABLE_REG     (rtc_i2c_CFG_REG)
     #define rtc_i2c_IS_I2C_ENABLE(reg) ((0u != ((reg) & rtc_i2c_ENABLE_MASTER)) || \
@@ -789,7 +746,6 @@ extern uint8 rtc_i2c_initVar;
                                                         ((uint8) ~rtc_i2c_MCSR_START_GEN); \
                                                     }while(0)
 
-
     /* Stop interrupt */
     #define rtc_i2c_ENABLE_INT_ON_STOP     do{ \
                                                        rtc_i2c_INT_MASK_REG |= rtc_i2c_STOP_IE_MASK; \
@@ -800,110 +756,133 @@ extern uint8 rtc_i2c_initVar;
                                                                              ((uint8) ~rtc_i2c_STOP_IE_MASK); \
                                                     }while(0)
 
-
     /* Transmit data */
-    #define rtc_i2c_TRANSMIT_DATA      do{ \
-                                                    rtc_i2c_CFG_REG = (rtc_i2c_CTRL_TRANSMIT_MASK | \
-                                                                                rtc_i2c_CTRL_DEFAULT);       \
-                                                    rtc_i2c_GO_REG  = rtc_i2c_RELEASE_FSM;          \
-                                                }while(0)
+    #define rtc_i2c_TRANSMIT_DATA \
+                                    do{    \
+                                        rtc_i2c_CFG_REG     = (rtc_i2c_CTRL_TRANSMIT_MASK | \
+                                                                       rtc_i2c_CTRL_DEFAULT);        \
+                                        rtc_i2c_GO_DONE_REG = rtc_i2c_PREPARE_TO_RELEASE;   \
+                                        rtc_i2c_GO_REG      = rtc_i2c_RELEASE_FSM;          \
+                                    }while(0)
 
     #define rtc_i2c_ACK_AND_TRANSMIT   rtc_i2c_TRANSMIT_DATA
 
-
-    #define rtc_i2c_NAK_AND_TRANSMIT   do{ \
-                                                    rtc_i2c_CFG_REG = (rtc_i2c_CTRL_NACK_MASK     | \
-                                                                                rtc_i2c_CTRL_TRANSMIT_MASK | \
-                                                                                rtc_i2c_CTRL_DEFAULT);       \
-                                                    rtc_i2c_GO_REG  =  rtc_i2c_RELEASE_FSM;         \
-                                                }while(0)
+    #define rtc_i2c_NAK_AND_TRANSMIT \
+                                        do{   \
+                                            rtc_i2c_CFG_REG     = (rtc_i2c_CTRL_NACK_MASK     | \
+                                                                            rtc_i2c_CTRL_TRANSMIT_MASK | \
+                                                                            rtc_i2c_CTRL_DEFAULT);       \
+                                            rtc_i2c_GO_DONE_REG = rtc_i2c_PREPARE_TO_RELEASE;   \
+                                            rtc_i2c_GO_REG      = rtc_i2c_RELEASE_FSM;          \
+                                        }while(0)
 
     /* Receive data */
-    #define rtc_i2c_READY_TO_READ      do{ \
-                                                    rtc_i2c_CFG_REG = rtc_i2c_CTRL_DEFAULT; \
-                                                    rtc_i2c_GO_REG  =  rtc_i2c_RELEASE_FSM; \
-                                                }while(0)
+    #define rtc_i2c_READY_TO_READ  \
+                                        do{ \
+                                            rtc_i2c_CFG_REG     = rtc_i2c_CTRL_DEFAULT;       \
+                                            rtc_i2c_GO_DONE_REG = rtc_i2c_PREPARE_TO_RELEASE; \
+                                            rtc_i2c_GO_REG      = rtc_i2c_RELEASE_FSM;       \
+                                        }while(0)
 
     #define rtc_i2c_ACK_AND_RECEIVE    rtc_i2c_READY_TO_READ
 
-    #define rtc_i2c_NAK_AND_RECEIVE    do{ \
-                                                    rtc_i2c_CFG_REG = (rtc_i2c_CTRL_NACK_MASK | \
-                                                                                rtc_i2c_CTRL_DEFAULT);   \
-                                                    rtc_i2c_GO_REG  =  rtc_i2c_RELEASE_FSM;     \
-                                                }while(0)
+    /* Release bus after arbitration is lost */
+    #define rtc_i2c_BUS_RELEASE    rtc_i2c_READY_TO_READ
+
+    #define rtc_i2c_NAK_AND_RECEIVE \
+                                        do{  \
+                                            rtc_i2c_CFG_REG     = (rtc_i2c_CTRL_NACK_MASK |   \
+                                                                            rtc_i2c_CTRL_DEFAULT);     \
+                                            rtc_i2c_GO_DONE_REG = rtc_i2c_PREPARE_TO_RELEASE; \
+                                            rtc_i2c_GO_REG      = rtc_i2c_RELEASE_FSM;       \
+                                        }while(0)
 
     /* Master condition generation */
-    #define rtc_i2c_GENERATE_START     do{ \
-                                                    rtc_i2c_CFG_REG = (rtc_i2c_CTRL_START_MASK | \
-                                                                                 rtc_i2c_CTRL_DEFAULT);   \
-                                                    rtc_i2c_GO_REG  =  rtc_i2c_RELEASE_FSM;      \
-                                                }while(0)
-
-    #define rtc_i2c_GENERATE_RESTART   do{ \
-                                                    rtc_i2c_CFG_REG = (rtc_i2c_CTRL_RESTART_MASK | \
-                                                                                rtc_i2c_CTRL_NACK_MASK    | \
-                                                                                rtc_i2c_CTRL_DEFAULT);      \
-                                                    rtc_i2c_GO_REG  =  rtc_i2c_RELEASE_FSM;        \
-                                                }while(0)
-
-
-    #define rtc_i2c_GENERATE_STOP      do{ \
-                                                    rtc_i2c_CFG_REG = (rtc_i2c_CTRL_NACK_MASK | \
-                                                                                rtc_i2c_CTRL_STOP_MASK | \
-                                                                                rtc_i2c_CTRL_DEFAULT);   \
-                                                    rtc_i2c_GO_REG  =  rtc_i2c_RELEASE_FSM;     \
-                                                }while(0)
-
-    /* Master manual APIs compatible defines */
-    /* These defines wait while byte complete is cleared after command issued */
-    #define rtc_i2c_GENERATE_RESTART_MANUAL    \
-                                        do{             \
-                                            rtc_i2c_GENERATE_RESTART;                                    \
-                                            while(rtc_i2c_CHECK_BYTE_COMPLETE(rtc_i2c_CSR_REG)) \
-                                            {                                                                     \
-                                                ; /* Wait when byte complete is cleared */                        \
-                                            }                                                                     \
+    #define rtc_i2c_GENERATE_START \
+                                        do{ \
+                                            rtc_i2c_CFG_REG     = (rtc_i2c_CTRL_START_MASK |  \
+                                                                            rtc_i2c_CTRL_DEFAULT);     \
+                                            rtc_i2c_GO_DONE_REG = rtc_i2c_PREPARE_TO_RELEASE; \
+                                            rtc_i2c_GO_REG      = rtc_i2c_RELEASE_FSM;       \
                                         }while(0)
 
-    #define rtc_i2c_GENERATE_STOP_MANUAL   \
-                                        do{         \
-                                            rtc_i2c_GENERATE_STOP;                                       \
-                                            while(rtc_i2c_CHECK_BYTE_COMPLETE(rtc_i2c_CSR_REG)) \
-                                            {                                                                     \
-                                                ; /* Wait when byte complete is cleared */                        \
-                                            }                                                                     \
+    #define rtc_i2c_GENERATE_RESTART \
+                                        do{   \
+                                            rtc_i2c_CFG_REG     = (rtc_i2c_CTRL_RESTART_MASK | \
+                                                                            rtc_i2c_CTRL_NACK_MASK    | \
+                                                                            rtc_i2c_CTRL_DEFAULT);      \
+                                            rtc_i2c_GO_DONE_REG = rtc_i2c_PREPARE_TO_RELEASE;  \
+                                            rtc_i2c_GO_REG  =     rtc_i2c_RELEASE_FSM;         \
                                         }while(0)
 
-    #define rtc_i2c_TRANSMIT_DATA_MANUAL   \
-                                        do{         \
-                                            rtc_i2c_TRANSMIT_DATA;                                       \
-                                            while(rtc_i2c_CHECK_BYTE_COMPLETE(rtc_i2c_CSR_REG)) \
-                                            {                                                                     \
-                                                ; /* Wait when byte complete is cleared */                        \
-                                            }                                                                     \
+    #define rtc_i2c_GENERATE_STOP  \
+                                        do{ \
+                                            rtc_i2c_CFG_REG    = (rtc_i2c_CTRL_NACK_MASK |    \
+                                                                           rtc_i2c_CTRL_STOP_MASK |    \
+                                                                           rtc_i2c_CTRL_DEFAULT);      \
+                                            rtc_i2c_GO_DONE_REG = rtc_i2c_PREPARE_TO_RELEASE; \
+                                            rtc_i2c_GO_REG      = rtc_i2c_RELEASE_FSM;        \
                                         }while(0)
 
-    #define rtc_i2c_READY_TO_READ_MANUAL   \
-                                        do{         \
-                                            rtc_i2c_READY_TO_READ;      \
-                                            while(rtc_i2c_CHECK_BYTE_COMPLETE(rtc_i2c_CSR_REG)) \
-                                            {                                                                     \
-                                                ; /* Wait when byte complete is cleared */                        \
-                                            }                                                                     \
+    /* Master manual APIs compatible macros */
+    /* These macros wait until byte complete history is cleared after command issued */
+    #define rtc_i2c_GENERATE_START_MANUAL \
+                                        do{ \
+                                            rtc_i2c_GENERATE_START;                  \
+                                            /* Wait until byte complete history is cleared */ \
+                                            while(rtc_i2c_WAIT_RELEASE_CMD_DONE)     \
+                                            {                                                 \
+                                            }                                                 \
+                                        }while(0)
+                                        
+    #define rtc_i2c_GENERATE_RESTART_MANUAL \
+                                        do{          \
+                                            rtc_i2c_GENERATE_RESTART;                \
+                                            /* Wait until byte complete history is cleared */ \
+                                            while(rtc_i2c_WAIT_RELEASE_CMD_DONE)     \
+                                            {                                                 \
+                                            }                                                 \
+                                        }while(0)
+
+    #define rtc_i2c_GENERATE_STOP_MANUAL \
+                                        do{       \
+                                            rtc_i2c_GENERATE_STOP;                   \
+                                            /* Wait until byte complete history is cleared */ \
+                                            while(rtc_i2c_WAIT_RELEASE_CMD_DONE)     \
+                                            {                                                 \
+                                            }                                                 \
+                                        }while(0)
+
+    #define rtc_i2c_TRANSMIT_DATA_MANUAL \
+                                        do{       \
+                                            rtc_i2c_TRANSMIT_DATA;                   \
+                                            /* Wait until byte complete history is cleared */ \
+                                            while(rtc_i2c_WAIT_RELEASE_CMD_DONE)     \
+                                            {                                                 \
+                                            }                                                 \
+                                        }while(0)
+
+    #define rtc_i2c_READY_TO_READ_MANUAL \
+                                        do{       \
+                                            rtc_i2c_READY_TO_READ;                   \
+                                            /* Wait until byte complete history is cleared */ \
+                                            while(rtc_i2c_WAIT_RELEASE_CMD_DONE)     \
+                                            {                                                 \
+                                            }                                                 \
                                         }while(0)
 
     #define rtc_i2c_ACK_AND_RECEIVE_MANUAL \
                                         do{         \
-                                            rtc_i2c_ACK_AND_RECEIVE;                                     \
-                                            while(rtc_i2c_CHECK_BYTE_COMPLETE(rtc_i2c_CSR_REG)) \
-                                            {                                                                     \
-                                                ; /* Wait when byte complete is cleared */                        \
-                                            }                                                                     \
+                                            rtc_i2c_ACK_AND_RECEIVE;                 \
+                                            /* Wait until byte complete history is cleared */ \
+                                            while(rtc_i2c_WAIT_RELEASE_CMD_DONE)     \
+                                            {                                                 \
+                                            }                                                 \
                                         }while(0)
-#endif /* (rtc_i2c_FF_IMPLEMENTED) */
 
-/* Comon for FF and UDB: used to release bus after lost arb */
-#define rtc_i2c_BUS_RELEASE    rtc_i2c_READY_TO_READ
+    #define rtc_i2c_BUS_RELEASE_MANUAL rtc_i2c_READY_TO_READ_MANUAL
+
+#endif /* (rtc_i2c_FF_IMPLEMENTED) */
 
 
 /***************************************
@@ -913,7 +892,7 @@ extern uint8 rtc_i2c_initVar;
 #define rtc_i2c_DISABLE    (0u)
 #define rtc_i2c_ENABLE     (1u)
 
-#if(rtc_i2c_FF_IMPLEMENTED)
+#if (rtc_i2c_FF_IMPLEMENTED)
     /* rtc_i2c_XCFG_REG: bits definition */
     #define rtc_i2c_DEFAULT_XCFG_HW_ADDR_EN ((rtc_i2c_HW_ADRR_DECODE) ? \
                                                         (rtc_i2c_XCFG_HDWR_ADDR_EN) : (0u))
@@ -940,8 +919,7 @@ extern uint8 rtc_i2c_initVar;
                                                  (rtc_i2c_CFG_CLK_RATE_LESS_EQUAL_50) : \
                                                  (rtc_i2c_CFG_CLK_RATE_GRATER_50))
 
-    #define rtc_i2c_DEFAULT_CLK_RATE   ((CY_PSOC5A) ? (rtc_i2c_DEFAULT_CLK_RATE0) : \
-                                                               (rtc_i2c_DEFAULT_CLK_RATE1))
+    #define rtc_i2c_DEFAULT_CLK_RATE   (rtc_i2c_DEFAULT_CLK_RATE1)
 
 
     #define rtc_i2c_ENABLE_MASTER      ((rtc_i2c_MODE_MASTER_ENABLED) ? \
@@ -966,7 +944,7 @@ extern uint8 rtc_i2c_initVar;
                                              rtc_i2c_ENABLE_SLAVE)
 
     /*rtc_i2c_DEFAULT_DIVIDE_FACTOR_REG */
-    #define rtc_i2c_DEFAULT_DIVIDE_FACTOR  ((CY_PSOC5A) ? ((uint8) 2u) : ((uint16) 4u))
+    #define rtc_i2c_DEFAULT_DIVIDE_FACTOR  ((uint16) 4u)
 
 #else
     /* rtc_i2c_CFG_REG: bits definition  */
@@ -992,7 +970,7 @@ extern uint8 rtc_i2c_initVar;
     #define rtc_i2c_MCLK_PERIOD_VALUE  (0x0Fu)
     #define rtc_i2c_MCLK_COMPARE_VALUE (0x08u)
 
-    /* Slave bit-counter: contorol period */
+    /* Slave bit-counter: control period */
     #define rtc_i2c_PERIOD_VALUE       (0x07u)
 
     /* rtc_i2c_DEFAULT_INT_MASK */
@@ -1011,13 +989,10 @@ extern uint8 rtc_i2c_initVar;
 
 
 /***************************************
-*       Obsolete
+* The following code is DEPRECATED and
+* should not be used in new projects.
 ***************************************/
 
-/* Following code are OBSOLETE and must not be used 
- * starting from I2C 3.20
- */
- 
 #define rtc_i2c_SSTAT_RD_ERR       (0x08u)
 #define rtc_i2c_SSTAT_WR_ERR       (0x80u)
 #define rtc_i2c_MSTR_SLAVE_BUSY    (rtc_i2c_MSTR_NOT_READY)
