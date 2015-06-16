@@ -18,7 +18,13 @@ volatile uint16_t can_head = 0, can_tail = 0;
 	Note that global extern variables can_queue, can_head, and can_tail are used.
 	Also, copies from volatile can_queue to non-volatile data_queue are atomic.
 
-	can_queue is filled from a CAN interrupt in:
+
+	can_queue is filled from a CAN interrupt function:
+
+		CAN_1_ReceiveMsg()
+
+	in line 632 of file
+
 		"Generated\ Source/PSoC5/CAN_1_TX_RX_func.c"
 */
 void can_get(DataPacket* data_queue, uint16_t* data_head, uint16_t* data_tail)
