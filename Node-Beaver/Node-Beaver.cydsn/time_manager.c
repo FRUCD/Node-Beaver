@@ -56,9 +56,6 @@ void time_init(void)
 	rtc_i2c_MasterWriteByte(0x40 | byte);
 	rtc_i2c_MasterSendStop();
 
-	//time_one_sec_isr_StartEx(time_one_sec_vector); // enable rtc isr
-	//while(!init_status); // wait for second synchronization
-
 	time_refresh_isr_StartEx(time_refresh_vector); // enable 10 second isr
 
 	// Start timers
@@ -114,7 +111,8 @@ void time_announce(DataPacket* data_queue, uint16_t* data_head,
 
 
 /* time_get()
-	Takes nothing. Returns the current time with millicounter.
+	Takes nothing.
+	Returns the current time with millicounter.
 */
 Time time_get(void)
 {
@@ -124,6 +122,12 @@ Time time_get(void)
 
 
 
+/* time_set()
+	Takes time to be set.
+	Returns nothing.
+
+	Sends a new time to the external RTC.
+*/
 void time_set(Time now)
 {
 	// Set 24 hour
