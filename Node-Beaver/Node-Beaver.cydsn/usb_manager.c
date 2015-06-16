@@ -12,7 +12,7 @@ extern uint16_t can_head, can_tail;
 	Initializes USB UART for the device 0. Disables voltage regulator and
 	pass-through Vcc for pull-up.
 */
-void usb_init()
+void usb_init(void)
 {
 	USBUART_1_Start(0, USBUART_1_3V_OPERATION);
 } // usb_init()
@@ -20,14 +20,15 @@ void usb_init()
 
 
 /* usb_put()
-	Takes a DataPacket queue (data-queue) with a head and a tail index to the
-	queue.  Returns nothing.
+	Takes a DataPacket queue (data_queue) with a head and a tail index to the
+	queue.
+	Returns nothing.
 
-	Checks is the USB exists and configured. If USB is configured, frame and send
-	all packets in the DataPacket queue. Each byte is checked and escaped by
-	usb_escape.
+	Checks if the USB exists and configured. If USB is configured, print each
+	element of data_queue as a line on USB UART terminal.
 
-	TODO: Function description out of date
+	Terminal printing format:
+	[timestamp in dec.]ms	0x[CAN ID in hex.]	Value [CAN message in hex.]
 */
 void usb_put(const DataPacket* data_queue, uint16_t data_head,
 	uint16_t data_tail)

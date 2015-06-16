@@ -5,13 +5,15 @@
 #include <stdio.h>
 #include "data.h"
 
+/*
 #define UART_BUFF_LENGTH 512
 #define START_B 0x7E
 #define ESCAP_B 0x7D
 #define XOR_B 0x20
+*/
 
 
-void usb_init();
+void usb_init(void);
 
 void usb_put(const DataPacket* data_queue, uint16_t data_head,
 	uint16_t data_tail);
