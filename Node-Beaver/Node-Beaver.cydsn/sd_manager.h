@@ -11,20 +11,8 @@
 #include "data.h"
 #include "time_manager.h"
 
+#define DATE_STR_LEN 64
 
-/*
-#define CAN_UNKNOWN 0x000 // 0
-#define CAN_THROTTLE 0x205 // 517
-
-#define ID_UNKNOWN CAN_UNKNOWN
-#define ID_THROTTLE_1 CAN_THROTTLE
-
-enum Types
-{
-	TYPE_UNKNOWN,
-	TYPE_THROTTLE_1
-};
-*/
 
 CY_ISR_PROTO(power_interrupt);
 

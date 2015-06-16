@@ -9,15 +9,15 @@ const char set_time_file[] = "\\logs\\set_time.txt";
 
 
 
-CY_ISR(power_interrupt)
+CY_ISR(power_interrupt) // Triggers when shutdown detected
 {
-    LED_Write(1);
+	//LED_Write(1);
 	sd_stop();
 	power_isr_ClearPending();
-    CyDelay(10);
-    LED_Write(0);
-    CySoftwareReset();
-    for(;;); // halt program
+	//CyDelay(10);
+	//LED_Write(0);
+	CySoftwareReset();
+	for(;;); // halt program
 } // CY_ISR(power_interrupt)
 
 
@@ -35,27 +35,28 @@ CY_ISR(power_interrupt)
 		- unable to create and open file for writing
 
 	sd_ok is set when the SD card is functional
+
+	Although sd_init() uses the current time from its arguement, it will use a new
+	time if a time setting file is found.
 */
 void sd_init(Time time)
 {
-	/* power_isr note:
-		Triggers unexpectedly due to floating pin/environmental voltages and
-		capacitance. power isr is disabled for prototyping only.
-	*/
-    //probe_Write(0);
-
-
+	// Enable shutdown handling
 	power_comp_Start();
 	power_isr_ClearPending();
 	power_isr_StartEx(power_interrupt);
+
+	// Initialize SD filesystem library
 	FS_Init();
 	sd_ok = 1;
 	char date_str[32], run_str[64];
 
-	if(FS_GetNumVolumes() == 1)
+	if(FS_GetNumVolumes() == 1) // if a volume exists
 	{
 		FS_SetFileWriteMode(FS_WRITEMODE_FAST);
 
+
+		// Create a "LOGS" directory if it doesn't exist
 		if(FS_ATTR_DIRECTORY != FS_GetFileAttributes("logs")) // if logs not a dir
 			if(FS_MkDir("logs"))
 			{
@@ -63,16 +64,14 @@ void sd_init(Time time)
 				return;
 			} // if logs folder can't be created
 
-		// insert time getting
-
 		
+		// Set a new time if a time setting file exists
 		if((pfile = FS_FOpen(set_time_file, "r")))
 		{
-			char buffer[64];
+			char buffer[DATE_STR_LEN];
 			char *ptr;
 			uint16_t num;
 			Time tmp_time;
-
 
 			/* Time Setting File (set_time.txt) Format
 				Enter the following two lines of text in a file called "set_time.txt" in
@@ -82,7 +81,7 @@ void sd_init(Time time)
 				[month]/[day]/[year]
 				[24-hour]:[minute]:[second]
 			*/
-			FS_Read(pfile, buffer, 64); // read entire file
+			FS_Read(pfile, buffer, DATE_STR_LEN); // read entire file
 
 			ptr = strtok(buffer, "/: \r\n"); // month
 			num = atoi(ptr);
@@ -118,10 +117,10 @@ void sd_init(Time time)
 		} // try to find file and set time
 
 
-
 		// get time and date for naming day folder
 		sprintf(date_str, "\\logs\\%u-%u-%u", time.month, time.day, time.year);
 
+		// create folder for date if it doesn't exist
 		if(FS_ATTR_DIRECTORY != FS_GetFileAttributes(date_str)) // if day not a dir
 			if(FS_MkDir(date_str))
 			{
@@ -132,7 +131,7 @@ void sd_init(Time time)
 		sprintf(run_str, "%s\\%u-%u-%u.csv", date_str, time.hour, time.minute,
 			time.second);
 
-		pfile = FS_FOpen(run_str, "w"); // open test file
+		pfile = FS_FOpen(run_str, "w"); // open file for the run
 
 		if(pfile == NULL)
 		{
@@ -140,7 +139,7 @@ void sd_init(Time time)
 			return;
 		} // if file does not exist
 
-		// Set file time here
+		// Set file time
 		FS_FILETIME file_time;
 		unsigned long file_time_string;
 		
@@ -155,22 +154,7 @@ void sd_init(Time time)
 		FS_SetFileTime(run_str, file_time_string);
 	} // if a single file volume exists
   
-  FS_Sync("");
-/*
-	FS_Write(pfile, "Type,Time,Value,ID\n", 19);
-
-	// test data writing
-	char buffer[128];
-	short length = 0;
-
-	// test write
-	length = sprintf(buffer, "%u,%u,%llu,%u\n", 1,
-			0xFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 517);
-	FS_Write(pfile, buffer, length);
-
-	sd_stop(); // for testing
-	sd_ok = 0; // for testing
-	*/
+  FS_Sync(""); // flush all changes to disk
 } // sd_init()
 
 
@@ -181,6 +165,13 @@ void sd_init(Time time)
 
 	Writes all messages in data_queue to the SD card. Synchronizes the filesystem
 	after all messages are written.
+
+
+	Format:
+	Each CAN message is written on its own line in comma separate (CSV) format.
+
+	[CAN ID],[millicounter timestamp],[CAN DATA, where each byte is separate by a comma]
+
 */
 void sd_push(const DataPacket* data_queue, uint16_t data_head,
 	uint16_t data_tail)
