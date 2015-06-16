@@ -5,7 +5,6 @@
 
 #define CAN_QUEUE_LENGTH 1024
 #define DATA_QUEUE_LENGTH 1024
-#define USB_QUEUE_LENGTH 256
 
  
 
