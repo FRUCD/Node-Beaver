@@ -22,5 +22,6 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 
 //void usb_get();
 
+void usb_filterResult(uint16_t CANIDs[], uint8_t length);
 
 #endif

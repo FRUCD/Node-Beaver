@@ -1,7 +1,34 @@
 #include "usb_manager.h"
 #include "can_manager.h"
+#include <stdbool.h>
 
 uint8_t test_usb_message[8] = {'P','S','o','C','!','!','\r','\n'};
+static uint16_t* CANID_white_list = NULL;
+static uint8_t CANID_length = 0;
+static uint16_t CANID_list_default[] =
+{
+	0x000, // NMT message
+	0x003, // Current Data
+	0x0A6, // Emergency
+	0x111, // Logger test message
+	0x181, // TPDO1 Current Control
+	0x188, // Pack Status
+	0x1A6, // PDO1-MISO
+	0x226, // PDO1-MOSI
+	0x281, // TPDO5 Motor and Throttle
+	0x2A6, // PDO2-MISO
+	0x326, // PDO2-MOSI
+	0x381, // TPDO4 Sensors
+	0x388, // Voltage Data
+	0x481, // TPDO2 Controls
+	0x488, // Temperature
+	0x501, // TPDO3 Operation Params
+	0x5A6, // SDO-MISO
+	0x626, // SDO-MOSI
+	0x726  // Heartbeat
+};
+static uint8_t CANID_length_default = 19;
+
 
 extern uint16_t can_head, can_tail;
 
@@ -15,9 +42,16 @@ extern uint16_t can_head, can_tail;
 void usb_init(void)
 {
 	USBUART_1_Start(0, USBUART_1_3V_OPERATION);
+	CANID_white_list = CANID_list_default;
+	CANID_length = CANID_length_default;
 } // usb_init()
 
 
+void usb_filterResult(uint16_t CANIDs[], uint8_t length)
+{
+	CANID_white_list = CANIDs;
+	CANID_length = length;
+}
 
 /* usb_put()
 	Takes a DataPacket queue (data_queue) with a head and a tail index to the
@@ -45,6 +79,21 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 
 		for(pos=data_head; pos!=data_tail; pos=(pos+1)%DATA_QUEUE_LENGTH)
 		{
+			bool shouldDisplayMessage = false;
+			uint8_t i = 0;
+			for (i = 0; i < CANID_length; i++)
+			{
+				if (data_queue[pos].id == CANID_white_list[i])
+				{
+					shouldDisplayMessage = true;
+					break;
+				}
+			}
+			if (!shouldDisplayMessage)
+			{
+				continue;
+			}
+
 			num_char = sprintf(buffer,
 				"%ums\t0x%03X\t"
 				"Value %02X %02X %02X %02X  %02X %02X %02X %02X \r\n",
