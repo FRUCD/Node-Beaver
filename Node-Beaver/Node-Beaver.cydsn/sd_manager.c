@@ -1,25 +1,30 @@
 #include "sd_manager.h"
-
+#include <stdbool.h>
 
 
 FS_FILE* pfile;
 uint8_t sd_ok = 0;
 
 const char set_time_file[] = "\\logs\\set_time.txt";
-
+static bool powerOnAgain = false;
 
 
 CY_ISR(power_interrupt) // Triggers when shutdown detected
 {
 	//LED_Write(1);
+    power_isr_Disable();
 	sd_stop();
 	power_isr_ClearPending();
+    powerOnAgain = false;
 	//CyDelay(10);
 	//LED_Write(0);
-	CySoftwareReset();
-	for(;;); // halt program
+	//CySoftwareReset();
+	for(;;) {
+        if (power_comp_GetCompare()) {
+            CySoftwareReset();
+        }
+    }
 } // CY_ISR(power_interrupt)
-
 
 
 
