@@ -51,9 +51,9 @@ void time_init(void)
 	byte = rtc_i2c_MasterReadByte(0);
 	rtc_i2c_MasterSendStop();
 
-	rtc_i2c_MasterSendStart(RTC_ADDR, 0); // Set 24 hour bit
+	rtc_i2c_MasterSendStart(RTC_ADDR, 0); // Reset 24 hour bit for 24 hour mode
 	rtc_i2c_MasterWriteByte(RTC_HOURS);
-	rtc_i2c_MasterWriteByte(0x40 | byte);
+	rtc_i2c_MasterWriteByte(~0x40 & byte);
 	rtc_i2c_MasterSendStop();
 
 	time_refresh_isr_StartEx(time_refresh_vector); // enable 10 second isr
@@ -146,7 +146,7 @@ void time_set(Time now)
 
 	byte = now.hour % 10; // hour
 	byte |= (now.hour / 10) << 4; // 10 hour
-	rtc_i2c_MasterWriteByte(byte);
+	rtc_i2c_MasterWriteByte(~0x40 & byte);
 
 	rtc_i2c_MasterSendStop(); // End Receiving
 

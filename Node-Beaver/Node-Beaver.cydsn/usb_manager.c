@@ -1,6 +1,7 @@
 #include "usb_manager.h"
 #include "can_manager.h"
 #include <stdbool.h>
+#include <stdint.h>
 
 uint8_t test_usb_message[8] = {'P','S','o','C','!','!','\r','\n'};
 static uint16_t* CANID_white_list = NULL;
@@ -11,6 +12,7 @@ static uint16_t CANID_list_default[] =
 	0x003, // Current Data
 	0x0A6, // Emergency
 	0x111, // Logger test message
+    0x123, // Timer manager ID
 	0x181, // TPDO1 Current Control
 	0x188, // Pack Status
 	0x1A6, // PDO1-MISO
@@ -27,10 +29,12 @@ static uint16_t CANID_list_default[] =
 	0x626, // SDO-MOSI
 	0x726  // Heartbeat
 };
-static uint8_t CANID_length_default = 19;
+static uint8_t CANID_length_default = 20;
 
 
 extern uint16_t can_head, can_tail;
+
+uint32_t usb_generateDisplay(DataPacket data, char* buf);
 
 
 /* usb_init()
@@ -83,6 +87,8 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 			uint8_t i = 0;
 			for (i = 0; i < CANID_length; i++)
 			{
+				uint16_t id1 = data_queue[pos].id;
+				uint16_t id2 = CANID_white_list[i];
 				if (data_queue[pos].id == CANID_white_list[i])
 				{
 					shouldDisplayMessage = true;
@@ -94,18 +100,19 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 				continue;
 			}
 
-			num_char = sprintf(buffer,
-				"%ums\t0x%03X\t"
-				"Value %02X %02X %02X %02X  %02X %02X %02X %02X \r\n",
-				(unsigned)data_queue[pos].millicounter, data_queue[pos].id,
-				data_queue[pos].data[0],
-				data_queue[pos].data[1],
-				data_queue[pos].data[2],
-				data_queue[pos].data[3],
-				data_queue[pos].data[4],
-				data_queue[pos].data[5],
-				data_queue[pos].data[6],
-				data_queue[pos].data[7]);
+			num_char = usb_generateDisplay(data_queue[pos], buffer);
+			// num_char = sprintf(buffer,
+			// 	"%ums\t0x%03X\t"
+			// 	"Value %02X %02X %02X %02X  %02X %02X %02X %02X \r\n",
+			// 	(unsigned)data_queue[pos].millicounter, data_queue[pos].id,
+			// 	data_queue[pos].data[0],
+			// 	data_queue[pos].data[1],
+			// 	data_queue[pos].data[2],
+			// 	data_queue[pos].data[3],
+			// 	data_queue[pos].data[4],
+			// 	data_queue[pos].data[5],
+			// 	data_queue[pos].data[6],
+			// 	data_queue[pos].data[7]);
 
 			while(USBUART_1_CDCIsReady() == 0);
 			USBUART_1_PutData((uint8_t*)buffer, num_char);
@@ -133,6 +140,42 @@ void usb_put(const DataPacket* data_queue, uint16_t data_head,
 	}	// if configuration successful
 } // usb_send()
 
+
+		// data_queue[*data_tail].data[0] = 0;
+		// data_queue[*data_tail].data[1] = current_time.year >> 8;
+		// data_queue[*data_tail].data[2] = current_time.year;
+		// data_queue[*data_tail].data[3] = current_time.month;
+		// data_queue[*data_tail].data[4] = current_time.day;
+		// data_queue[*data_tail].data[5] = current_time.hour;
+		// data_queue[*data_tail].data[6] = current_time.minute;
+		// data_queue[*data_tail].data[7] = current_time.second;
+
+uint32_t usb_generateDisplay(DataPacket currentData, char* buf) {
+	switch (currentData.id) {
+		case 0x123: {
+			uint16_t year = ((currentData.data[1] << 8) & 0xFF00) | currentData.data[2];
+			return sprintf(buf,
+				"%02u:%02u:%02u %02u/%02u/%02u\r\n",
+				currentData.data[5], currentData.data[6], currentData.data[7],
+				currentData.data[3], currentData.data[4], year
+				);
+        }
+		default:
+			return sprintf(buf,
+				"%ums\t0x%03X\t"
+				"Value %02X %02X %02X %02X  %02X %02X %02X %02X \r\n",
+				(unsigned)currentData.millicounter, currentData.id,
+				currentData.data[0],
+				currentData.data[1],
+				currentData.data[2],
+				currentData.data[3],
+				currentData.data[4],
+				currentData.data[5],
+				currentData.data[6],
+				currentData.data[7]);
+	}
+	return 0;
+}
 
 /* usb_escape()
 	Takes a character buffer (buffer) with a pointer pointing to the end of it
